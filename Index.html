@@ -1,0 +1,510 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Daily Financial Planning Dashboard</title>
+
+  <!-- Simple, dependency-light styling -->
+  <style>
+    :root{
+      --bg:#0b1220;
+      --card:#111a2e;
+      --muted:#9fb0d0;
+      --text:#e7eefc;
+      --accent:#6ee7ff;
+      --line:rgba(255,255,255,.10);
+      --good:#2bd47d;
+      --bad:#ff5c7a;
+      --warn:#ffd166;
+      --shadow: 0 10px 30px rgba(0,0,0,.25);
+      --radius:16px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:var(--sans);
+      background: radial-gradient(1200px 600px at 20% -10%, rgba(110,231,255,.12), transparent 60%),
+                  radial-gradient(1000px 600px at 120% 10%, rgba(255,92,122,.10), transparent 55%),
+                  var(--bg);
+      color:var(--text);
+    }
+    header{
+      position:sticky; top:0; z-index:50;
+      backdrop-filter: blur(10px);
+      background: rgba(11,18,32,.75);
+      border-bottom:1px solid var(--line);
+    }
+    .wrap{max-width:1200px;margin:0 auto;padding:18px 16px}
+    .topbar{
+      display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;
+    }
+    .brand{
+      display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;
+    }
+    h1{margin:0;font-size:18px;letter-spacing:.2px}
+    .pill{
+      font-family:var(--mono);
+      font-size:12px;
+      padding:6px 10px;
+      border:1px solid var(--line);
+      border-radius:999px;
+      color:var(--muted);
+      background: rgba(255,255,255,.03);
+    }
+    .controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    button, select, input{
+      font:inherit;
+      color:var(--text);
+      background: rgba(255,255,255,.03);
+      border:1px solid var(--line);
+      border-radius:10px;
+      padding:8px 10px;
+      outline:none;
+    }
+    button:hover{border-color:rgba(110,231,255,.35)}
+    .grid{
+      display:grid;
+      grid-template-columns: 1.15fr .85fr;
+      gap:14px;
+      padding:16px;
+      max-width:1200px;
+      margin:0 auto;
+    }
+    @media (max-width: 980px){
+      .grid{grid-template-columns:1fr}
+    }
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+      border:1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .cardHead{
+      display:flex;align-items:center;justify-content:space-between;gap:12px;
+      padding:14px 14px;
+      border-bottom:1px solid var(--line);
+      background: rgba(0,0,0,.12);
+    }
+    .cardHead h2{
+      margin:0;
+      font-size:14px;
+      letter-spacing:.3px;
+      text-transform:uppercase;
+      color: rgba(231,238,252,.92);
+    }
+    .cardBody{padding:14px}
+    .muted{color:var(--muted)}
+    .split{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:12px;
+    }
+    @media (max-width: 680px){
+      .split{grid-template-columns:1fr}
+    }
+
+    /* News list */
+    .news{
+      display:flex; flex-direction:column; gap:10px;
+    }
+    .item{
+      padding:10px 10px;
+      border:1px solid var(--line);
+      border-radius:12px;
+      background: rgba(255,255,255,.02);
+    }
+    .item a{
+      color:var(--text);
+      text-decoration:none;
+    }
+    .item a:hover{color:var(--accent)}
+    .meta{
+      margin-top:6px;
+      font-size:12px;
+      color:var(--muted);
+      display:flex; gap:10px; flex-wrap:wrap;
+      font-family:var(--mono);
+    }
+
+    /* TradingView embed containers */
+    .tvWrap{
+      padding:0;
+    }
+    .tvBox{
+      min-height: 360px;
+    }
+    .tvSmall{
+      min-height: 220px;
+    }
+
+    /* Watchlist */
+    .watchlist{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+    .tag{
+      font-family:var(--mono);
+      font-size:12px;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.02);
+      color:var(--muted);
+    }
+
+    footer{
+      max-width:1200px;
+      margin:0 auto;
+      padding:0 16px 22px;
+      color:rgba(159,176,208,.85);
+      font-size:12px;
+      line-height:1.4;
+    }
+    footer code{font-family:var(--mono);font-size:12px}
+  </style>
+</head>
+
+<body>
+<header>
+  <div class="wrap">
+    <div class="topbar">
+      <div class="brand">
+        <h1>Daily Financial Planning Dashboard</h1>
+        <div class="pill" id="now">Loading time…</div>
+        <div class="pill" id="refreshNote">Refresh: 15m</div>
+      </div>
+
+      <div class="controls">
+        <label class="pill">TZ: Australia/Melbourne</label>
+        <select id="refreshMins" title="Auto refresh interval">
+          <option value="5">5 min</option>
+          <option value="10">10 min</option>
+          <option value="15" selected>15 min</option>
+          <option value="30">30 min</option>
+          <option value="0">Off</option>
+        </select>
+        <button id="btnReload">Reload now</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="grid">
+
+  <!-- LEFT COLUMN -->
+  <section class="card">
+    <div class="cardHead">
+      <h2>Market moves</h2>
+      <div class="muted" style="font-size:12px">Widgets: TradingView (no API key)</div>
+    </div>
+
+    <!-- Ticker Tape -->
+    <div class="cardBody tvWrap">
+      <div class="tvSmall" id="tv-ticker"></div>
+    </div>
+
+    <!-- Market Overview -->
+    <div class="cardBody tvWrap" style="padding-top:0">
+      <div class="tvBox" id="tv-overview"></div>
+    </div>
+
+    <div class="cardBody" style="padding-top:0">
+      <div class="muted" style="font-size:12px">
+        Tip: if you want “your” client-facing benchmark set, edit the symbols list in the script section.
+      </div>
+    </div>
+  </section>
+
+  <!-- RIGHT COLUMN -->
+  <section class="split">
+
+    <div class="card">
+      <div class="cardHead">
+        <h2>Top economic news (AU)</h2>
+        <div class="pill" id="ecoStatus">Loading…</div>
+      </div>
+      <div class="cardBody">
+        <div class="news" id="ecoNews"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="cardHead">
+        <h2>Top ASX company news</h2>
+        <div class="pill" id="asxStatus">Loading…</div>
+      </div>
+      <div class="cardBody">
+        <div class="news" id="asxNews"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="cardHead">
+        <h2>RBA media releases</h2>
+        <div class="pill" id="rbaStatus">Loading…</div>
+      </div>
+      <div class="cardBody">
+        <div class="news" id="rbaNews"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="cardHead">
+        <h2>Watchlist</h2>
+        <div class="muted" style="font-size:12px">Edit tickers in code</div>
+      </div>
+      <div class="cardBody">
+        <div class="watchlist" id="watchlist"></div>
+        <div class="muted" style="margin-top:10px;font-size:12px">
+          Optional upgrade: add your own paid data feed (Bloomberg/Refinitiv) or broker research feeds if your license permits.
+        </div>
+      </div>
+    </div>
+
+  </section>
+</main>
+
+<footer>
+  <p>
+    <strong>Compliance note:</strong> This dashboard is a workflow aid, not advice. Always verify prices/news with your primary approved sources
+    and record the evidence you rely on in your file note / CRM.
+  </p>
+  <p class="muted">
+    News is pulled via RSS (Google News searches + RBA RSS). Some sources may be paywalled; headlines still help triage.
+    If you want “ASX announcements” in a structured, complete way, ASX ComNews is an official info service (paid).  [oai_citation:3‡Australian Securities Exchange](https://www.asx.com.au/connectivity-and-data/information-services/company-news?utm_source=chatgpt.com)
+    RBA provides official RSS feeds.  [oai_citation:4‡Reserve Bank of Australia](https://www.rba.gov.au/updates/rss-feeds.html?utm_source=chatgpt.com)
+  </p>
+  <p class="muted">
+    If something doesn’t load, it’s usually browser CORS rules. This page uses <code>api.allorigins.win</code> as a public RSS proxy
+    (fine for a personal dashboard; for a business deployment, replace with your own proxy).
+  </p>
+</footer>
+
+<!-- TradingView script (official embed) -->
+<script async src="https://s3.tradingview.com/tv.js"></script>
+<script>
+  // ========= SETTINGS =========
+  const TZ = "Australia/Melbourne";
+
+  // Edit these to your preference (TradingView symbols)
+  const MARKET_SYMBOLS = [
+    { proName: "ASX:XJO", title: "ASX 200" },
+    { proName: "FX:AUDUSD", title: "AUDUSD" },
+    { proName: "TVC:US10Y", title: "US 10Y" },
+    { proName: "TVC:GOLD", title: "Gold" },
+    { proName: "TVC:SPX", title: "S&P 500" },
+    { proName: "NASDAQ:NDX", title: "NASDAQ 100" },
+    { proName: "TVC:VIX", title: "VIX" },
+    { proName: "BITSTAMP:BTCUSD", title: "BTCUSD" }
+  ];
+
+  const WATCHLIST = [
+    "ASX:CBA","ASX:BHP","ASX:CSL","ASX:NAB","ASX:WES","ASX:MQG","ASX:TLS","ASX:WOW",
+    "NASDAQ:MSFT","NASDAQ:AAPL","NASDAQ:NVDA","NYSE:BRK.B"
+  ];
+
+  // RSS via Google News (AU)
+  // Docs are unofficial; parameters are widely used.  [oai_citation:5‡docs.feedly.com](https://docs.feedly.com/article/375-what-are-some-of-the-advanced-keyword-alerts-google-news-search-parameters?utm_source=chatgpt.com)
+  const RSS_ECON_AU = "https://news.google.com/rss/search?q=(RBA%20OR%20inflation%20OR%20CPI%20OR%20jobs%20OR%20GDP%20OR%20rates)%20Australia%20when:7d&hl=en-AU&gl=AU&ceid=AU:en";
+  const RSS_ASX_NEWS = "https://news.google.com/rss/search?q=(ASX%20200%20OR%20ASX%20listed%20company%20OR%20earnings%20OR%20profit%20upgrade%20OR%20profit%20warning)%20Australia%20when:7d&hl=en-AU&gl=AU&ceid=AU:en";
+
+  // RBA RSS (official index lists feeds; we'll use the Media Releases feed URL directly via proxy)
+  // The RBA provides RSS feeds.  [oai_citation:6‡Reserve Bank of Australia](https://www.rba.gov.au/updates/rss-feeds.html?utm_source=chatgpt.com)
+  const RSS_RBA_MEDIA = "https://www.rba.gov.au/rss/rss-cb.xml"; // RBA "Central Bank" updates (often includes media releases/decisions)
+  // If you'd prefer a different RBA feed, swap the URL above with another from the RBA RSS index page.
+
+  // Public CORS proxy for RSS (replace with your own for business use)
+  const PROXY = (url) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
+
+  // ========= UI HELPERS =========
+  function setNow(){
+    const d = new Date();
+    const fmt = new Intl.DateTimeFormat("en-AU", {
+      timeZone: TZ,
+      weekday:"short", year:"numeric", month:"short", day:"2-digit",
+      hour:"2-digit", minute:"2-digit"
+    });
+    document.getElementById("now").textContent = fmt.format(d);
+  }
+
+  function escapeHtml(s){
+    return (s||"").replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  }
+
+  function parseRSS(xmlText){
+    const parser = new DOMParser();
+    const xml = parser.parseFromString(xmlText, "text/xml");
+    const items = Array.from(xml.querySelectorAll("item")).slice(0, 8).map(item => ({
+      title: item.querySelector("title")?.textContent || "",
+      link: item.querySelector("link")?.textContent || "",
+      pubDate: item.querySelector("pubDate")?.textContent || "",
+      source: item.querySelector("source")?.textContent || xml.querySelector("channel > title")?.textContent || ""
+    }));
+    return items;
+  }
+
+  function renderNews(elId, items){
+    const el = document.getElementById(elId);
+    if(!items.length){
+      el.innerHTML = `<div class="muted">No items loaded.</div>`;
+      return;
+    }
+    el.innerHTML = items.map(it => {
+      const dateStr = it.pubDate ? new Date(it.pubDate).toLocaleString("en-AU", { timeZone: TZ }) : "";
+      const src = escapeHtml(it.source || "");
+      return `
+        <div class="item">
+          <a href="${it.link}" target="_blank" rel="noopener noreferrer">${escapeHtml(it.title)}</a>
+          <div class="meta">
+            ${src ? `<span>${src}</span>` : ""}
+            ${dateStr ? `<span>${dateStr}</span>` : ""}
+          </div>
+        </div>
+      `;
+    }).join("");
+  }
+
+  async function loadFeed(feedUrl, statusId, listId){
+    const status = document.getElementById(statusId);
+    try{
+      status.textContent = "Loading…";
+      const res = await fetch(PROXY(feedUrl), { cache: "no-store" });
+      const text = await res.text();
+      const items = parseRSS(text);
+      renderNews(listId, items);
+      status.textContent = `Loaded: ${items.length}`;
+    }catch(e){
+      console.error(e);
+      status.textContent = "Failed";
+      document.getElementById(listId).innerHTML = `<div class="muted">Couldn’t load feed. (Often CORS/proxy rate-limit.) Try Reload.</div>`;
+    }
+  }
+
+  function renderWatchlist(){
+    const el = document.getElementById("watchlist");
+    el.innerHTML = WATCHLIST.map(t => `<span class="tag">${escapeHtml(t)}</span>`).join("");
+  }
+
+  // ========= TRADINGVIEW WIDGETS =========
+  function buildTradingView(){
+    // Ticker Tape
+    const tickerDiv = document.getElementById("tv-ticker");
+    tickerDiv.innerHTML = `
+      <div class="tradingview-widget-container">
+        <div class="tradingview-widget-container__widget"></div>
+        <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js" async>
+        {
+          "symbols": ${JSON.stringify(MARKET_SYMBOLS)},
+          "showSymbolLogo": true,
+          "isTransparent": true,
+          "displayMode": "adaptive",
+          "colorTheme": "dark",
+          "locale": "en"
+        }
+        </script>
+      </div>
+    `;
+
+    // Market Overview
+    const ovDiv = document.getElementById("tv-overview");
+    ovDiv.innerHTML = `
+      <div class="tradingview-widget-container">
+        <div class="tradingview-widget-container__widget"></div>
+        <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-market-overview.js" async>
+        {
+          "colorTheme": "dark",
+          "dateRange": "12M",
+          "showChart": true,
+          "locale": "en",
+          "width": "100%",
+          "height": "520",
+          "largeChartUrl": "",
+          "isTransparent": true,
+          "showSymbolLogo": true,
+          "showFloatingTooltip": true,
+          "tabs": [
+            {
+              "title": "Australia",
+              "symbols": [
+                {"s":"ASX:XJO","d":"ASX 200"},
+                {"s":"ASX:VGS","d":"Vanguard Intl Shares"},
+                {"s":"ASX:VAS","d":"Vanguard Aus Shares"},
+                {"s":"ASX:A200","d":"BetaShares A200"},
+                {"s":"ASX:CBA","d":"CBA"},
+                {"s":"ASX:BHP","d":"BHP"},
+                {"s":"ASX:CSL","d":"CSL"}
+              ]
+            },
+            {
+              "title": "US",
+              "symbols": [
+                {"s":"TVC:SPX","d":"S&P 500"},
+                {"s":"NASDAQ:NDX","d":"NASDAQ 100"},
+                {"s":"NASDAQ:NVDA","d":"NVIDIA"},
+                {"s":"NASDAQ:MSFT","d":"Microsoft"},
+                {"s":"NASDAQ:AAPL","d":"Apple"}
+              ]
+            },
+            {
+              "title": "Rates & FX",
+              "symbols": [
+                {"s":"TVC:US10Y","d":"US 10Y"},
+                {"s":"FX:AUDUSD","d":"AUDUSD"},
+                {"s":"FX:EURUSD","d":"EURUSD"}
+              ]
+            },
+            {
+              "title": "Commodities",
+              "symbols": [
+                {"s":"TVC:GOLD","d":"Gold"},
+                {"s":"TVC:UKOIL","d":"Brent"},
+                {"s":"TVC:USOIL","d":"WTI"}
+              ]
+            }
+          ]
+        }
+        </script>
+      </div>
+    `;
+  }
+
+  // ========= AUTO REFRESH =========
+  let timer = null;
+
+  function applyRefresh(){
+    const mins = Number(document.getElementById("refreshMins").value);
+    document.getElementById("refreshNote").textContent = mins ? `Refresh: ${mins}m` : "Refresh: Off";
+
+    if(timer) clearInterval(timer);
+    if(mins > 0){
+      timer = setInterval(() => reloadAll(), mins * 60 * 1000);
+    }
+  }
+
+  async function reloadAll(){
+    setNow();
+    await Promise.all([
+      loadFeed(RSS_ECON_AU, "ecoStatus", "ecoNews"),
+      loadFeed(RSS_ASX_NEWS, "asxStatus", "asxNews"),
+      loadFeed(RSS_RBA_MEDIA, "rbaStatus", "rbaNews")
+    ]);
+  }
+
+  // ========= INIT =========
+  document.getElementById("btnReload").addEventListener("click", reloadAll);
+  document.getElementById("refreshMins").addEventListener("change", applyRefresh);
+
+  setNow();
+  renderWatchlist();
+  buildTradingView();
+  applyRefresh();
+  reloadAll();
+</script>
+
+</body>
+</html>
