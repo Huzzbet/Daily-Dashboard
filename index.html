@@ -79,35 +79,15 @@ main{
   color:var(--muted);
 }
 
-.cardBody{padding:16px}
-
-/* ===== DAILY SNAPSHOT TILES ===== */
-.tiles{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(170px,1fr));
-  gap:14px;
-}
-
-.tile{
+.cardBody{
   padding:16px;
-  border-radius:14px;
-  border:1px solid var(--line);
-  background:rgba(255,255,255,.03);
 }
 
-.tile strong{font-size:14px}
-
-.price{
-  margin-top:8px;
-  font-family:var(--mono);
-  font-size:18px;
-}
-
-/* ===== TABLES ===== */
 .tableWrap{
   overflow-x:auto;
 }
 
+/* ===== TABLE ===== */
 table{
   width:100%;
   border-collapse:collapse;
@@ -115,14 +95,21 @@ table{
 }
 
 thead{
-  background:rgba(255,255,255,.03);
+  background:rgba(255,255,255,.04);
 }
 
 th, td{
   padding:10px 12px;
   border-bottom:1px solid var(--line);
-  text-align:right;
   white-space:nowrap;
+}
+
+th{
+  font-size:12px;
+  text-transform:uppercase;
+  letter-spacing:.5px;
+  color:var(--muted);
+  text-align:right;
 }
 
 th:first-child,
@@ -132,7 +119,7 @@ td:first-child{
 }
 
 tbody tr:hover{
-  background:rgba(255,255,255,.02);
+  background:rgba(255,255,255,.025);
 }
 
 /* ===== COLOURS ===== */
@@ -161,136 +148,84 @@ footer{
 
 <main>
 
-<!-- ================= DAILY SNAPSHOT ================= -->
+<!-- ================= CONSOLIDATED MARKET TABLE ================= -->
 <section class="card">
   <div class="cardHead">
-    <strong>Daily Market Snapshot</strong>
-    <span>1-day move</span>
+    <strong>Market Performance Overview</strong>
+    <span>Daily · YTD · 2025</span>
   </div>
-  <div class="cardBody tiles">
 
-    <div class="tile">
-      <strong>ASX 200</strong>
-      <div class="price up">7,482.3<br>▲ +0.62%</div>
-    </div>
-
-    <div class="tile">
-      <strong>S&amp;P 500</strong>
-      <div class="price down">4,892.3<br>▼ -0.31%</div>
-    </div>
-
-    <div class="tile">
-      <strong>AUD / USD</strong>
-      <div class="price up">0.6721<br>▲ +0.48%</div>
-    </div>
-
-    <div class="tile">
-      <strong>US 10Y Yield</strong>
-      <div class="price down">4.12%<br>▼ -6 bps</div>
-    </div>
-
-    <div class="tile">
-      <strong>Gold</strong>
-      <div class="price up">2,048<br>▲ +1.10%</div>
-    </div>
-
-    <div class="tile">
-      <strong>VIX</strong>
-      <div class="price down">13.8<br>▼ -4.2%</div>
-    </div>
-
-  </div>
-</section>
-
-<!-- ================= YTD TABLE ================= -->
-<section class="card">
-  <div class="cardHead">
-    <strong>Calendar Year-to-Date Performance</strong>
-    <span>2026 YTD</span>
-  </div>
   <div class="cardBody tableWrap">
-
     <table>
       <thead>
         <tr>
           <th>Asset</th>
-          <th>YTD Return</th>
+          <th>Level</th>
+          <th>1-Day</th>
+          <th>2026 YTD</th>
+          <th>2025 CY</th>
         </tr>
       </thead>
       <tbody>
+
         <tr>
           <td>ASX 200</td>
+          <td>7,482.3</td>
+          <td class="up">+0.62%</td>
           <td class="up">+3.4%</td>
-        </tr>
-        <tr>
-          <td>S&amp;P 500</td>
-          <td class="up">+1.9%</td>
-        </tr>
-        <tr>
-          <td>NASDAQ</td>
-          <td class="down">-0.8%</td>
-        </tr>
-        <tr>
-          <td>Gold</td>
-          <td class="up">+2.7%</td>
-        </tr>
-        <tr>
-          <td>US 10Y Yield</td>
-          <td class="down">-14 bps</td>
-        </tr>
-        <tr>
-          <td>VIX</td>
-          <td class="down">-9.5%</td>
-        </tr>
-      </tbody>
-    </table>
-
-  </div>
-</section>
-
-<!-- ================= 2025 TABLE ================= -->
-<section class="card">
-  <div class="cardHead">
-    <strong>2025 Calendar Year Performance</strong>
-    <span>Full-year return</span>
-  </div>
-  <div class="cardBody tableWrap">
-
-    <table>
-      <thead>
-        <tr>
-          <th>Asset</th>
-          <th>2025 Return</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>ASX 200</td>
           <td class="up">+9.8%</td>
         </tr>
+
         <tr>
           <td>S&amp;P 500</td>
+          <td>4,892.3</td>
+          <td class="down">-0.31%</td>
+          <td class="up">+1.9%</td>
           <td class="up">+22.4%</td>
         </tr>
+
         <tr>
           <td>NASDAQ</td>
+          <td>—</td>
+          <td class="neutral">—</td>
+          <td class="down">-0.8%</td>
           <td class="up">+31.6%</td>
         </tr>
-        <tr>
-          <td>Gold</td>
-          <td class="up">+13.2%</td>
-        </tr>
+
         <tr>
           <td>AUD / USD</td>
+          <td>0.6721</td>
+          <td class="up">+0.48%</td>
+          <td class="neutral">—</td>
           <td class="down">-4.1%</td>
         </tr>
+
+        <tr>
+          <td>US 10Y Yield</td>
+          <td>4.12%</td>
+          <td class="down">-6 bps</td>
+          <td class="down">-14 bps</td>
+          <td class="neutral">—</td>
+        </tr>
+
+        <tr>
+          <td>Gold</td>
+          <td>2,048</td>
+          <td class="up">+1.10%</td>
+          <td class="up">+2.7%</td>
+          <td class="up">+13.2%</td>
+        </tr>
+
         <tr>
           <td>VIX</td>
+          <td>13.8</td>
+          <td class="down">-4.2%</td>
+          <td class="down">-9.5%</td>
           <td class="down">-18.7%</td>
         </tr>
+
       </tbody>
     </table>
-
   </div>
 </section>
 
@@ -302,10 +237,10 @@ footer{
   <div class="cardBody">
     <p><strong>Market tone:</strong> <span class="up">Risk-on</span></p>
     <ul>
-      <li>Equities mixed following strong 2025 gains</li>
+      <li>Equities consolidated following strong 2025 performance</li>
       <li>Bond yields eased, supporting gold and growth assets</li>
-      <li>AUD strengthened as USD softened</li>
-      <li>Volatility remains below long-run averages</li>
+      <li>AUD strengthened on softer USD and firm commodities</li>
+      <li>Volatility remains well below long-run averages</li>
     </ul>
   </div>
 </section>
