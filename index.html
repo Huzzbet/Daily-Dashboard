@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Daily Market Dashboard</title>
+<title>Market Dashboard | Adviser Daily Brief</title>
 
 <style>
 :root{
@@ -27,16 +27,23 @@ body{
   font-family:var(--sans);
   background:radial-gradient(1200px 600px at 50% -10%,#162044,#0b1220);
   color:var(--text);
+  line-height:1.45;
 }
 
+/* ===== HEADER ===== */
 header{
   position:sticky;
   top:0;
   z-index:10;
-  padding:16px;
-  background:rgba(11,18,32,.85);
+  padding:18px 20px;
+  background:rgba(11,18,32,.88);
   backdrop-filter:blur(10px);
   border-bottom:1px solid var(--line);
+}
+
+.headerWrap{
+  max-width:1300px;
+  margin:auto;
 }
 
 h1{
@@ -52,26 +59,43 @@ h1{
   font-family:var(--mono);
 }
 
+/* ===== PAGE ===== */
 main{
-  max-width:1200px;
+  max-width:1300px;
   margin:auto;
-  padding:16px;
+  padding:20px;
 }
 
+/* ===== GRID ===== */
+.grid{
+  display:grid;
+  grid-template-columns: 2.2fr 1.3fr;
+  gap:20px;
+}
+
+@media(max-width:900px){
+  .grid{grid-template-columns:1fr}
+}
+
+/* ===== CARDS ===== */
 .card{
   background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.01));
   border:1px solid var(--line);
   border-radius:var(--radius);
   box-shadow:var(--shadow);
-  margin-bottom:16px;
+  margin-bottom:20px;
 }
 
 .cardHead{
-  padding:14px 16px;
+  padding:14px 18px;
   border-bottom:1px solid var(--line);
   display:flex;
   justify-content:space-between;
   align-items:center;
+}
+
+.cardHead strong{
+  font-size:14px;
 }
 
 .cardHead span{
@@ -80,14 +104,12 @@ main{
 }
 
 .cardBody{
-  padding:16px;
+  padding:18px;
 }
 
-.tableWrap{
-  overflow-x:auto;
-}
+/* ===== TABLES ===== */
+.tableWrap{overflow-x:auto}
 
-/* ===== TABLE ===== */
 table{
   width:100%;
   border-collapse:collapse;
@@ -99,7 +121,7 @@ thead{
 }
 
 th, td{
-  padding:10px 12px;
+  padding:12px 14px;
   border-bottom:1px solid var(--line);
   white-space:nowrap;
 }
@@ -119,7 +141,18 @@ td:first-child{
 }
 
 tbody tr:hover{
-  background:rgba(255,255,255,.025);
+  background:rgba(255,255,255,.03);
+}
+
+/* ===== NEWS TABLE ===== */
+.news a{
+  color:var(--text);
+  text-decoration:none;
+}
+
+.news a:hover{
+  color:#6ee7ff;
+  text-decoration:underline;
 }
 
 /* ===== COLOURS ===== */
@@ -128,9 +161,9 @@ tbody tr:hover{
 .neutral{color:var(--muted)}
 
 footer{
-  max-width:1200px;
-  margin:32px auto 16px;
-  padding:0 16px;
+  max-width:1300px;
+  margin:40px auto 20px;
+  padding:0 20px;
   font-size:12px;
   color:var(--muted);
 }
@@ -140,15 +173,21 @@ footer{
 <body>
 
 <header>
-  <h1>Daily Market Dashboard</h1>
-  <div class="sub">
-    Wednesday 11 January 2026 · Australia / Melbourne · Internal Use
+  <div class="headerWrap">
+    <h1>Adviser Market Dashboard</h1>
+    <div class="sub">
+      Wednesday 11 January 2026 · Australia / Melbourne · Internal Use
+    </div>
   </div>
 </header>
 
 <main>
 
-<!-- ================= CONSOLIDATED MARKET TABLE ================= -->
+<div class="grid">
+
+<!-- ================= LEFT: MARKETS ================= -->
+<div>
+
 <section class="card">
   <div class="cardHead">
     <strong>Market Performance Overview</strong>
@@ -167,7 +206,6 @@ footer{
         </tr>
       </thead>
       <tbody>
-
         <tr>
           <td>ASX 200</td>
           <td>7,482.3</td>
@@ -175,7 +213,6 @@ footer{
           <td class="up">+3.4%</td>
           <td class="up">+9.8%</td>
         </tr>
-
         <tr>
           <td>S&amp;P 500</td>
           <td>4,892.3</td>
@@ -183,7 +220,6 @@ footer{
           <td class="up">+1.9%</td>
           <td class="up">+22.4%</td>
         </tr>
-
         <tr>
           <td>NASDAQ</td>
           <td>—</td>
@@ -191,7 +227,6 @@ footer{
           <td class="down">-0.8%</td>
           <td class="up">+31.6%</td>
         </tr>
-
         <tr>
           <td>AUD / USD</td>
           <td>0.6721</td>
@@ -199,7 +234,6 @@ footer{
           <td class="neutral">—</td>
           <td class="down">-4.1%</td>
         </tr>
-
         <tr>
           <td>US 10Y Yield</td>
           <td>4.12%</td>
@@ -207,7 +241,6 @@ footer{
           <td class="down">-14 bps</td>
           <td class="neutral">—</td>
         </tr>
-
         <tr>
           <td>Gold</td>
           <td>2,048</td>
@@ -215,7 +248,6 @@ footer{
           <td class="up">+2.7%</td>
           <td class="up">+13.2%</td>
         </tr>
-
         <tr>
           <td>VIX</td>
           <td>13.8</td>
@@ -223,27 +255,79 @@ footer{
           <td class="down">-9.5%</td>
           <td class="down">-18.7%</td>
         </tr>
-
       </tbody>
     </table>
   </div>
 </section>
 
-<!-- ================= MORNING BRIEF ================= -->
+</div>
+
+<!-- ================= RIGHT: NEWS ================= -->
+<div>
+
 <section class="card">
   <div class="cardHead">
-    <strong>Morning Market Brief</strong>
+    <strong>Financial Planning & Adviser News</strong>
+    <span>Latest</span>
   </div>
-  <div class="cardBody">
-    <p><strong>Market tone:</strong> <span class="up">Risk-on</span></p>
-    <ul>
-      <li>Equities consolidated following strong 2025 performance</li>
-      <li>Bond yields eased, supporting gold and growth assets</li>
-      <li>AUD strengthened on softer USD and firm commodities</li>
-      <li>Volatility remains well below long-run averages</li>
-    </ul>
+
+  <div class="cardBody tableWrap news">
+    <table>
+      <thead>
+        <tr>
+          <th>Headline</th>
+          <th>Source</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>
+            <a href="https://www.ifa.com.au/property-dominates-the-thoughts-of-aspirational-investors/" target="_blank">
+              Property still dominates investor thinking despite diversification risks
+            </a>
+          </td>
+          <td>IFA</td>
+        </tr>
+        <tr>
+          <td>
+            <a href="https://www.moneymanagement.com.au/hnw-female-investors-defying-risk-averse-stereotypes/" target="_blank">
+              HNW female investors defy risk-averse stereotypes
+            </a>
+          </td>
+          <td>Money Management</td>
+        </tr>
+        <tr>
+          <td>
+            <a href="https://www.investordaily.com.au/regulation/53969-asic-steps-up-focus-on-advice-compliance" target="_blank">
+              ASIC steps up focus on advice compliance and governance
+            </a>
+          </td>
+          <td>Investor Daily</td>
+        </tr>
+        <tr>
+          <td>
+            <a href="https://www.ifa.com.au/regulation/financial-advice-reforms-continue-to-pressure-small-firms/" target="_blank">
+              Advice reforms continue to pressure small planning firms
+            </a>
+          </td>
+          <td>IFA</td>
+        </tr>
+        <tr>
+          <td>
+            <a href="https://www.investordaily.com.au/superannuation/industry-funds-and-advisers-face-new-scrutiny" target="_blank">
+              Superannuation scrutiny increases for advisers and trustees
+            </a>
+          </td>
+          <td>Investor Daily</td>
+        </tr>
+      </tbody>
+    </table>
   </div>
 </section>
+
+</div>
+
+</div>
 
 </main>
 
