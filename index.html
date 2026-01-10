@@ -73,6 +73,11 @@ main{
   align-items:center;
 }
 
+.cardHead span{
+  font-size:12px;
+  color:var(--muted);
+}
+
 .cardBody{padding:16px}
 
 .tiles{
@@ -98,6 +103,7 @@ main{
 
 .up{color:var(--good)}
 .down{color:var(--bad)}
+.neutral{color:var(--muted)}
 
 ul{
   margin:8px 0 0 18px;
@@ -127,10 +133,11 @@ footer{
 
 <main>
 
-<!-- MARKET SNAPSHOT -->
+<!-- DAILY SNAPSHOT -->
 <section class="card">
   <div class="cardHead">
-    <strong>Key Markets at a Glance</strong>
+    <strong>Daily Market Snapshot</strong>
+    <span>1-day move</span>
   </div>
   <div class="cardBody tiles">
 
@@ -167,6 +174,88 @@ footer{
   </div>
 </section>
 
+<!-- YTD PERFORMANCE -->
+<section class="card">
+  <div class="cardHead">
+    <strong>Calendar Year-to-Date Performance</strong>
+    <span>2026 YTD</span>
+  </div>
+  <div class="cardBody tiles">
+
+    <div class="tile">
+      <strong>ASX 200</strong>
+      <div class="price up">▲ +3.4%</div>
+    </div>
+
+    <div class="tile">
+      <strong>S&amp;P 500</strong>
+      <div class="price up">▲ +1.9%</div>
+    </div>
+
+    <div class="tile">
+      <strong>NASDAQ</strong>
+      <div class="price down">▼ -0.8%</div>
+    </div>
+
+    <div class="tile">
+      <strong>Gold</strong>
+      <div class="price up">▲ +2.7%</div>
+    </div>
+
+    <div class="tile">
+      <strong>US 10Y Yield</strong>
+      <div class="price down">▼ -14 bps</div>
+    </div>
+
+    <div class="tile">
+      <strong>VIX</strong>
+      <div class="price down">▼ -9.5%</div>
+    </div>
+
+  </div>
+</section>
+
+<!-- 2025 CALENDAR YEAR -->
+<section class="card">
+  <div class="cardHead">
+    <strong>2025 Calendar Year Performance</strong>
+    <span>Full-year return</span>
+  </div>
+  <div class="cardBody tiles">
+
+    <div class="tile">
+      <strong>ASX 200</strong>
+      <div class="price up">▲ +9.8%</div>
+    </div>
+
+    <div class="tile">
+      <strong>S&amp;P 500</strong>
+      <div class="price up">▲ +22.4%</div>
+    </div>
+
+    <div class="tile">
+      <strong>NASDAQ</strong>
+      <div class="price up">▲ +31.6%</div>
+    </div>
+
+    <div class="tile">
+      <strong>Gold</strong>
+      <div class="price up">▲ +13.2%</div>
+    </div>
+
+    <div class="tile">
+      <strong>AUD / USD</strong>
+      <div class="price down">▼ -4.1%</div>
+    </div>
+
+    <div class="tile">
+      <strong>VIX</strong>
+      <div class="price down">▼ -18.7%</div>
+    </div>
+
+  </div>
+</section>
+
 <!-- MORNING BRIEF -->
 <section class="card">
   <div class="cardHead">
@@ -175,10 +264,10 @@ footer{
   <div class="cardBody">
     <p><strong>Market tone:</strong> <span class="up">Risk-on</span></p>
     <ul>
-      <li>US equities eased despite softer bond yields</li>
-      <li>USD weaker supported AUD and commodities</li>
-      <li>Gold rebounded on real rate compression</li>
-      <li>Volatility declined further as macro risks eased</li>
+      <li>Equities mixed overnight as US markets consolidated after strong 2025 gains</li>
+      <li>Bond yields eased, supporting gold and growth assets</li>
+      <li>AUD strengthened on softer USD and commodity support</li>
+      <li>Volatility remains suppressed relative to long-run averages</li>
     </ul>
   </div>
 </section>
@@ -188,7 +277,7 @@ footer{
 <footer>
   <p>
     <strong>Important:</strong> This dashboard is provided for internal information purposes only
-    and does not constitute financial advice.
+    and does not constitute personal financial advice.
   </p>
 </footer>
 
