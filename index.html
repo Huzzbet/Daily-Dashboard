@@ -21,6 +21,7 @@
 }
 
 *{box-sizing:border-box}
+
 body{
   margin:0;
   font-family:var(--sans);
@@ -82,7 +83,7 @@ main{
 
 .tiles{
   display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+  grid-template-columns:repeat(auto-fit,minmax(170px,1fr));
   gap:14px;
 }
 
@@ -93,7 +94,9 @@ main{
   background:rgba(255,255,255,.03);
 }
 
-.tile strong{font-size:14px}
+.tile strong{
+  font-size:14px;
+}
 
 .price{
   margin-top:8px;
@@ -133,7 +136,7 @@ footer{
 
 <main>
 
-<!-- DAILY SNAPSHOT -->
+<!-- ================= DAILY SNAPSHOT ================= -->
 <section class="card">
   <div class="cardHead">
     <strong>Daily Market Snapshot</strong>
@@ -157,7 +160,7 @@ footer{
     </div>
 
     <div class="tile">
-      <strong>US 10Y</strong>
+      <strong>US 10Y Yield</strong>
       <div class="price down">4.12%<br>▼ -6 bps</div>
     </div>
 
@@ -174,7 +177,7 @@ footer{
   </div>
 </section>
 
-<!-- YTD PERFORMANCE -->
+<!-- ================= YTD PERFORMANCE ================= -->
 <section class="card">
   <div class="cardHead">
     <strong>Calendar Year-to-Date Performance</strong>
@@ -215,7 +218,7 @@ footer{
   </div>
 </section>
 
-<!-- 2025 CALENDAR YEAR -->
+<!-- ================= 2025 CALENDAR YEAR ================= -->
 <section class="card">
   <div class="cardHead">
     <strong>2025 Calendar Year Performance</strong>
@@ -256,7 +259,7 @@ footer{
   </div>
 </section>
 
-<!-- MORNING BRIEF -->
+<!-- ================= MORNING BRIEF ================= -->
 <section class="card">
   <div class="cardHead">
     <strong>Morning Market Brief</strong>
@@ -264,10 +267,10 @@ footer{
   <div class="cardBody">
     <p><strong>Market tone:</strong> <span class="up">Risk-on</span></p>
     <ul>
-      <li>Equities mixed overnight as US markets consolidated after strong 2025 gains</li>
+      <li>Equities mixed overnight following strong 2025 gains</li>
       <li>Bond yields eased, supporting gold and growth assets</li>
-      <li>AUD strengthened on softer USD and commodity support</li>
-      <li>Volatility remains suppressed relative to long-run averages</li>
+      <li>AUD strengthened as USD softened and commodities firmed</li>
+      <li>Volatility remains well below long-run averages</li>
     </ul>
   </div>
 </section>
