@@ -16,7 +16,7 @@
   --good:#3ad29f;
   --bad:#ff6b81;
   --shadow:0 8px 24px rgba(0,0,0,.25);
-  --radius:12px;
+  --radius:14px;
   --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
   --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial;
 }
@@ -34,7 +34,7 @@ header{
   top:0;
   z-index:50;
   background:rgba(11,18,32,.9);
-  backdrop-filter:blur(8px);
+  backdrop-filter:blur(10px);
   border-bottom:1px solid var(--line);
 }
 
@@ -53,7 +53,7 @@ h2{font-size:13px;letter-spacing:.6px;text-transform:uppercase;margin:0}
 .pill{
   font-family:var(--mono);
   font-size:12px;
-  padding:6px 10px;
+  padding:6px 12px;
   border-radius:999px;
   border:1px solid var(--line);
   color:var(--muted);
@@ -64,13 +64,10 @@ h2{font-size:13px;letter-spacing:.6px;text-transform:uppercase;margin:0}
 }
 
 .liveDot{
-  width:8px;
-  height:8px;
-  border-radius:50%;
+  width:8px;height:8px;border-radius:50%;
   background:var(--good);
   animation:pulse 2s infinite;
 }
-
 @keyframes pulse{
   0%{opacity:.3}
   50%{opacity:1}
@@ -96,55 +93,54 @@ main{max-width:1200px;margin:auto}
   align-items:center;
 }
 
-.cardBody{padding:14px}
-.muted{color:var(--muted)}
+.cardBody{padding:16px}
 
 .tiles{
   display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
-  gap:12px;
+  grid-template-columns:repeat(auto-fit,minmax(170px,1fr));
+  gap:14px;
 }
 
 .tile{
-  padding:14px;
+  padding:16px;
+  border-radius:14px;
   border:1px solid var(--line);
-  border-radius:var(--radius);
-  background:rgba(255,255,255,.02);
+  background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.01));
 }
+
+.tile strong{font-size:14px}
+.price{
+  font-size:18px;
+  margin-top:6px;
+  font-family:var(--mono);
+}
+
+.up{color:var(--good)}
+.down{color:var(--bad)}
+.flat{color:var(--muted)}
 
 .grid{
   display:grid;
-  grid-template-columns:1.2fr .8fr;
+  grid-template-columns:1.3fr .7fr;
   gap:16px;
   margin:16px;
 }
+@media(max-width:900px){.grid{grid-template-columns:1fr}}
 
-@media(max-width:900px){
-  .grid{grid-template-columns:1fr}
-}
-
-.news{
-  display:flex;
-  flex-direction:column;
-  gap:10px;
-}
-
+.news{display:flex;flex-direction:column;gap:10px}
 .item{
   padding:10px;
   border:1px solid var(--line);
   border-radius:10px;
   background:rgba(255,255,255,.02);
 }
-
 .item a{
   color:var(--text);
   text-decoration:none;
   font-size:14px;
   font-weight:500;
 }
-
 .item a:hover{color:var(--accent)}
-
 .meta{
   font-size:11px;
   color:var(--muted);
@@ -158,7 +154,6 @@ footer{
   padding:16px;
   font-size:12px;
   color:var(--muted);
-  line-height:1.4;
 }
 </style>
 </head>
@@ -181,15 +176,16 @@ footer{
 <section class="card">
   <div class="cardHead">
     <h2>Key Markets at a Glance</h2>
-    <div class="pill">Live context</div>
+    <div class="pill">Live data</div>
   </div>
+
   <div class="cardBody tiles">
-    <div class="tile"><strong>ASX 200</strong><br><span class="muted">Overview</span></div>
-    <div class="tile"><strong>S&amp;P 500</strong><br><span class="muted">Overnight</span></div>
-    <div class="tile"><strong>AUD / USD</strong><br><span class="muted">FX</span></div>
-    <div class="tile"><strong>US 10Y</strong><br><span class="muted">Rates</span></div>
-    <div class="tile"><strong>Gold</strong><br><span class="muted">Commodities</span></div>
-    <div class="tile"><strong>VIX</strong><br><span class="muted">Volatility</span></div>
+    <div class="tile" id="asx"><strong>ASX 200</strong><div class="price">Loading…</div></div>
+    <div class="tile" id="spx"><strong>S&amp;P 500</strong><div class="price">Loading…</div></div>
+    <div class="tile" id="aud"><strong>AUD / USD</strong><div class="price">Loading…</div></div>
+    <div class="tile" id="us10y"><strong>US 10Y</strong><div class="price">Loading…</div></div>
+    <div class="tile" id="gold"><strong>Gold</strong><div class="price">Loading…</div></div>
+    <div class="tile" id="vix"><strong>VIX</strong><div class="price">Loading…</div></div>
   </div>
 </section>
 
@@ -201,29 +197,18 @@ footer{
     <div class="pill">TradingView</div>
   </div>
   <div class="cardBody">
-    <div style="min-height:420px" id="tv-overview"></div>
+    <div id="tv" style="min-height:420px"></div>
   </div>
 </div>
 
-<div style="display:flex;flex-direction:column;gap:16px">
-
 <div class="card">
   <div class="cardHead">
-    <h2>Economic &amp; Policy News</h2>
+    <h2>Market Headlines</h2>
     <div class="pill">Australia</div>
   </div>
-  <div class="cardBody news" id="ecoNews"></div>
+  <div class="cardBody news" id="news"></div>
 </div>
 
-<div class="card">
-  <div class="cardHead">
-    <h2>ASX Company News</h2>
-    <div class="pill">Headlines</div>
-  </div>
-  <div class="cardBody news" id="asxNews"></div>
-</div>
-
-</div>
 </section>
 
 </main>
@@ -234,12 +219,11 @@ footer{
 
 <script async src="https://s3.tradingview.com/tv.js"></script>
 <script>
-/* ---------- LIVE CLOCK ---------- */
+/* ---------- CLOCK ---------- */
 function updateTime(){
-  const TZ="Australia/Melbourne";
   document.getElementById("now").textContent =
     new Intl.DateTimeFormat("en-AU",{
-      timeZone:TZ,
+      timeZone:"Australia/Melbourne",
       weekday:"short",
       hour:"2-digit",
       minute:"2-digit"
@@ -248,41 +232,41 @@ function updateTime(){
 updateTime();
 setInterval(updateTime,60000);
 
-/* ---------- RSS FEEDS (CACHE BUSTED) ---------- */
-const PROXY=u=>`https://api.allorigins.win/raw?url=${encodeURIComponent(u+"&_ts="+Date.now())}`;
+/* ---------- MARKET DATA (STOOQ) ---------- */
+const STQ = s => `https://stooq.com/q/l/?s=${s}&f=sd2t2ohlcv&h&e=csv`;
 
-const RSS_ECO="https://news.google.com/rss/search?q=(RBA%20OR%20inflation%20OR%20CPI%20OR%20rates)%20Australia&hl=en-AU&gl=AU&ceid=AU:en";
-const RSS_ASX="https://news.google.com/rss/search?q=ASX%20company%20earnings&hl=en-AU&gl=AU&ceid=AU:en";
-
-async function loadFeed(url,id){
+async function loadMarket(id, symbol){
   try{
-    const r=await fetch(PROXY(url));
-    const t=await r.text();
-    const x=new DOMParser().parseFromString(t,"text/xml");
-    const items=[...x.querySelectorAll("item")].slice(0,5);
-    document.getElementById(id).innerHTML=items.map(i=>`
-      <div class="item">
-        <a href="${i.querySelector("link").textContent}" target="_blank">
-          ${i.querySelector("title").textContent}
-        </a>
-        <div class="meta">${i.querySelector("pubDate")?.textContent||""}</div>
-      </div>`).join("");
+    const r = await fetch(STQ(symbol));
+    const t = await r.text();
+    const [_, __, open, high, low, close] = t.split("\n")[1].split(",");
+
+    const o = parseFloat(open);
+    const c = parseFloat(close);
+    const pct = ((c - o) / o * 100).toFixed(2);
+
+    const el = document.querySelector(`#${id} .price`);
+    el.className = "price " + (pct > 0 ? "up" : pct < 0 ? "down" : "flat");
+    el.innerHTML = `${c.toLocaleString()}<br>${pct > 0 ? "▲" : "▼"} ${pct}%`;
   }catch{
-    document.getElementById(id).innerHTML="<div class='muted'>Unable to load</div>";
+    document.querySelector(`#${id} .price`).textContent = "Unavailable";
   }
 }
 
-function refreshFeeds(){
-  loadFeed(RSS_ECO,"ecoNews");
-  loadFeed(RSS_ASX,"asxNews");
+function refreshMarkets(){
+  loadMarket("asx","^asx");
+  loadMarket("spx","^spx");
+  loadMarket("aud","audusd");
+  loadMarket("us10y","us10y");
+  loadMarket("gold","xauusd");
+  loadMarket("vix","^vix");
 }
-refreshFeeds();
-setInterval(refreshFeeds,60000);
+refreshMarkets();
+setInterval(refreshMarkets,60000);
 
-/* ---------- TRADINGVIEW RELOAD ---------- */
-function loadTradingView(){
-  const c=document.getElementById("tv-overview");
-  c.innerHTML=`
+/* ---------- TRADINGVIEW ---------- */
+function loadTV(){
+  document.getElementById("tv").innerHTML = `
   <div class="tradingview-widget-container">
     <div class="tradingview-widget-container__widget"></div>
     <script src="https://s3.tradingview.com/external-embedding/embed-widget-market-overview.js">
@@ -299,8 +283,32 @@ function loadTradingView(){
     </script>
   </div>`;
 }
-loadTradingView();
-setInterval(loadTradingView,60000);
+loadTV();
+setInterval(loadTV,60000);
+
+/* ---------- NEWS ---------- */
+const PROXY=u=>`https://api.allorigins.win/raw?url=${encodeURIComponent(u+"&_ts="+Date.now())}`;
+const RSS="https://news.google.com/rss/search?q=markets%20Australia&hl=en-AU&gl=AU&ceid=AU:en";
+
+async function loadNews(){
+  try{
+    const r=await fetch(PROXY(RSS));
+    const t=await r.text();
+    const x=new DOMParser().parseFromString(t,"text/xml");
+    const items=[...x.querySelectorAll("item")].slice(0,5);
+    document.getElementById("news").innerHTML=items.map(i=>`
+      <div class="item">
+        <a href="${i.querySelector("link").textContent}" target="_blank">
+          ${i.querySelector("title").textContent}
+        </a>
+        <div class="meta">${i.querySelector("pubDate").textContent}</div>
+      </div>`).join("");
+  }catch{
+    document.getElementById("news").textContent="Unable to load news";
+  }
+}
+loadNews();
+setInterval(loadNews,60000);
 </script>
 
 </body>
