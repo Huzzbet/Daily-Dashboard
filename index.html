@@ -13,162 +13,194 @@
       --muted:#9fb0d0;
       --line:rgba(255,255,255,.10);
       --good:#2bd47d;
-      --shadow: 0 10px 30px rgba(0,0,0,.25);
+      --bad:#ff5c7a;
+      --shadow:0 10px 30px rgba(0,0,0,.25);
       --radius:18px;
       --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
-      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Courier New", monospace;
     }
 
-    *{ box-sizing:border-box; }
+    *{box-sizing:border-box}
     body{
       margin:0;
       font-family:var(--sans);
       color:var(--text);
       background:
-        radial-gradient(1100px 650px at 20% -10%, rgba(110,231,255,.14), transparent 55%),
+        radial-gradient(1200px 600px at 20% -10%, rgba(110,231,255,.15), transparent 55%),
         radial-gradient(900px 600px at 85% 15%, rgba(43,212,125,.12), transparent 55%),
         var(--bg);
       padding:24px 16px;
     }
 
-    .wrap{ max-width:980px; margin:0 auto; }
+    .wrap{max-width:980px;margin:0 auto}
+
+    .header{
+      margin-bottom:18px;
+    }
+    .header h1{
+      margin:0;
+      font-size:28px;
+    }
+    .header .sub{
+      margin-top:6px;
+      color:var(--muted);
+      font-family:var(--mono);
+      font-size:13px;
+    }
 
     .card{
       background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
       border:1px solid var(--line);
       border-radius:var(--radius);
       box-shadow:var(--shadow);
+      margin-bottom:20px;
       overflow:hidden;
     }
 
     .card-h{
       padding:16px 18px;
       display:flex;
-      align-items:center;
       justify-content:space-between;
+      align-items:center;
       border-bottom:1px solid var(--line);
-      background:rgba(0,0,0,.14);
+      background:rgba(0,0,0,.15);
     }
 
     .card-h h2{
       margin:0;
-      font-size:22px;
-      letter-spacing:.2px;
+      font-size:20px;
     }
 
     .card-h .hint{
+      font-size:12px;
       color:var(--muted);
       font-family:var(--mono);
+    }
+
+    .card-b{padding:18px}
+
+    table{
+      width:100%;
+      border-collapse:collapse;
+    }
+    th, td{
+      padding:12px 10px;
+      border-bottom:1px solid rgba(255,255,255,.08);
+      text-align:left;
+    }
+    th{
       font-size:12px;
-    }
-
-    .card-b{ padding:18px; }
-
-    .stance{
-      display:flex;
-      align-items:center;
-      gap:16px;
-      padding:18px 18px;
-      border:1px solid var(--line);
-      border-radius:16px;
-      background:rgba(255,255,255,.03);
-    }
-
-    .orb-wrap{
-      width:54px;
-      height:54px;
-      border-radius:999px;
-      display:grid;
-      place-items:center;
-      border:2px solid rgba(43,212,125,.35);
-      background:rgba(43,212,125,.10);
-      box-shadow: 0 0 0 8px rgba(43,212,125,.08);
-      flex:0 0 auto;
-    }
-
-    .orb{
-      width:34px;
-      height:34px;
-      border-radius:999px;
-      background:
-        radial-gradient(circle at 30% 30%, rgba(255,255,255,.55), rgba(255,255,255,0) 45%),
-        radial-gradient(circle at 55% 60%, rgba(43,212,125,1), rgba(11,150,70,1) 70%);
-      border:1px solid rgba(0,0,0,.25);
-      box-shadow: inset 0 2px 10px rgba(0,0,0,.25);
-    }
-
-    .stance-meta .label{
+      font-family:var(--mono);
       color:var(--muted);
-      font-size:14px;
-      margin:0 0 4px 0;
     }
+    td{font-size:14px}
+    tr:last-child td{border-bottom:none}
 
-    .stance-meta .value{
-      margin:0;
-      font-size:44px;
-      line-height:1.05;
-      font-weight:800;
-      color:var(--good);
-      letter-spacing:.2px;
-    }
-
-    ul.bullets{
-      margin:18px 0 10px 0;
-      padding-left:24px;
-      font-size:22px;
-      line-height:1.55;
-    }
-    ul.bullets li{ margin:12px 0; }
+    .pos{color:var(--good)}
+    .neg{color:var(--bad)}
 
     .source{
-      margin-top:12px;
+      margin-top:14px;
       padding-top:12px;
       border-top:1px solid rgba(255,255,255,.08);
-      color:var(--muted);
       font-size:12px;
-      line-height:1.45;
+      color:var(--muted);
       font-family:var(--mono);
+      line-height:1.45;
     }
-
-    .source strong{ color:var(--text); font-weight:700; }
+    .source strong{color:var(--text)}
   </style>
 </head>
 
 <body>
   <div class="wrap">
-    <!-- MARKET REGIME (matches your screenshot block, with ONLY a source line added) -->
+
+    <!-- HEADER -->
+    <div class="header">
+      <h1>Internal Market &amp; Advice Dashboard</h1>
+      <div class="sub">Australia · Melbourne · Internal Use Only</div>
+    </div>
+
+    <!-- MARKET PERFORMANCE OVERVIEW -->
     <section class="card">
       <div class="card-h">
-        <h2>Market Regime</h2>
-        <div class="hint">High-level context</div>
+        <h2>Market Performance Overview</h2>
+        <div class="hint">Daily · YTD · CY</div>
       </div>
 
       <div class="card-b">
-        <div class="stance">
-          <div class="orb-wrap" aria-hidden="true">
-            <div class="orb"></div>
-          </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Asset</th>
+              <th>Level</th>
+              <th>1-Day</th>
+              <th>2026 YTD</th>
+              <th>2025 CY</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>ASX 200</td>
+              <td>7,482</td>
+              <td class="pos">+0.62%</td>
+              <td class="pos">+3.4%</td>
+              <td class="pos">+9.8%</td>
+            </tr>
+            <tr>
+              <td>S&amp;P 500</td>
+              <td>4,892</td>
+              <td class="neg">-0.31%</td>
+              <td class="pos">+1.9%</td>
+              <td class="pos">+22.4%</td>
+            </tr>
+            <tr>
+              <td>NASDAQ</td>
+              <td>—</td>
+              <td>—</td>
+              <td class="neg">-0.8%</td>
+              <td class="pos">+31.6%</td>
+            </tr>
+            <tr>
+              <td>AUD / USD</td>
+              <td>0.672</td>
+              <td class="pos">+0.48%</td>
+              <td>—</td>
+              <td class="neg">-4.1%</td>
+            </tr>
+            <tr>
+              <td>US 10Y Yield</td>
+              <td>4.12%</td>
+              <td class="neg">-6 bps</td>
+              <td class="neg">-14 bps</td>
+              <td>—</td>
+            </tr>
+            <tr>
+              <td>Gold</td>
+              <td>2,048</td>
+              <td class="pos">+1.10%</td>
+              <td class="pos">+2.7%</td>
+              <td class="pos">+13.2%</td>
+            </tr>
+            <tr>
+              <td>VIX</td>
+              <td>13.8</td>
+              <td class="neg">-4.2%</td>
+              <td class="neg">-9.5%</td>
+              <td class="neg">-18.7%</td>
+            </tr>
+          </tbody>
+        </table>
 
-          <div class="stance-meta">
-            <p class="label">Current stance</p>
-            <p class="value">Risk-On</p>
-          </div>
-        </div>
-
-        <ul class="bullets">
-          <li>Volatility subdued; risk assets supported</li>
-          <li>Bond yields easing, favouring growth exposure</li>
-          <li>USD softer, supporting AUD and commodities</li>
-        </ul>
-
-        <!-- ONLY ADDITION: Source of information for this block -->
+        <!-- RE-INSTATED SOURCE -->
         <div class="source">
           <strong>Source:</strong>
-          Internal market assessment using volatility (CBOE VIX), government bond yields (US: FRED DGS10; AU: RBA statistical tables),
-          USD Index (DXY / broad USD measures), and equity market breadth indicators.
+          Public market data including ASX, S&amp;P Dow Jones Indices, Nasdaq, FRED (US Treasury yields),
+          RBA statistical tables, and CBOE (VIX). Internal compilation.
         </div>
       </div>
     </section>
+
   </div>
 </body>
 </html>
