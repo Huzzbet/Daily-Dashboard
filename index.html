@@ -113,7 +113,7 @@ main{
 table{
   width:100%;
   border-collapse:collapse;
-  font-size:14px;
+  font-size:13.5px;
 }
 
 thead{
@@ -121,36 +121,30 @@ thead{
 }
 
 th, td{
-  padding:12px 14px;
+  padding:10px 12px;
   border-bottom:1px solid var(--line);
   white-space:nowrap;
 }
 
 th{
-  font-size:12px;
+  font-size:11px;
   text-transform:uppercase;
   letter-spacing:.5px;
   color:var(--muted);
-  text-align:right;
-}
-
-th:first-child,
-td:first-child{
   text-align:left;
-  font-weight:500;
 }
 
 tbody tr:hover{
   background:rgba(255,255,255,.03);
 }
 
-/* ===== NEWS TABLE ===== */
-.news a{
+/* ===== LINKS ===== */
+a{
   color:var(--text);
   text-decoration:none;
 }
 
-.news a:hover{
+a:hover{
   color:#6ee7ff;
   text-decoration:underline;
 }
@@ -265,13 +259,13 @@ footer{
 <!-- ================= RIGHT: NEWS ================= -->
 <div>
 
+<!-- ADVISER NEWS -->
 <section class="card">
   <div class="cardHead">
     <strong>Financial Planning & Adviser News</strong>
-    <span>Latest</span>
+    <span>Industry</span>
   </div>
-
-  <div class="cardBody tableWrap news">
+  <div class="cardBody tableWrap">
     <table>
       <thead>
         <tr>
@@ -281,44 +275,52 @@ footer{
       </thead>
       <tbody>
         <tr>
-          <td>
-            <a href="https://www.ifa.com.au/property-dominates-the-thoughts-of-aspirational-investors/" target="_blank">
-              Property still dominates investor thinking despite diversification risks
-            </a>
-          </td>
+          <td><a href="https://www.ifa.com.au/property-dominates-the-thoughts-of-aspirational-investors/" target="_blank">Property still dominates investor thinking</a></td>
           <td>IFA</td>
         </tr>
         <tr>
-          <td>
-            <a href="https://www.moneymanagement.com.au/hnw-female-investors-defying-risk-averse-stereotypes/" target="_blank">
-              HNW female investors defy risk-averse stereotypes
-            </a>
-          </td>
-          <td>Money Management</td>
+          <td><a href="https://www.moneymanagement.com.au/hnw-female-investors-defying-risk-averse-stereotypes/" target="_blank">HNW female investors defy risk stereotypes</a></td>
+          <td>Money Mgmt</td>
         </tr>
         <tr>
-          <td>
-            <a href="https://www.investordaily.com.au/regulation/53969-asic-steps-up-focus-on-advice-compliance" target="_blank">
-              ASIC steps up focus on advice compliance and governance
-            </a>
-          </td>
+          <td><a href="https://www.investordaily.com.au/regulation/53969-asic-steps-up-focus-on-advice-compliance" target="_blank">ASIC steps up advice compliance focus</a></td>
           <td>Investor Daily</td>
         </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- AFR MARKET & COMPANY NEWS -->
+<section class="card">
+  <div class="cardHead">
+    <strong>AFR – Market & Company News</strong>
+    <span>Australia</span>
+  </div>
+  <div class="cardBody tableWrap">
+    <table>
+      <thead>
         <tr>
-          <td>
-            <a href="https://www.ifa.com.au/regulation/financial-advice-reforms-continue-to-pressure-small-firms/" target="_blank">
-              Advice reforms continue to pressure small planning firms
-            </a>
-          </td>
-          <td>IFA</td>
+          <th>Headline</th>
+          <th>Category</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><a href="https://www.afr.com/markets/equity-markets/asx-slips-as-banks-and-miners-ease-20260111" target="_blank">ASX slips as banks and miners ease</a></td>
+          <td>Markets</td>
         </tr>
         <tr>
-          <td>
-            <a href="https://www.investordaily.com.au/superannuation/industry-funds-and-advisers-face-new-scrutiny" target="_blank">
-              Superannuation scrutiny increases for advisers and trustees
-            </a>
-          </td>
-          <td>Investor Daily</td>
+          <td><a href="https://www.afr.com/companies/financial-services/big-four-banks-face-margin-pressure-20260111" target="_blank">Big four banks face margin pressure</a></td>
+          <td>Companies</td>
+        </tr>
+        <tr>
+          <td><a href="https://www.afr.com/markets/rates-bonds/bond-yields-ease-on-rate-cut-bets-20260111" target="_blank">Bond yields ease on rate-cut bets</a></td>
+          <td>Rates</td>
+        </tr>
+        <tr>
+          <td><a href="https://www.afr.com/companies/resources/gold-miners-rally-on-softer-dollar-20260111" target="_blank">Gold miners rally on softer dollar</a></td>
+          <td>Resources</td>
         </tr>
       </tbody>
     </table>
