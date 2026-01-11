@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Internal Market Dashboard</title>
+<title>Internal Market & Advice Dashboard</title>
 
 <style>
 :root{
@@ -109,7 +109,7 @@ table{
 th, td{
   padding:10px 12px;
   border-bottom:1px solid var(--line);
-  white-space:nowrap;
+  vertical-align:top;
 }
 
 th{
@@ -121,7 +121,16 @@ th{
 
 tbody tr:hover{background:rgba(255,255,255,.03)}
 
-/* STATUS COLOURS */
+a{
+  color:var(--text);
+  text-decoration:none;
+}
+a:hover{
+  color:#6ee7ff;
+  text-decoration:underline;
+}
+
+/* STATUS */
 .up{color:var(--good)}
 .down{color:var(--bad)}
 .warn{color:var(--warn)}
@@ -141,7 +150,7 @@ footer{
 
 <header>
   <div class="headerWrap">
-    <h1>Internal Market Dashboard</h1>
+    <h1>Internal Market & Advice Dashboard</h1>
     <div class="sub">
       Wednesday 11 January 2026 · Australia / Melbourne · Internal Use Only
     </div>
@@ -157,14 +166,11 @@ footer{
     <span>High-level context</span>
   </div>
   <div class="cardBody">
-    <p>
-      <strong>Current stance:</strong>
-      <span class="up">🟢 Risk-On</span>
-    </p>
+    <p><strong>Current stance:</strong> <span class="up">🟢 Risk-On</span></p>
     <ul>
-      <li>Volatility suppressed (VIX trending lower)</li>
+      <li>Volatility suppressed; VIX trending lower</li>
       <li>Bond yields easing, supporting growth assets</li>
-      <li>USD softer, commodities and AUD supported</li>
+      <li>USD softer, lifting AUD and commodities</li>
     </ul>
   </div>
 </section>
@@ -177,7 +183,7 @@ footer{
 <section class="card">
   <div class="cardHead">
     <strong>Market Performance Overview</strong>
-    <span>Daily · YTD · 2025</span>
+    <span>Daily · YTD · CY</span>
   </div>
   <div class="cardBody">
     <table>
@@ -215,9 +221,9 @@ footer{
   </div>
   <div class="cardBody">
     <ul>
-      <li>US bond yields fell ~6bps, supporting gold and long-duration equities</li>
+      <li>US yields fell ~6bps, supporting gold and long-duration equities</li>
       <li>USD weakened, lifting AUD and commodity-linked assets</li>
-      <li>Banks lagged broader market on margin pressure commentary</li>
+      <li>Banks underperformed amid margin pressure commentary</li>
     </ul>
   </div>
 </section>
@@ -231,9 +237,60 @@ footer{
     <table>
       <tbody>
         <tr><td>RBA Interest Rate Decision</td><td class="warn">Tuesday</td></tr>
-        <tr><td>US CPI Inflation Print</td><td class="warn">Wednesday</td></tr>
-        <tr><td>ASX Bank Earnings Updates</td><td class="neutral">This week</td></tr>
-        <tr><td>US Earnings Season Begins</td><td class="neutral">Next week</td></tr>
+        <tr><td>US CPI Inflation</td><td class="warn">Wednesday</td></tr>
+        <tr><td>ASX Bank Earnings</td><td>This week</td></tr>
+        <tr><td>US Earnings Season</td><td>Next week</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="card">
+  <div class="cardHead">
+    <strong>Regulatory & Legislative Updates</strong>
+    <span>Super & Advice</span>
+  </div>
+  <div class="cardBody">
+    <table>
+      <thead>
+        <tr>
+          <th>Update</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>
+            <a href="https://www.superguide.com.au/super-booster/super-tax-accounts-3-million" target="_blank">
+              Division 296 super tax: additional tax on earnings for balances over $3m from July 2026
+            </a>
+          </td>
+          <td class="warn">Draft / Consultation</td>
+        </tr>
+        <tr>
+          <td>
+            <a href="https://www.allens.com.au/insights-news/insights/2025/03/another-tranche-of-proposed-financial-advice-changes-lands/" target="_blank">
+              Treasury advice reforms: Client Advice Record replacing SOAs (Tranche 2)
+            </a>
+          </td>
+          <td class="warn">Exposure draft</td>
+        </tr>
+        <tr>
+          <td>
+            <a href="https://asic.gov.au/about-asic/news-centre/news-items/financial-advice-update-august-2025/" target="_blank">
+              ASIC enforcement focus under DBFO regime
+            </a>
+          </td>
+          <td>Ongoing</td>
+        </tr>
+        <tr>
+          <td>
+            <a href="https://www.ag.gov.au/families-and-marriage/superannuation-splitting/changes-law" target="_blank">
+              Family Law (Superannuation) Regulations 2025 – valuation and info-sharing changes
+            </a>
+          </td>
+          <td class="up">In force</td>
+        </tr>
       </tbody>
     </table>
   </div>
@@ -246,9 +303,7 @@ footer{
 </main>
 
 <footer>
-  <p>
-    <strong>Internal use only.</strong> This dashboard is designed to support internal decision-making and discussion.
-  </p>
+  <p><strong>Internal use only.</strong> Designed to support adviser decision-making and regulatory awareness.</p>
 </footer>
 
 </body>
