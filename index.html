@@ -1,336 +1,696 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Internal Market & Advice Dashboard</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Internal Market & Advice Dashboard</title>
 
-<style>
-:root{
-  --bg:#0b1220;
-  --card:#111a2e;
-  --line:rgba(255,255,255,.08);
-  --text:#e7eefc;
-  --muted:#9fb0d0;
-  --good:#3ad29f;
-  --warn:#ffd166;
-  --bad:#ff6b81;
-  --shadow:0 10px 30px rgba(0,0,0,.35);
-  --radius:16px;
-  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
-  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial;
-}
+  <style>
+    :root{
+      --bg:#0b1220;
+      --card:#111a2e;
+      --card2:#0f1830;
+      --text:#e7eefc;
+      --muted:#9fb0d0;
+      --line:rgba(255,255,255,.10);
+      --accent:#6ee7ff;
+      --good:#2bd47d;
+      --warn:#ffd166;
+      --bad:#ff5c7a;
+      --shadow: 0 10px 30px rgba(0,0,0,.25);
+      --radius:16px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+    }
 
-*{box-sizing:border-box}
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: var(--sans);
+      color:var(--text);
+      background:
+        radial-gradient(1200px 600px at 25% -10%, rgba(110,231,255,.18), transparent 55%),
+        radial-gradient(900px 500px at 90% 10%, rgba(43,212,125,.12), transparent 55%),
+        radial-gradient(900px 600px at 60% 110%, rgba(255,92,122,.10), transparent 60%),
+        var(--bg);
+    }
 
-body{
-  margin:0;
-  font-family:var(--sans);
-  background:radial-gradient(1200px 600px at 50% -10%,#162044,#0b1220);
-  color:var(--text);
-  line-height:1.45;
-}
+    a{color:var(--accent); text-decoration:none}
+    a:hover{text-decoration:underline}
 
-/* HEADER */
-header{
-  position:sticky;
-  top:0;
-  z-index:10;
-  padding:18px 20px;
-  background:rgba(11,18,32,.9);
-  backdrop-filter:blur(10px);
-  border-bottom:1px solid var(--line);
-}
+    .wrap{max-width:1200px; margin:0 auto; padding:20px 16px 30px}
+    .topbar{
+      display:flex; align-items:flex-end; justify-content:space-between; gap:16px;
+      padding:18px 18px;
+      background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+    }
+    .title h1{margin:0; font-size:32px; letter-spacing:.2px}
+    .title .sub{
+      margin-top:6px; color:var(--muted); font-family:var(--mono); opacity:.9
+    }
+    .status-pill{
+      display:flex; align-items:center; gap:10px;
+      padding:10px 12px;
+      border:1px solid var(--line);
+      border-radius:999px;
+      background:rgba(255,255,255,.03);
+      color:var(--muted);
+      font-family:var(--mono);
+      font-size:12px;
+      white-space:nowrap;
+    }
+    .dot{
+      width:10px; height:10px; border-radius:50%;
+      background:var(--warn);
+      box-shadow:0 0 0 6px rgba(255,209,102,.10);
+    }
+    .dot.good{ background: var(--good); box-shadow:0 0 0 6px rgba(43,212,125,.10); }
+    .dot.bad{ background: var(--bad); box-shadow:0 0 0 6px rgba(255,92,122,.10); }
 
-.headerWrap{
-  max-width:1300px;
-  margin:auto;
-}
+    .grid{
+      margin-top:16px;
+      display:grid;
+      grid-template-columns: 1.35fr .85fr;
+      gap:16px;
+    }
+    @media (max-width: 980px){
+      .grid{grid-template-columns:1fr}
+      .status-pill{display:none}
+    }
 
-h1{
-  margin:0;
-  font-size:20px;
-  font-weight:600;
-}
+    .card{
+      background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+    .card-h{
+      padding:14px 16px;
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      border-bottom:1px solid var(--line);
+      background:rgba(0,0,0,.12);
+    }
+    .card-h h2{
+      margin:0; font-size:20px; letter-spacing:.2px;
+    }
+    .card-h .hint{color:var(--muted); font-family:var(--mono); font-size:12px}
+    .card-b{padding:16px}
+    .muted{color:var(--muted)}
+    .mono{font-family:var(--mono)}
+    .row{display:flex; gap:12px; flex-wrap:wrap; align-items:center}
 
-.sub{
-  margin-top:6px;
-  font-size:12px;
-  color:var(--muted);
-  font-family:var(--mono);
-}
+    .badge{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.03);
+      color:var(--muted);
+      font-family:var(--mono);
+      font-size:12px;
+    }
 
-/* PAGE */
-main{
-  max-width:1300px;
-  margin:auto;
-  padding:20px;
-}
+    .stance{
+      display:flex; align-items:center; gap:12px;
+      padding:14px 14px;
+      border:1px solid var(--line);
+      border-radius:14px;
+      background:rgba(255,255,255,.03);
+      margin-bottom:14px;
+    }
+    .stance .emoji{
+      width:34px; height:34px; border-radius:50%;
+      display:grid; place-items:center;
+      background:rgba(43,212,125,.15);
+      border:1px solid rgba(43,212,125,.35);
+      font-size:18px;
+    }
+    .stance .label{font-size:14px; color:var(--muted); margin:0}
+    .stance .value{
+      margin:2px 0 0;
+      font-size:22px;
+      font-weight:700;
+      color:var(--good);
+    }
 
-/* GRID */
-.grid{
-  display:grid;
-  grid-template-columns:2.2fr 1.3fr;
-  gap:20px;
-}
-@media(max-width:900px){
-  .grid{grid-template-columns:1fr}
-}
+    .bullets{margin:10px 0 0 0; padding-left:18px}
+    .bullets li{margin:8px 0; color:var(--text); opacity:.95}
+    .split{
+      display:grid; grid-template-columns: 1fr 1fr; gap:14px;
+    }
+    @media (max-width: 680px){
+      .split{grid-template-columns:1fr}
+    }
 
-/* CARDS */
-.card{
-  background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.01));
-  border:1px solid var(--line);
-  border-radius:var(--radius);
-  box-shadow:var(--shadow);
-  margin-bottom:20px;
-}
+    details{
+      border:1px solid var(--line);
+      border-radius:14px;
+      background:rgba(255,255,255,.02);
+      overflow:hidden;
+    }
+    details summary{
+      cursor:pointer;
+      list-style:none;
+      padding:12px 14px;
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      border-bottom:1px solid var(--line);
+      background:rgba(0,0,0,.10);
+      user-select:none;
+    }
+    details summary::-webkit-details-marker{display:none}
+    .kvs{padding:12px 14px}
+    .kv{display:flex; align-items:flex-start; justify-content:space-between; gap:12px; padding:8px 0; border-bottom:1px dashed rgba(255,255,255,.10)}
+    .kv:last-child{border-bottom:none}
+    .kv .k{color:var(--muted); font-family:var(--mono); font-size:12px; min-width:120px}
+    .kv .v{font-family:var(--mono); font-size:12px; text-align:right}
 
-.cardHead{
-  padding:14px 18px;
-  border-bottom:1px solid var(--line);
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-}
+    .table{
+      width:100%;
+      border-collapse:collapse;
+      overflow:hidden;
+      border-radius:12px;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.02);
+    }
+    .table th, .table td{
+      padding:10px 10px;
+      border-bottom:1px solid rgba(255,255,255,.08);
+      vertical-align:top;
+    }
+    .table th{
+      text-align:left;
+      color:var(--muted);
+      font-family:var(--mono);
+      font-size:12px;
+      background:rgba(0,0,0,.14);
+    }
+    .table td{font-size:13px}
+    .table tr:last-child td{border-bottom:none}
 
-.cardHead strong{font-size:14px}
-.cardHead span{font-size:12px;color:var(--muted)}
+    .small{font-size:12px}
+    .nowrap{white-space:nowrap}
+    .right-stack{display:flex; flex-direction:column; gap:16px}
 
-.cardBody{padding:18px}
+    .warning{
+      padding:10px 12px;
+      border:1px solid rgba(255,209,102,.35);
+      background:rgba(255,209,102,.10);
+      border-radius:14px;
+      color:var(--text);
+    }
 
-/* TABLES */
-table{
-  width:100%;
-  border-collapse:collapse;
-  font-size:13.5px;
-}
+    .ok{
+      padding:10px 12px;
+      border:1px solid rgba(43,212,125,.35);
+      background:rgba(43,212,125,.08);
+      border-radius:14px;
+      color:var(--text);
+    }
 
-th, td{
-  padding:10px 12px;
-  border-bottom:1px solid var(--line);
-  vertical-align:top;
-}
-
-th{
-  text-transform:uppercase;
-  font-size:11px;
-  color:var(--muted);
-  text-align:left;
-}
-
-tbody tr:hover{background:rgba(255,255,255,.03)}
-
-a{
-  color:var(--text);
-  text-decoration:none;
-}
-a:hover{
-  color:#6ee7ff;
-  text-decoration:underline;
-}
-
-/* STATUS */
-.up{color:var(--good)}
-.down{color:var(--bad)}
-.warn{color:var(--warn)}
-.neutral{color:var(--muted)}
-
-footer{
-  max-width:1300px;
-  margin:40px auto 20px;
-  padding:0 20px;
-  font-size:12px;
-  color:var(--muted);
-}
-</style>
+    .footer{
+      margin-top:16px;
+      color:var(--muted);
+      font-family:var(--mono);
+      font-size:12px;
+      opacity:.9;
+      text-align:center;
+    }
+  </style>
 </head>
 
 <body>
+  <div class="wrap">
+    <header class="topbar">
+      <div class="title">
+        <h1>Internal Market &amp; Advice Dashboard</h1>
+        <div class="sub">Australia · Melbourne · Internal Use Only</div>
+      </div>
 
-<header>
-  <div class="headerWrap">
-    <h1>Internal Market & Advice Dashboard</h1>
-    <div class="sub">
-      Australia · Melbourne · Internal Use Only
+      <div class="status-pill" id="freshnessPill" title="Shows whether the Market Regime block has been reviewed today.">
+        <span class="dot" id="freshnessDot"></span>
+        <span id="freshnessText">Regime review status: Unknown</span>
+      </div>
+    </header>
+
+    <main class="grid">
+      <!-- LEFT COLUMN -->
+      <section class="card">
+        <div class="card-h">
+          <h2>Market Regime</h2>
+          <div class="hint">High-level context</div>
+        </div>
+
+        <div class="card-b">
+          <!-- Review metadata -->
+          <div class="row" style="margin-bottom:12px">
+            <span class="badge">Last reviewed: <span id="lastReviewed" class="mono">—</span></span>
+            <span class="badge">Reviewer: <span id="reviewer" class="mono">—</span></span>
+            <span class="badge">Confidence: <span id="confidence" class="mono">—</span></span>
+          </div>
+
+          <!-- Stance -->
+          <div class="stance">
+            <div class="emoji" id="stanceEmoji" aria-hidden="true">🟢</div>
+            <div>
+              <p class="label">Current stance</p>
+              <div class="value" id="stanceValue">Risk-On</div>
+            </div>
+          </div>
+
+          <!-- Key bullets (editable) -->
+          <ul class="bullets" id="stanceBullets">
+            <li>Volatility subdued; risk assets supported</li>
+            <li>Bond yields easing, favouring growth exposure</li>
+            <li>USD softer, supporting AUD and commodities</li>
+          </ul>
+
+          <div class="split" style="margin-top:14px">
+            <!-- Inputs checklist -->
+            <details open>
+              <summary>
+                <span class="mono">Daily Review Inputs (Checklist)</span>
+                <span class="muted mono small">click to collapse</span>
+              </summary>
+              <div class="kvs">
+                <div class="kv"><div class="k">Volatility</div><div class="v">VIX / MOVE direction</div></div>
+                <div class="kv"><div class="k">Rates</div><div class="v">US 10Y, AU 10Y trend</div></div>
+                <div class="kv"><div class="k">FX</div><div class="v">DXY trend; AUD context</div></div>
+                <div class="kv"><div class="k">Breadth</div><div class="v">Adv/Dec; leaders vs laggards</div></div>
+                <div class="kv"><div class="k">Commodities</div><div class="v">Energy &amp; metals trend check</div></div>
+                <div class="kv"><div class="k">Macro</div><div class="v">Calendar: CPI / jobs / CB events</div></div>
+              </div>
+            </details>
+
+            <!-- Sources (explicitly: where info is obtained from) -->
+            <details open>
+              <summary>
+                <span class="mono">Sources &amp; Data Feeds (Where this comes from)</span>
+                <span class="muted mono small">click to collapse</span>
+              </summary>
+              <div class="kvs">
+                <!-- Market data sources -->
+                <div class="kv">
+                  <div class="k">Volatility</div>
+                  <div class="v">
+                    <a href="https://www.cboe.com/tradable_products/vix/" target="_blank" rel="noopener">CBOE VIX</a> ·
+                    <a href="https://fred.stlouisfed.org/series/MOVE" target="_blank" rel="noopener">FRED MOVE</a>
+                  </div>
+                </div>
+
+                <div class="kv">
+                  <div class="k">Bond yields</div>
+                  <div class="v">
+                    <a href="https://fred.stlouisfed.org/series/DGS10" target="_blank" rel="noopener">FRED US 10Y (DGS10)</a> ·
+                    <a href="https://www.rba.gov.au/statistics/frequency/interest-rates.html" target="_blank" rel="noopener">RBA interest rate statistics</a>
+                  </div>
+                </div>
+
+                <div class="kv">
+                  <div class="k">USD / DXY</div>
+                  <div class="v">
+                    <a href="https://fred.stlouisfed.org/series/DTWEXBGS" target="_blank" rel="noopener">FRED USD index (broad)</a> ·
+                    <a href="https://www.ice.com/products/194/US-Dollar-Index-Futures" target="_blank" rel="noopener">ICE DXY futures</a>
+                  </div>
+                </div>
+
+                <div class="kv">
+                  <div class="k">Equities</div>
+                  <div class="v">
+                    <a href="https://www.asx.com.au/markets/trade-our-cash-market/overview" target="_blank" rel="noopener">ASX market overview</a> ·
+                    <a href="https://www.marketwatch.com/" target="_blank" rel="noopener">MarketWatch</a>
+                  </div>
+                </div>
+
+                <div class="kv">
+                  <div class="k">Macro calendar</div>
+                  <div class="v">
+                    <a href="https://www.rba.gov.au/media-releases/" target="_blank" rel="noopener">RBA releases</a> ·
+                    <a href="https://www.abs.gov.au/release-calendar" target="_blank" rel="noopener">ABS release calendar</a> ·
+                    <a href="https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm" target="_blank" rel="noopener">FOMC calendar</a>
+                  </div>
+                </div>
+
+                <!-- Governance / compliance / legislation sources -->
+                <div class="kv">
+                  <div class="k">Advice &amp; compliance</div>
+                  <div class="v">
+                    <a href="https://asic.gov.au/regulatory-resources/financial-services/" target="_blank" rel="noopener">ASIC Financial Services</a> ·
+                    <a href="https://www.apra.gov.au/" target="_blank" rel="noopener">APRA</a> ·
+                    <a href="https://treasury.gov.au/" target="_blank" rel="noopener">Treasury</a>
+                  </div>
+                </div>
+
+                <div class="kv">
+                  <div class="k">Super legislation</div>
+                  <div class="v">
+                    <a href="https://www.ato.gov.au/" target="_blank" rel="noopener">ATO</a> ·
+                    <a href="https://www.legislation.gov.au/" target="_blank" rel="noopener">Federal Register of Legislation</a> ·
+                    <a href="https://www.aph.gov.au/Parliamentary_Business/Bills_Legislation" target="_blank" rel="noopener">Parliament Bills &amp; Legislation</a>
+                  </div>
+                </div>
+
+                <!-- News sources -->
+                <div class="kv">
+                  <div class="k">Markets news</div>
+                  <div class="v">
+                    <a href="https://www.afr.com/markets" target="_blank" rel="noopener">AFR Markets</a> ·
+                    <a href="https://www.reuters.com/markets/" target="_blank" rel="noopener">Reuters Markets</a>
+                  </div>
+                </div>
+
+                <div class="kv">
+                  <div class="k">Company news</div>
+                  <div class="v">
+                    <a href="https://www.afr.com/companies" target="_blank" rel="noopener">AFR Companies</a> ·
+                    <a href="https://www.asx.com.au/markets/company-announcements" target="_blank" rel="noopener">ASX Announcements</a> ·
+                    <a href="https://finviz.com/news.ashx" target="_blank" rel="noopener">Finviz News (US)</a>
+                  </div>
+                </div>
+              </div>
+            </details>
+          </div>
+
+          <!-- Change log -->
+          <details style="margin-top:14px">
+            <summary>
+              <span class="mono">Change Log (Regime history)</span>
+              <span class="muted mono small">click to expand</span>
+            </summary>
+            <div class="kvs">
+              <div class="kv"><div class="k">Most recent</div><div class="v" id="changeLogLatest">—</div></div>
+              <div class="kv"><div class="k">Prior</div><div class="v" id="changeLogPrior">—</div></div>
+            </div>
+          </details>
+
+          <!-- Governance note -->
+          <div style="margin-top:14px" class="warning small">
+            <strong class="mono">Internal only:</strong>
+            This market regime block is internal context (not client-facing). Reviewed daily before local market open where possible.
+          </div>
+        </div>
+      </section>
+
+      <!-- RIGHT COLUMN -->
+      <aside class="right-stack">
+        <!-- Daily audit / freshness -->
+        <section class="card">
+          <div class="card-h">
+            <h2>Freshness &amp; Audit</h2>
+            <div class="hint">Trust signals</div>
+          </div>
+          <div class="card-b">
+            <div id="auditBanner" class="warning">
+              <strong class="mono">Not reviewed today</strong>
+              <div class="small muted" style="margin-top:6px">
+                This section will turn green once the “Last reviewed” timestamp is updated for today.
+              </div>
+            </div>
+
+            <div style="margin-top:12px" class="muted small">
+              <div class="mono">Tip:</div>
+              Keep the review manual (fast) but enforce freshness with the automatic staleness check.
+              This makes it obvious when the stance is outdated.
+            </div>
+          </div>
+        </section>
+
+        <!-- Financial Planning / Advice News (placeholder rows; wire to RSS/server later) -->
+        <section class="card">
+          <div class="card-h">
+            <h2>Advice &amp; Super — Latest (AU)</h2>
+            <div class="hint">linked sources</div>
+          </div>
+          <div class="card-b">
+            <table class="table" aria-label="Advice and super news table">
+              <thead>
+                <tr>
+                  <th style="width:28%">Source</th>
+                  <th>Headline</th>
+                  <th class="nowrap" style="width:18%">Updated</th>
+                </tr>
+              </thead>
+              <tbody id="adviceNewsRows">
+                <!-- Replace with automated feed later -->
+                <tr>
+                  <td class="mono">ASIC</td>
+                  <td><a href="https://asic.gov.au/newsroom/" target="_blank" rel="noopener">ASIC Newsroom (guidance, enforcement, updates)</a></td>
+                  <td class="mono muted">—</td>
+                </tr>
+                <tr>
+                  <td class="mono">ATO</td>
+                  <td><a href="https://www.ato.gov.au/newsroom/" target="_blank" rel="noopener">ATO Newsroom (super, tax changes, guidance)</a></td>
+                  <td class="mono muted">—</td>
+                </tr>
+                <tr>
+                  <td class="mono">Treasury</td>
+                  <td><a href="https://treasury.gov.au/media-release" target="_blank" rel="noopener">Treasury media releases (policy announcements)</a></td>
+                  <td class="mono muted">—</td>
+                </tr>
+                <tr>
+                  <td class="mono">Legislation</td>
+                  <td><a href="https://www.aph.gov.au/Parliamentary_Business/Bills_Legislation" target="_blank" rel="noopener">Parliament Bills &amp; Legislation (status tracking)</a></td>
+                  <td class="mono muted">—</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <div class="muted small" style="margin-top:10px">
+              <span class="mono">Note:</span> For true “latest headlines” in-table, use a server-side fetch (recommended) or an RSS-to-JSON proxy to avoid browser CORS blocks.
+            </div>
+          </div>
+        </section>
+
+        <!-- AFR Company News (placeholder) -->
+        <section class="card">
+          <div class="card-h">
+            <h2>Company News (AFR / ASX)</h2>
+            <div class="hint">quick links</div>
+          </div>
+          <div class="card-b">
+            <table class="table" aria-label="Company news table">
+              <thead>
+                <tr>
+                  <th style="width:28%">Source</th>
+                  <th>Link</th>
+                  <th style="width:18%" class="nowrap">Focus</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="mono">AFR</td>
+                  <td><a href="https://www.afr.com/companies" target="_blank" rel="noopener">AFR Companies</a></td>
+                  <td class="mono muted">AU listed</td>
+                </tr>
+                <tr>
+                  <td class="mono">AFR</td>
+                  <td><a href="https://www.afr.com/markets" target="_blank" rel="noopener">AFR Markets</a></td>
+                  <td class="mono muted">macro/markets</td>
+                </tr>
+                <tr>
+                  <td class="mono">ASX</td>
+                  <td><a href="https://www.asx.com.au/markets/company-announcements" target="_blank" rel="noopener">ASX Announcements</a></td>
+                  <td class="mono muted">price-sensitive</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Finviz US Market News -->
+        <section class="card">
+          <div class="card-h">
+            <h2>US Market News (Finviz)</h2>
+            <div class="hint">external</div>
+          </div>
+          <div class="card-b">
+            <div class="ok small">
+              <strong class="mono">Shortcut:</strong>
+              <a href="https://finviz.com/news.ashx" target="_blank" rel="noopener">Finviz News feed</a>
+              <div class="muted" style="margin-top:6px">
+                For company-specific news, use Finviz ticker pages (e.g., /quote.ashx?t=AAPL).
+              </div>
+            </div>
+          </div>
+        </section>
+      </aside>
+    </main>
+
+    <div class="footer">
+      © Internal Use Only · Dashboard template · <span id="nowLocal">—</span>
     </div>
   </div>
-</header>
 
-<main>
+  <script>
+    /**
+     * ================
+     *  DAILY REVIEW DATA (EDIT THIS ONCE PER DAY)
+     *  Update these values as part of your morning review.
+     * ================
+     */
+    const MARKET_REGIME = {
+      stance: "Risk-On",                  // Risk-On | Neutral | Risk-Off
+      confidence: "4/5",                  // e.g., 3/5, 4/5
+      reviewer: "SH",                     // your initials
+      lastReviewedISO: "",                // e.g. "2026-01-10T07:35:00+11:00" (leave blank to show stale)
+      bullets: [
+        "Volatility subdued; risk assets supported",
+        "Bond yields easing, favouring growth exposure",
+        "USD softer, supporting AUD and commodities"
+      ],
+      changeLog: {
+        latest: "10 Jan — Maintained Risk-On; confidence steady at 4/5",
+        prior:  "09 Jan — Neutral → Risk-On as yields rolled over and breadth improved"
+      }
+    };
 
-<!-- MARKET REGIME -->
-<section class="card">
-  <div class="cardHead">
-    <strong>Market Regime</strong>
-    <span>High-level context</span>
-  </div>
-  <div class="cardBody">
-    <p><strong>Current stance:</strong> <span class="up">🟢 Risk-On</span></p>
-    <ul>
-      <li>Volatility subdued; risk assets supported</li>
-      <li>Bond yields easing, favouring growth exposure</li>
-      <li>USD softer, supporting AUD and commodities</li>
-    </ul>
-  </div>
-</section>
+    /**
+     * ================
+     *  RENDER HELPERS
+     * ================
+     */
+    function fmtLocal(dt){
+      try{
+        return new Intl.DateTimeFormat(undefined, {
+          year:"numeric", month:"short", day:"2-digit",
+          hour:"2-digit", minute:"2-digit"
+        }).format(dt);
+      }catch(e){
+        return dt.toLocaleString();
+      }
+    }
 
-<div class="grid">
+    function isSameLocalDay(a, b){
+      return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate();
+    }
 
-<!-- LEFT COLUMN -->
-<div>
+    function setStanceUI(stance){
+      const v = document.getElementById("stanceValue");
+      const e = document.getElementById("stanceEmoji");
 
-<section class="card">
-  <div class="cardHead">
-    <strong>Market Performance Overview</strong>
-    <span>Daily · YTD · CY</span>
-  </div>
-  <div class="cardBody">
-    <table>
-      <thead>
-        <tr>
-          <th>Asset (Ticker)</th>
-          <th>Level</th>
-          <th>1-Day</th>
-          <th>2026 YTD</th>
-          <th>2025 CY</th>
-        </tr>
-      </thead>
-      <tbody>
+      v.textContent = stance;
 
-        <tr>
-          <td>ASX 200 (XJO)</td>
-          <td>8,696</td>
-          <td class="up">+0.15%</td>
-          <td class="up">+0.3%</td>
-          <td class="up">+9.8%</td>
-        </tr>
+      // minimal, no-fuss color cues
+      if(stance.toLowerCase().includes("risk-off")){
+        v.style.color = "var(--bad)";
+        e.textContent = "🔴";
+        e.style.background = "rgba(255,92,122,.14)";
+        e.style.borderColor = "rgba(255,92,122,.35)";
+      } else if(stance.toLowerCase().includes("neutral")){
+        v.style.color = "var(--warn)";
+        e.textContent = "🟡";
+        e.style.background = "rgba(255,209,102,.14)";
+        e.style.borderColor = "rgba(255,209,102,.35)";
+      } else {
+        v.style.color = "var(--good)";
+        e.textContent = "🟢";
+        e.style.background = "rgba(43,212,125,.15)";
+        e.style.borderColor = "rgba(43,212,125,.35)";
+      }
+    }
 
-        <tr>
-          <td>All Ordinaries (XAO)</td>
-          <td>9,047</td>
-          <td class="neutral">N/A</td>
-          <td class="up">+0.3%</td>
-          <td class="neutral">N/A</td>
-        </tr>
+    function renderBullets(items){
+      const ul = document.getElementById("stanceBullets");
+      ul.innerHTML = "";
+      items.forEach(t=>{
+        const li = document.createElement("li");
+        li.textContent = t;
+        ul.appendChild(li);
+      });
+    }
 
-        <tr>
-          <td>S&amp;P 500 (SPX)</td>
-          <td>4,892</td>
-          <td class="down">-0.31%</td>
-          <td class="up">+1.9%</td>
-          <td class="up">+22.4%</td>
-        </tr>
+    function updateFreshness(){
+      const pillText = document.getElementById("freshnessText");
+      const dot = document.getElementById("freshnessDot");
+      const banner = document.getElementById("auditBanner");
 
-        <tr>
-          <td>NASDAQ 100 (NDX)</td>
-          <td>15,230</td>
-          <td class="down">-0.45%</td>
-          <td class="down">-0.8%</td>
-          <td class="up">+31.6%</td>
-        </tr>
+      const now = new Date();
+      document.getElementById("nowLocal").textContent = "Local time: " + fmtLocal(now);
 
-        <tr>
-          <td>AUD / USD (AUDUSD)</td>
-          <td>0.672</td>
-          <td class="up">+0.48%</td>
-          <td class="up">+1.2%</td>
-          <td class="down">-4.1%</td>
-        </tr>
+      // If lastReviewed is missing → stale
+      if(!MARKET_REGIME.lastReviewedISO){
+        pillText.textContent = "Regime review status: Not set (stale)";
+        dot.className = "dot bad";
+        banner.className = "warning";
+        banner.innerHTML = `
+          <strong class="mono">Not reviewed today</strong>
+          <div class="small muted" style="margin-top:6px">
+            Add today's timestamp to <span class="mono">lastReviewedISO</span> in the config block.
+          </div>
+        `;
+        return;
+      }
 
-        <tr>
-          <td>US 10Y Yield (US10Y)</td>
-          <td>4.12%</td>
-          <td class="down">-6 bps</td>
-          <td class="down">-14 bps</td>
-          <td class="neutral">+38 bps</td>
-        </tr>
+      const reviewed = new Date(MARKET_REGIME.lastReviewedISO);
+      const reviewedToday = isSameLocalDay(reviewed, now);
 
-        <tr>
-          <td>Gold Spot (XAUUSD)</td>
-          <td>2,048</td>
-          <td class="up">+1.10%</td>
-          <td class="up">+2.7%</td>
-          <td class="up">+13.2%</td>
-        </tr>
+      if(reviewedToday){
+        pillText.textContent = "Regime review status: Reviewed today";
+        dot.className = "dot good";
+        banner.className = "ok";
+        banner.innerHTML = `
+          <strong class="mono">Reviewed today</strong>
+          <div class="small muted" style="margin-top:6px">
+            Last reviewed: <span class="mono">${fmtLocal(reviewed)}</span> · Reviewer: <span class="mono">${MARKET_REGIME.reviewer}</span>
+          </div>
+        `;
+      } else {
+        pillText.textContent = "Regime review status: Out of date";
+        dot.className = "dot bad";
+        banner.className = "warning";
+        banner.innerHTML = `
+          <strong class="mono">Out of date</strong>
+          <div class="small muted" style="margin-top:6px">
+            Last reviewed: <span class="mono">${fmtLocal(reviewed)}</span> — update the regime for today.
+          </div>
+        `;
+      }
+    }
 
-        <tr>
-          <td>VIX Index (VIX)</td>
-          <td>13.8</td>
-          <td class="down">-4.2%</td>
-          <td class="down">-9.5%</td>
-          <td class="down">-18.7%</td>
-        </tr>
+    /**
+     * ================
+     *  INITIAL RENDER
+     * ================
+     */
+    (function init(){
+      // Metadata
+      document.getElementById("reviewer").textContent = MARKET_REGIME.reviewer || "—";
+      document.getElementById("confidence").textContent = MARKET_REGIME.confidence || "—";
+      document.getElementById("changeLogLatest").textContent = MARKET_REGIME.changeLog?.latest || "—";
+      document.getElementById("changeLogPrior").textContent = MARKET_REGIME.changeLog?.prior || "—";
 
-      </tbody>
-    </table>
-  </div>
-</section>
+      // Last reviewed label
+      if(MARKET_REGIME.lastReviewedISO){
+        const dt = new Date(MARKET_REGIME.lastReviewedISO);
+        document.getElementById("lastReviewed").textContent = fmtLocal(dt);
+      } else {
+        document.getElementById("lastReviewed").textContent = "—";
+      }
 
-</div>
+      // Stance + bullets
+      setStanceUI(MARKET_REGIME.stance || "—");
+      renderBullets(MARKET_REGIME.bullets || []);
 
-<!-- RIGHT COLUMN -->
-<div>
+      // Freshness enforcement
+      updateFreshness();
+    })();
+  </script>
 
-<section class="card">
-  <div class="cardHead">
-    <strong>What Changed Overnight</strong>
-    <span>Key drivers</span>
-  </div>
-  <div class="cardBody">
-    <ul>
-      <li>US yields fell ~6bps, supporting equities and gold</li>
-      <li>USD weakened, lifting AUD and resource stocks</li>
-      <li>Banks lagged amid margin pressure commentary</li>
-    </ul>
-  </div>
-</section>
+  <!--
+    =========================
+    OPTIONAL: “TRUE LATEST” TABLES
+    =========================
+    Browsers often block RSS/news fetches due to CORS.
+    Best practice for an internal dashboard:
+      1) Create a tiny serverless endpoint (Cloudflare Worker / Netlify function)
+      2) That endpoint fetches RSS pages, extracts headlines, returns JSON
+      3) Your dashboard fetches *your* endpoint (same origin) and renders the table
 
-<section class="card">
-  <div class="cardHead">
-    <strong>Latest ASX Company News</strong>
-    <span>AFR</span>
-  </div>
-  <div class="cardBody">
-    <table>
-      <tbody>
-        <tr>
-          <td>
-            <a href="https://www.afr.com" target="_blank">
-              Ansell slumps 6% as tech and healthcare lift ASX
-            </a>
-          </td>
-          <td>Earnings</td>
-        </tr>
-        <tr>
-          <td>
-            <a href="https://www.afr.com" target="_blank">
-              Rio Tinto and BHP rise while Zip under pressure
-            </a>
-          </td>
-          <td>Resources</td>
-        </tr>
-        <tr>
-          <td>
-            <a href="https://www.afr.com" target="_blank">
-              DroneShield surges; Qantas rallies on demand
-            </a>
-          </td>
-          <td>Defence / Travel</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-</section>
-
-</div>
-</div>
-
-</main>
-
-<footer>
-  <p><strong>Internal use only.</strong> For adviser decision-making and internal discussion.</p>
-</footer>
-
+    If you want, tell me what hosting you're using (GitHub Pages / Netlify / Render),
+    and I’ll give you the exact minimal worker/function code + wire it into these tables.
+  -->
 </body>
 </html>
