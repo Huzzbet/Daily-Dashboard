@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Market Dashboard | Adviser Daily Brief</title>
+<title>Internal Market Dashboard</title>
 
 <style>
 :root{
@@ -13,6 +13,7 @@
   --text:#e7eefc;
   --muted:#9fb0d0;
   --good:#3ad29f;
+  --warn:#ffd166;
   --bad:#ff6b81;
   --shadow:0 10px 30px rgba(0,0,0,.35);
   --radius:16px;
@@ -30,13 +31,13 @@ body{
   line-height:1.45;
 }
 
-/* ===== HEADER ===== */
+/* HEADER */
 header{
   position:sticky;
   top:0;
   z-index:10;
   padding:18px 20px;
-  background:rgba(11,18,32,.88);
+  background:rgba(11,18,32,.9);
   backdrop-filter:blur(10px);
   border-bottom:1px solid var(--line);
 }
@@ -59,25 +60,24 @@ h1{
   font-family:var(--mono);
 }
 
-/* ===== PAGE ===== */
+/* PAGE */
 main{
   max-width:1300px;
   margin:auto;
   padding:20px;
 }
 
-/* ===== GRID ===== */
+/* GRID */
 .grid{
   display:grid;
-  grid-template-columns: 2.2fr 1.3fr;
+  grid-template-columns:2.2fr 1.3fr;
   gap:20px;
 }
-
 @media(max-width:900px){
   .grid{grid-template-columns:1fr}
 }
 
-/* ===== CARDS ===== */
+/* CARDS */
 .card{
   background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.01));
   border:1px solid var(--line);
@@ -94,30 +94,16 @@ main{
   align-items:center;
 }
 
-.cardHead strong{
-  font-size:14px;
-}
+.cardHead strong{font-size:14px}
+.cardHead span{font-size:12px;color:var(--muted)}
 
-.cardHead span{
-  font-size:12px;
-  color:var(--muted);
-}
+.cardBody{padding:18px}
 
-.cardBody{
-  padding:18px;
-}
-
-/* ===== TABLES ===== */
-.tableWrap{overflow-x:auto}
-
+/* TABLES */
 table{
   width:100%;
   border-collapse:collapse;
   font-size:13.5px;
-}
-
-thead{
-  background:rgba(255,255,255,.04);
 }
 
 th, td{
@@ -127,31 +113,18 @@ th, td{
 }
 
 th{
-  font-size:11px;
   text-transform:uppercase;
-  letter-spacing:.5px;
+  font-size:11px;
   color:var(--muted);
   text-align:left;
 }
 
-tbody tr:hover{
-  background:rgba(255,255,255,.03);
-}
+tbody tr:hover{background:rgba(255,255,255,.03)}
 
-/* ===== LINKS ===== */
-a{
-  color:var(--text);
-  text-decoration:none;
-}
-
-a:hover{
-  color:#6ee7ff;
-  text-decoration:underline;
-}
-
-/* ===== COLOURS ===== */
+/* STATUS COLOURS */
 .up{color:var(--good)}
 .down{color:var(--bad)}
+.warn{color:var(--warn)}
 .neutral{color:var(--muted)}
 
 footer{
@@ -168,18 +141,37 @@ footer{
 
 <header>
   <div class="headerWrap">
-    <h1>Adviser Market Dashboard</h1>
+    <h1>Internal Market Dashboard</h1>
     <div class="sub">
-      Wednesday 11 January 2026 · Australia / Melbourne · Internal Use
+      Wednesday 11 January 2026 · Australia / Melbourne · Internal Use Only
     </div>
   </div>
 </header>
 
 <main>
 
+<!-- ===== MARKET REGIME ===== -->
+<section class="card">
+  <div class="cardHead">
+    <strong>Market Regime</strong>
+    <span>High-level context</span>
+  </div>
+  <div class="cardBody">
+    <p>
+      <strong>Current stance:</strong>
+      <span class="up">🟢 Risk-On</span>
+    </p>
+    <ul>
+      <li>Volatility suppressed (VIX trending lower)</li>
+      <li>Bond yields easing, supporting growth assets</li>
+      <li>USD softer, commodities and AUD supported</li>
+    </ul>
+  </div>
+</section>
+
 <div class="grid">
 
-<!-- ================= LEFT: MARKETS ================= -->
+<!-- LEFT COLUMN -->
 <div>
 
 <section class="card">
@@ -187,8 +179,7 @@ footer{
     <strong>Market Performance Overview</strong>
     <span>Daily · YTD · 2025</span>
   </div>
-
-  <div class="cardBody tableWrap">
+  <div class="cardBody">
     <table>
       <thead>
         <tr>
@@ -200,55 +191,13 @@ footer{
         </tr>
       </thead>
       <tbody>
-        <tr>
-          <td>ASX 200</td>
-          <td>7,482.3</td>
-          <td class="up">+0.62%</td>
-          <td class="up">+3.4%</td>
-          <td class="up">+9.8%</td>
-        </tr>
-        <tr>
-          <td>S&amp;P 500</td>
-          <td>4,892.3</td>
-          <td class="down">-0.31%</td>
-          <td class="up">+1.9%</td>
-          <td class="up">+22.4%</td>
-        </tr>
-        <tr>
-          <td>NASDAQ</td>
-          <td>—</td>
-          <td class="neutral">—</td>
-          <td class="down">-0.8%</td>
-          <td class="up">+31.6%</td>
-        </tr>
-        <tr>
-          <td>AUD / USD</td>
-          <td>0.6721</td>
-          <td class="up">+0.48%</td>
-          <td class="neutral">—</td>
-          <td class="down">-4.1%</td>
-        </tr>
-        <tr>
-          <td>US 10Y Yield</td>
-          <td>4.12%</td>
-          <td class="down">-6 bps</td>
-          <td class="down">-14 bps</td>
-          <td class="neutral">—</td>
-        </tr>
-        <tr>
-          <td>Gold</td>
-          <td>2,048</td>
-          <td class="up">+1.10%</td>
-          <td class="up">+2.7%</td>
-          <td class="up">+13.2%</td>
-        </tr>
-        <tr>
-          <td>VIX</td>
-          <td>13.8</td>
-          <td class="down">-4.2%</td>
-          <td class="down">-9.5%</td>
-          <td class="down">-18.7%</td>
-        </tr>
+        <tr><td>ASX 200</td><td>7,482</td><td class="up">+0.62%</td><td class="up">+3.4%</td><td class="up">+9.8%</td></tr>
+        <tr><td>S&amp;P 500</td><td>4,892</td><td class="down">-0.31%</td><td class="up">+1.9%</td><td class="up">+22.4%</td></tr>
+        <tr><td>NASDAQ</td><td>—</td><td class="neutral">—</td><td class="down">-0.8%</td><td class="up">+31.6%</td></tr>
+        <tr><td>AUD / USD</td><td>0.672</td><td class="up">+0.48%</td><td class="neutral">—</td><td class="down">-4.1%</td></tr>
+        <tr><td>US 10Y Yield</td><td>4.12%</td><td class="down">-6 bps</td><td class="down">-14 bps</td><td class="neutral">—</td></tr>
+        <tr><td>Gold</td><td>2,048</td><td class="up">+1.10%</td><td class="up">+2.7%</td><td class="up">+13.2%</td></tr>
+        <tr><td>VIX</td><td>13.8</td><td class="down">-4.2%</td><td class="down">-9.5%</td><td class="down">-18.7%</td></tr>
       </tbody>
     </table>
   </div>
@@ -256,72 +205,35 @@ footer{
 
 </div>
 
-<!-- ================= RIGHT: NEWS ================= -->
+<!-- RIGHT COLUMN -->
 <div>
 
-<!-- ADVISER NEWS -->
 <section class="card">
   <div class="cardHead">
-    <strong>Financial Planning & Adviser News</strong>
-    <span>Industry</span>
+    <strong>What Changed Overnight</strong>
+    <span>Key drivers</span>
   </div>
-  <div class="cardBody tableWrap">
-    <table>
-      <thead>
-        <tr>
-          <th>Headline</th>
-          <th>Source</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td><a href="https://www.ifa.com.au/property-dominates-the-thoughts-of-aspirational-investors/" target="_blank">Property still dominates investor thinking</a></td>
-          <td>IFA</td>
-        </tr>
-        <tr>
-          <td><a href="https://www.moneymanagement.com.au/hnw-female-investors-defying-risk-averse-stereotypes/" target="_blank">HNW female investors defy risk stereotypes</a></td>
-          <td>Money Mgmt</td>
-        </tr>
-        <tr>
-          <td><a href="https://www.investordaily.com.au/regulation/53969-asic-steps-up-focus-on-advice-compliance" target="_blank">ASIC steps up advice compliance focus</a></td>
-          <td>Investor Daily</td>
-        </tr>
-      </tbody>
-    </table>
+  <div class="cardBody">
+    <ul>
+      <li>US bond yields fell ~6bps, supporting gold and long-duration equities</li>
+      <li>USD weakened, lifting AUD and commodity-linked assets</li>
+      <li>Banks lagged broader market on margin pressure commentary</li>
+    </ul>
   </div>
 </section>
 
-<!-- AFR MARKET & COMPANY NEWS -->
 <section class="card">
   <div class="cardHead">
-    <strong>AFR – Market & Company News</strong>
-    <span>Australia</span>
+    <strong>Upcoming Events & Watchlist</strong>
+    <span>Forward-looking</span>
   </div>
-  <div class="cardBody tableWrap">
+  <div class="cardBody">
     <table>
-      <thead>
-        <tr>
-          <th>Headline</th>
-          <th>Category</th>
-        </tr>
-      </thead>
       <tbody>
-        <tr>
-          <td><a href="https://www.afr.com/markets/equity-markets/asx-slips-as-banks-and-miners-ease-20260111" target="_blank">ASX slips as banks and miners ease</a></td>
-          <td>Markets</td>
-        </tr>
-        <tr>
-          <td><a href="https://www.afr.com/companies/financial-services/big-four-banks-face-margin-pressure-20260111" target="_blank">Big four banks face margin pressure</a></td>
-          <td>Companies</td>
-        </tr>
-        <tr>
-          <td><a href="https://www.afr.com/markets/rates-bonds/bond-yields-ease-on-rate-cut-bets-20260111" target="_blank">Bond yields ease on rate-cut bets</a></td>
-          <td>Rates</td>
-        </tr>
-        <tr>
-          <td><a href="https://www.afr.com/companies/resources/gold-miners-rally-on-softer-dollar-20260111" target="_blank">Gold miners rally on softer dollar</a></td>
-          <td>Resources</td>
-        </tr>
+        <tr><td>RBA Interest Rate Decision</td><td class="warn">Tuesday</td></tr>
+        <tr><td>US CPI Inflation Print</td><td class="warn">Wednesday</td></tr>
+        <tr><td>ASX Bank Earnings Updates</td><td class="neutral">This week</td></tr>
+        <tr><td>US Earnings Season Begins</td><td class="neutral">Next week</td></tr>
       </tbody>
     </table>
   </div>
@@ -335,8 +247,7 @@ footer{
 
 <footer>
   <p>
-    <strong>Important:</strong> This dashboard is provided for internal information purposes only
-    and does not constitute personal financial advice.
+    <strong>Internal use only.</strong> This dashboard is designed to support internal decision-making and discussion.
   </p>
 </footer>
 
