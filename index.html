@@ -59,16 +59,22 @@ h1{margin:0;font-size:26px;font-weight:600}
 
 .btn{
   margin-top:14px;
-  padding:10px 16px;
+  padding:11px 18px;
   border-radius:14px;
-  background:rgba(110,231,255,.14);
+  background:linear-gradient(180deg, rgba(110,231,255,.25), rgba(110,231,255,.12));
   border:1px solid rgba(110,231,255,.35);
   color:var(--text);
   font-weight:600;
   cursor:pointer;
+  box-shadow:0 6px 14px rgba(0,0,0,.25);
+  transition:all .15s ease;
 }
 
-.btn:hover{filter:brightness(1.1)}
+.btn:active{
+  transform:translateY(2px);
+  box-shadow:0 3px 8px rgba(0,0,0,.35) inset;
+  filter:brightness(.95);
+}
 
 .regime{
   font-size:18px;
@@ -119,7 +125,7 @@ h1{margin:0;font-size:26px;font-weight:600}
 }
 
 .news-list li{
-  margin:10px 0;
+  margin:12px 0;
   line-height:1.45;
 }
 
@@ -132,6 +138,21 @@ h1{margin:0;font-size:26px;font-weight:600}
   color:var(--accent);
   text-decoration:underline;
 }
+
+/* ===== Adviser Impact Badges ===== */
+.badge{
+  display:inline-block;
+  padding:4px 10px;
+  border-radius:999px;
+  font-size:11px;
+  font-weight:600;
+  margin-right:8px;
+  vertical-align:middle;
+}
+
+.badge-high{ background:rgba(255,92,122,.18); color:#ff5c7a; }
+.badge-mid{ background:rgba(255,209,102,.18); color:#ffd166; }
+.badge-low{ background:rgba(43,212,125,.18); color:#2bd47d; }
 </style>
 </head>
 
@@ -141,7 +162,7 @@ h1{margin:0;font-size:26px;font-weight:600}
 <h1>Internal Market & Advice Dashboard</h1>
 <div class="sub">Australia · Melbourne · Internal Use Only</div>
 
-<button class="btn" onclick="refreshData()">🔄 Refresh</button>
+<button class="btn" id="refreshBtn" onclick="refreshData()">🔄 Refresh</button>
 
 <!-- MARKET REGIME -->
 <div class="card">
@@ -218,8 +239,15 @@ h1{margin:0;font-size:26px;font-weight:600}
 
 <script>
 function refreshData(){
+  const btn = document.getElementById("refreshBtn");
+  btn.innerText = "Refreshing…";
+  btn.disabled = true;
 
-  // ===== RISK ENGINE INPUTS =====
+  setTimeout(() => {
+    btn.innerText = "🔄 Refresh";
+    btn.disabled = false;
+  }, 600);
+
   const vix = 13.8;
   const yields = -6;
   const aud = 0.48;
@@ -278,51 +306,27 @@ function refreshData(){
   `).join("");
 
   asxNews.innerHTML = `
-    <li><a href="https://www.afr.com/companies/mining/bhp-reaffirms-guidance-as-iron-ore-prices-stabilise" target="_blank">
-      BHP reaffirms guidance as iron ore prices stabilise
-    </a></li>
-    <li><a href="https://www.afr.com/companies/financial-services/banks-face-margin-pressure-as-deposit-competition-heats-up" target="_blank">
-      Banks face margin pressure as deposit competition heats up
-    </a></li>
-    <li><a href="https://www.afr.com/companies/healthcare/csl-sees-plasma-collections-normalise" target="_blank">
-      CSL sees plasma collections normalise
-    </a></li>
+    <li><span class="badge badge-mid">Sector Watch</span><a href="https://www.afr.com/companies/mining/bhp-reaffirms-guidance-as-iron-ore-prices-stabilise" target="_blank">BHP reaffirms guidance as iron ore prices stabilise</a></li>
+    <li><span class="badge badge-high">Portfolio Relevant</span><a href="https://www.afr.com/companies/financial-services/banks-face-margin-pressure-as-deposit-competition-heats-up" target="_blank">Banks face margin pressure as deposit competition heats up</a></li>
+    <li><span class="badge badge-mid">Sector Watch</span><a href="https://www.afr.com/companies/healthcare/csl-sees-plasma-collections-normalise" target="_blank">CSL sees plasma collections normalise</a></li>
   `;
 
   usNews.innerHTML = `
-    <li><a href="https://finviz.com/news.ashx?t=NVDA" target="_blank">
-      Nvidia demand remains supply constrained amid AI boom
-    </a></li>
-    <li><a href="https://finviz.com/news.ashx?t=AAPL" target="_blank">
-      Apple faces slower iPhone upgrade cycle
-    </a></li>
-    <li><a href="https://finviz.com/news.ashx?t=TSLA" target="_blank">
-      Tesla cuts prices again amid EV competition
-    </a></li>
+    <li><span class="badge badge-mid">Sector Watch</span><a href="https://finviz.com/news.ashx?t=NVDA" target="_blank">Nvidia demand remains supply constrained amid AI boom</a></li>
+    <li><span class="badge badge-high">Portfolio Relevant</span><a href="https://finviz.com/news.ashx?t=AAPL" target="_blank">Apple faces slower iPhone upgrade cycle</a></li>
+    <li><span class="badge badge-mid">Sector Watch</span><a href="https://finviz.com/news.ashx?t=TSLA" target="_blank">Tesla cuts prices again amid EV competition</a></li>
   `;
 
   legNews.innerHTML = `
-    <li><a href="https://treasury.gov.au/consultation/division-296-superannuation-tax" target="_blank">
-      Treasury progresses Division 296 tax on high super balances
-    </a></li>
-    <li><a href="https://asic.gov.au/regulatory-resources/financial-services/superannuation/" target="_blank">
-      ASIC increases scrutiny on super and advice compliance
-    </a></li>
-    <li><a href="https://asic.gov.au/regulatory-resources/financial-services/insurance/" target="_blank">
-      ASIC flags concerns over TPD policy definitions
-    </a></li>
+    <li><span class="badge badge-high">Portfolio Relevant</span><a href="https://treasury.gov.au/consultation/division-296-superannuation-tax" target="_blank">Treasury progresses Division 296 tax on high super balances</a></li>
+    <li><span class="badge badge-high">Portfolio Relevant</span><a href="https://asic.gov.au/regulatory-resources/financial-services/superannuation/" target="_blank">ASIC increases scrutiny on super and advice compliance</a></li>
+    <li><span class="badge badge-mid">Sector Watch</span><a href="https://asic.gov.au/regulatory-resources/financial-services/insurance/" target="_blank">ASIC flags concerns over TPD policy definitions</a></li>
   `;
 
   macroNews.innerHTML = `
-    <li><a href="https://www.afr.com/markets/debt-markets/us-bond-yields-fall-on-rate-cut-bets" target="_blank">
-      US bond yields fall as rate-cut expectations build
-    </a></li>
-    <li><a href="https://www.afr.com/markets/currencies/aussie-dollar-rises-as-us-dollar-weakens" target="_blank">
-      Aussie dollar rises as US dollar weakens
-    </a></li>
-    <li><a href="https://www.afr.com/policy/economy/global-growth-outlook-improves-as-inflation-eases" target="_blank">
-      Global growth outlook improves as inflation eases
-    </a></li>
+    <li><span class="badge badge-high">Portfolio Relevant</span><a href="https://www.afr.com/markets/debt-markets/us-bond-yields-fall-on-rate-cut-bets" target="_blank">US bond yields fall as rate-cut expectations build</a></li>
+    <li><span class="badge badge-mid">Sector Watch</span><a href="https://www.afr.com/markets/currencies/aussie-dollar-rises-as-us-dollar-weakens" target="_blank">Aussie dollar rises as US dollar weakens</a></li>
+    <li><span class="badge badge-low">Market Context</span><a href="https://www.afr.com/policy/economy/global-growth-outlook-improves-as-inflation-eases" target="_blank">Global growth outlook improves as inflation eases</a></li>
   `;
 }
 
