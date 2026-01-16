@@ -32,6 +32,7 @@ body{
 .container{max-width:1400px;margin:auto;padding:24px}
 h1{margin:0;font-size:28px}
 .sub{color:var(--muted);margin-top:6px}
+
 .card{
   background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.02));
   border:1px solid var(--line);
@@ -41,23 +42,33 @@ h1{margin:0;font-size:28px}
   margin-top:24px;
 }
 .card h2{margin:0 0 14px 0;font-size:18px}
-table{width:100%;border-collapse:collapse;font-size:14px}
-th,td{padding:12px 10px;border-bottom:1px solid var(--line);vertical-align:top}
-th{text-transform:uppercase;font-size:11px;letter-spacing:.16em;color:var(--muted);text-align:left}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:14px;
+}
+th,td{
+  padding:12px 10px;
+  border-bottom:1px solid var(--line);
+}
+th{
+  text-transform:uppercase;
+  font-size:11px;
+  letter-spacing:.16em;
+  color:var(--muted);
+  text-align:left;
+}
 .positive{color:var(--good)}
 .negative{color:var(--bad)}
 .warning{color:var(--warn)}
-.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:24px}
-.grid-5{display:grid;grid-template-columns:repeat(5,1fr);gap:16px}
-.market-box{
-  border:1px solid var(--line);
-  border-radius:14px;
-  padding:14px;
-  background:rgba(255,255,255,.03);
+
+.grid-2{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:24px;
 }
-.market-box h3{margin:0 0 6px 0;font-size:13px;color:var(--muted);letter-spacing:.08em}
-.market-box .price{font-size:20px;font-weight:700}
-.market-box .chg{font-size:13px;margin-top:4px}
+
 .btn{
   padding:10px 14px;
   border-radius:12px;
@@ -68,9 +79,9 @@ th{text-transform:uppercase;font-size:11px;letter-spacing:.16em;color:var(--mute
   font-weight:600;
 }
 .btn:hover{filter:brightness(1.1)}
+
 @media(max-width:1000px){
   .grid-2{grid-template-columns:1fr}
-  .grid-5{grid-template-columns:1fr 1fr}
 }
 </style>
 </head>
@@ -82,23 +93,38 @@ th{text-transform:uppercase;font-size:11px;letter-spacing:.16em;color:var(--mute
 <div class="sub">Australia · Melbourne · Internal Use Only</div>
 
 <div style="margin-top:14px;display:flex;gap:14px;align-items:center;">
-  <button class="btn" onclick="refreshFeeds()">🔄 Refresh AFR / Finviz / ASIC</button>
+  <button class="btn" onclick="refreshAll()">🔄 Refresh Data</button>
   <span class="sub" id="refreshStatus">Last refreshed: just now</span>
 </div>
 
-<!-- ================= LIVE MARKET PRICES ================= -->
+<!-- ================= MARKET PERFORMANCE OVERVIEW ================= -->
 <div class="card">
-<h2>Live Market Prices</h2>
-<div class="grid-5" id="marketPrices"></div>
-<div class="sub" id="marketMeta"></div>
+  <div style="display:flex;justify-content:space-between;align-items:center;">
+    <h2>Market Performance Overview</h2>
+    <span class="sub">Daily · YTD · CY</span>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Asset</th>
+        <th>Level</th>
+        <th>1-Day</th>
+        <th>2026 YTD</th>
+        <th>2025 CY</th>
+      </tr>
+    </thead>
+    <tbody id="marketTable"></tbody>
+  </table>
 </div>
 
 <!-- ================= CLIENT TALKING POINTS ================= -->
 <div class="card">
-<h2>Client Talking Points (Auto-Generated)</h2>
-<ul id="talkingPoints" style="margin:0;padding-left:18px;"></ul>
+  <h2>Client Talking Points (Auto-Generated)</h2>
+  <ul id="talkingPoints" style="margin:0;padding-left:18px;"></ul>
 </div>
 
+<!-- ================= COMPANY NEWS ================= -->
 <div class="grid-2">
 
 <div class="card">
@@ -121,6 +147,7 @@ th{text-transform:uppercase;font-size:11px;letter-spacing:.16em;color:var(--mute
 
 </div>
 
+<!-- ================= LEGISLATION ================= -->
 <div class="card">
 <h2>Super & Insurance Legislative Updates (ASIC / Treasury)</h2>
 <table>
@@ -130,8 +157,9 @@ th{text-transform:uppercase;font-size:11px;letter-spacing:.16em;color:var(--mute
 <div class="sub" id="legMeta"></div>
 </div>
 
+<!-- ================= MACRO ================= -->
 <div class="card">
-<h2>Major Economic Headlines Moving Markets (AFR / Global)</h2>
+<h2>Major Economic Headlines Moving Markets</h2>
 <table>
 <thead><tr><th>Event</th><th>Headline</th><th>Implication</th></tr></thead>
 <tbody id="macroNews"></tbody>
@@ -142,93 +170,80 @@ th{text-transform:uppercase;font-size:11px;letter-spacing:.16em;color:var(--mute
 </div>
 
 <script>
-/* =========================
-   SIMULATED LIVE FEEDS
-========================= */
-function fetchFeeds(){
+function getData(){
   return {
     markets:[
-      {n:"ASX 200", p:7482, c:"+0.62%", cls:"positive"},
-      {n:"S&P 500", p:4892, c:"-0.31%", cls:"negative"},
-      {n:"NASDAQ", p:16320, c:"-0.45%", cls:"negative"},
-      {n:"AUD/USD", p:0.672, c:"+0.48%", cls:"positive"},
-      {n:"US 10Y", p:"4.12%", c:"-6 bps", cls:"warning"}
+      {a:"ASX 200", l:"7,482", d:"+0.62%", y:"+3.4%", c:"+9.8%"},
+      {a:"S&P 500", l:"4,892", d:"-0.31%", y:"+1.9%", c:"+22.4%"},
+      {a:"NASDAQ", l:"—", d:"—", y:"-0.8%", c:"+31.6%"},
+      {a:"AUD / USD", l:"0.672", d:"+0.48%", y:"—", c:"-4.1%"},
+      {a:"US 10Y Yield", l:"4.12%", d:"-6 bps", y:"-14 bps", c:"—"},
+      {a:"Gold", l:"2,048", d:"+1.10%", y:"+2.7%", c:"+13.2%"},
+      {a:"VIX", l:"13.8", d:"-4.2%", y:"-9.5%", c:"-18.7%"}
     ],
     asx:[
-      {c:"BHP", h:"Iron ore shipments steady; costs contained", i:"Earnings stability", cls:"positive"},
-      {c:"CBA", h:"NIM pressure from deposit competition", i:"Margins normalising", cls:"warning"},
-      {c:"CSL", h:"Plasma collections normalising", i:"Growth visibility improving", cls:"positive"}
+      {c:"BHP", h:"Iron ore shipments steady; costs controlled", i:"Earnings stability"},
+      {c:"CBA", h:"Margin pressure persists", i:"Banks lag broader market"}
     ],
     us:[
-      {c:"NVIDIA", h:"AI demand remains supply constrained", i:"Structural growth intact", cls:"positive"},
-      {c:"APPLE", h:"iPhone upgrade cycle slowing", i:"Short-term revenue headwind", cls:"warning"},
-      {c:"TESLA", h:"EV price cuts resume", i:"Margin pressure risk", cls:"negative"}
+      {c:"NVIDIA", h:"AI demand remains strong", i:"Structural growth intact"},
+      {c:"APPLE", h:"iPhone upgrade cycle slowing", i:"Short-term headwind"}
     ],
     legislation:[
-      {a:"Super", h:"Division 296 tax progressing", i:"High balance strategies impacted", cls:"warning"},
-      {a:"Insurance", h:"TPD definitions tightening", i:"Cover adequacy review required", cls:"negative"}
+      {a:"Super", h:"Division 296 tax progressing", i:"High balance strategies impacted"},
+      {a:"Insurance", h:"TPD definitions tightening", i:"Review cover adequacy"}
     ],
     macro:[
-      {e:"US Rates", h:"Fed signals patience on rate cuts", i:"Higher-for-longer narrative", cls:"warning"},
-      {e:"Australia", h:"Services inflation remains sticky", i:"RBA cautious stance", cls:"warning"}
+      {e:"US Rates", h:"Yields fell ~6bps", i:"Supports equities & gold"},
+      {e:"FX", h:"USD weakened overnight", i:"AUD and resources lifted"}
     ]
   };
 }
 
-/* =========================
-   RENDER EVERYTHING
-========================= */
-function refreshFeeds(){
-  const f = fetchFeeds();
+function cls(v){
+  if(v.includes("+")) return "positive";
+  if(v.includes("-")) return "negative";
+  return "";
+}
 
-  // Market prices
-  marketPrices.innerHTML = f.markets.map(m=>`
-    <div class="market-box">
-      <h3>${m.n}</h3>
-      <div class="price">${m.p}</div>
-      <div class="chg ${m.cls}">${m.c}</div>
-    </div>
+function refreshAll(){
+  const d = getData();
+
+  marketTable.innerHTML = d.markets.map(x=>`
+    <tr>
+      <td>${x.a}</td>
+      <td>${x.l}</td>
+      <td class="${cls(x.d)}">${x.d}</td>
+      <td class="${cls(x.y)}">${x.y}</td>
+      <td class="${cls(x.c)}">${x.c}</td>
+    </tr>
   `).join("");
-  marketMeta.textContent = "Live snapshot · " + new Date().toLocaleTimeString();
 
-  // ASX
-  asxNews.innerHTML = f.asx.map(x=>`
-    <tr><td>${x.c}</td><td>${x.h}</td><td class="${x.cls}">${x.i}</td></tr>
+  asxNews.innerHTML = d.asx.map(x=>`
+    <tr><td>${x.c}</td><td>${x.h}</td><td>${x.i}</td></tr>
   `).join("");
-  asxMeta.textContent = "Source: AFR · " + new Date().toLocaleTimeString();
-
-  // US
-  usNews.innerHTML = f.us.map(x=>`
-    <tr><td>${x.c}</td><td>${x.h}</td><td class="${x.cls}">${x.i}</td></tr>
+  usNews.innerHTML = d.us.map(x=>`
+    <tr><td>${x.c}</td><td>${x.h}</td><td>${x.i}</td></tr>
   `).join("");
-  usMeta.textContent = "Source: Finviz · " + new Date().toLocaleTimeString();
-
-  // Legislation
-  legNews.innerHTML = f.legislation.map(x=>`
-    <tr><td>${x.a}</td><td>${x.h}</td><td class="${x.cls}">${x.i}</td></tr>
+  legNews.innerHTML = d.legislation.map(x=>`
+    <tr><td>${x.a}</td><td>${x.h}</td><td>${x.i}</td></tr>
   `).join("");
-  legMeta.textContent = "Source: ASIC / Treasury · " + new Date().toLocaleTimeString();
-
-  // Macro
-  macroNews.innerHTML = f.macro.map(x=>`
-    <tr><td>${x.e}</td><td>${x.h}</td><td class="${x.cls}">${x.i}</td></tr>
+  macroNews.innerHTML = d.macro.map(x=>`
+    <tr><td>${x.e}</td><td>${x.h}</td><td>${x.i}</td></tr>
   `).join("");
-  macroMeta.textContent = "Source: AFR / Global · " + new Date().toLocaleTimeString();
 
-  // Talking points
-  const points = [];
-  f.markets.forEach(m=>points.push(`Markets: ${m.n} at ${m.p} (${m.c})`));
-  f.asx.concat(f.us).forEach(x=>points.push(`${x.c}: ${x.h}`));
-  f.legislation.forEach(x=>points.push(`Legislation – ${x.a}: ${x.h}`));
-  f.macro.forEach(x=>points.push(`Macro – ${x.e}: ${x.h}`));
-
-  talkingPoints.innerHTML = points.slice(0,6).map(p=>`<li>${p}</li>`).join("");
+  talkingPoints.innerHTML = [
+    "US yields fell, supporting equities and gold",
+    "USD weakness lifted AUD and resources",
+    "Banks lagged amid margin pressure",
+    "Equity volatility eased with lower VIX"
+  ].map(t=>`<li>${t}</li>`).join("");
 
   refreshStatus.textContent = "Last refreshed: " + new Date().toLocaleTimeString();
 }
 
-// Initial load
-refreshFeeds();
+// initial load
+refreshAll();
 </script>
 
 </body>
