@@ -8,81 +8,138 @@
 <style>
 :root{
   --bg:#0b1220;
-  --card:#111a2e;
-  --muted:#9fb0d0;
+  --card:#0f1828;
+  --border:rgba(255,255,255,.08);
   --text:#e7eefc;
-  --accent:#6ee7ff;
-  --line:rgba(255,255,255,.10);
-  --good:#2bd47d;
-  --bad:#ff5c7a;
-  --warn:#ffd166;
-  --radius:16px;
-  --shadow:0 10px 30px rgba(0,0,0,.25);
-  --sans:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
+  --muted:#9fb0d0;
+  --green:#2bd47d;
+  --red:#ff5c7a;
+  --shadow:0 18px 40px rgba(0,0,0,.35);
+  --radius:22px;
+  --font:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
 }
+
 *{box-sizing:border-box}
 body{
   margin:0;
-  background:radial-gradient(1200px 600px at 10% -10%, #14234a, transparent),
-             radial-gradient(800px 400px at 90% -10%, #0f2a3f, transparent),
-             var(--bg);
+  font-family:var(--font);
+  background:
+    radial-gradient(900px 500px at 50% -20%, #13284a, transparent),
+    var(--bg);
   color:var(--text);
-  font-family:var(--sans);
-}
-.container{max-width:1400px;margin:auto;padding:24px}
-h1{margin:0;font-size:28px}
-.sub{color:var(--muted);margin-top:6px}
-
-.card{
-  background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.02));
-  border:1px solid var(--line);
-  border-radius:var(--radius);
-  box-shadow:var(--shadow);
-  padding:20px;
-  margin-top:24px;
-}
-.card h2{margin:0 0 14px 0;font-size:18px}
-
-table{
-  width:100%;
-  border-collapse:collapse;
-  font-size:14px;
-}
-th,td{
-  padding:12px 10px;
-  border-bottom:1px solid var(--line);
-}
-th{
-  text-transform:uppercase;
-  font-size:11px;
-  letter-spacing:.16em;
-  color:var(--muted);
-  text-align:left;
-}
-.positive{color:var(--good)}
-.negative{color:var(--bad)}
-.warning{color:var(--warn)}
-
-.grid-2{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:24px;
 }
 
-.btn{
-  padding:10px 14px;
-  border-radius:12px;
-  background:rgba(110,231,255,.12);
-  border:1px solid rgba(110,231,255,.35);
-  color:var(--text);
-  cursor:pointer;
+.container{
+  max-width:1200px;
+  margin:auto;
+  padding:22px 18px 60px;
+}
+
+h1{
+  margin:0;
+  font-size:26px;
   font-weight:600;
 }
+
+.sub{
+  margin-top:6px;
+  color:var(--muted);
+  font-size:14px;
+}
+
+.card{
+  background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.01));
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  padding:18px;
+  margin-top:22px;
+}
+
+/* ===== MARKET TABLE ===== */
+
+.card-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:10px;
+}
+
+.card-header h2{
+  margin:0;
+  font-size:17px;
+  font-weight:600;
+}
+
+.card-header span{
+  font-size:13px;
+  color:var(--muted);
+}
+
+.market-table{
+  width:100%;
+  border-collapse:collapse;
+  margin-top:6px;
+}
+
+.market-table th{
+  text-align:left;
+  font-size:11px;
+  color:var(--muted);
+  letter-spacing:.12em;
+  font-weight:600;
+  padding:12px 6px;
+}
+
+.market-table td{
+  padding:14px 6px;
+  font-size:15px;
+}
+
+.market-table tr:not(:last-child){
+  border-bottom:1px solid var(--border);
+}
+
+.asset{
+  font-weight:500;
+}
+
+.level{
+  font-weight:500;
+}
+
+.pos{color:var(--green)}
+.neg{color:var(--red)}
+
+/* ===== WHAT CHANGED OVERNIGHT ===== */
+
+.bullets{
+  margin:6px 0 0 18px;
+  padding:0;
+}
+
+.bullets li{
+  margin:10px 0;
+  color:#d6e0f0;
+  line-height:1.45;
+  font-size:15px;
+}
+
+/* ===== BUTTON ===== */
+
+.btn{
+  margin-top:14px;
+  padding:10px 16px;
+  border-radius:14px;
+  background:rgba(110,231,255,.14);
+  border:1px solid rgba(110,231,255,.35);
+  color:var(--text);
+  font-weight:600;
+  cursor:pointer;
+}
+
 .btn:hover{filter:brightness(1.1)}
 
-@media(max-width:1000px){
-  .grid-2{grid-template-columns:1fr}
-}
 </style>
 </head>
 
@@ -92,158 +149,78 @@ th{
 <h1>Internal Market & Advice Dashboard</h1>
 <div class="sub">Australia · Melbourne · Internal Use Only</div>
 
-<div style="margin-top:14px;display:flex;gap:14px;align-items:center;">
-  <button class="btn" onclick="refreshAll()">🔄 Refresh Data</button>
-  <span class="sub" id="refreshStatus">Last refreshed: just now</span>
-</div>
+<button class="btn" onclick="refreshData()">🔄 Refresh</button>
 
-<!-- ================= MARKET PERFORMANCE OVERVIEW ================= -->
+<!-- ===== MARKET PERFORMANCE OVERVIEW ===== -->
 <div class="card">
-  <div style="display:flex;justify-content:space-between;align-items:center;">
+
+  <div class="card-header">
     <h2>Market Performance Overview</h2>
-    <span class="sub">Daily · YTD · CY</span>
+    <span>Daily · YTD · CY</span>
   </div>
 
-  <table>
+  <table class="market-table">
     <thead>
       <tr>
-        <th>Asset</th>
-        <th>Level</th>
-        <th>1-Day</th>
+        <th>ASSET</th>
+        <th>LEVEL</th>
+        <th>1-DAY</th>
         <th>2026 YTD</th>
         <th>2025 CY</th>
       </tr>
     </thead>
-    <tbody id="marketTable"></tbody>
+    <tbody id="marketRows"></tbody>
   </table>
+
 </div>
 
-<!-- ================= CLIENT TALKING POINTS ================= -->
+<!-- ===== WHAT CHANGED OVERNIGHT ===== -->
 <div class="card">
-  <h2>Client Talking Points (Auto-Generated)</h2>
-  <ul id="talkingPoints" style="margin:0;padding-left:18px;"></ul>
-</div>
 
-<!-- ================= COMPANY NEWS ================= -->
-<div class="grid-2">
+  <div class="card-header">
+    <h2>What Changed Overnight</h2>
+    <span>Key drivers</span>
+  </div>
 
-<div class="card">
-<h2>ASX Company News (AFR)</h2>
-<table>
-<thead><tr><th>Company</th><th>Headline</th><th>Impact</th></tr></thead>
-<tbody id="asxNews"></tbody>
-</table>
-<div class="sub" id="asxMeta"></div>
-</div>
+  <ul class="bullets" id="overnightBullets"></ul>
 
-<div class="card">
-<h2>US Company News (Finviz)</h2>
-<table>
-<thead><tr><th>Company</th><th>Headline</th><th>Impact</th></tr></thead>
-<tbody id="usNews"></tbody>
-</table>
-<div class="sub" id="usMeta"></div>
-</div>
-
-</div>
-
-<!-- ================= LEGISLATION ================= -->
-<div class="card">
-<h2>Super & Insurance Legislative Updates (ASIC / Treasury)</h2>
-<table>
-<thead><tr><th>Area</th><th>Update</th><th>Adviser Relevance</th></tr></thead>
-<tbody id="legNews"></tbody>
-</table>
-<div class="sub" id="legMeta"></div>
-</div>
-
-<!-- ================= MACRO ================= -->
-<div class="card">
-<h2>Major Economic Headlines Moving Markets</h2>
-<table>
-<thead><tr><th>Event</th><th>Headline</th><th>Implication</th></tr></thead>
-<tbody id="macroNews"></tbody>
-</table>
-<div class="sub" id="macroMeta"></div>
 </div>
 
 </div>
 
 <script>
-function getData(){
-  return {
+function refreshData(){
+  const data = {
     markets:[
-      {a:"ASX 200", l:"7,482", d:"+0.62%", y:"+3.4%", c:"+9.8%"},
-      {a:"S&P 500", l:"4,892", d:"-0.31%", y:"+1.9%", c:"+22.4%"},
-      {a:"NASDAQ", l:"—", d:"—", y:"-0.8%", c:"+31.6%"},
-      {a:"AUD / USD", l:"0.672", d:"+0.48%", y:"—", c:"-4.1%"},
-      {a:"US 10Y Yield", l:"4.12%", d:"-6 bps", y:"-14 bps", c:"—"},
-      {a:"Gold", l:"2,048", d:"+1.10%", y:"+2.7%", c:"+13.2%"},
-      {a:"VIX", l:"13.8", d:"-4.2%", y:"-9.5%", c:"-18.7%"}
+      ["ASX 200","7,482","+0.62%","+3.4%","+9.8%"],
+      ["S&P 500","4,892","-0.31%","+1.9%","+22.4%"],
+      ["NASDAQ","—","—","-0.8%","+31.6%"],
+      ["AUD / USD","0.672","+0.48%","—","-4.1%"],
+      ["US 10Y Yield","4.12%","-6 bps","-14 bps","—"],
+      ["Gold","2,048","+1.10%","+2.7%","+13.2%"],
+      ["VIX","13.8","-4.2%","-9.5%","-18.7%"]
     ],
-    asx:[
-      {c:"BHP", h:"Iron ore shipments steady; costs controlled", i:"Earnings stability"},
-      {c:"CBA", h:"Margin pressure persists", i:"Banks lag broader market"}
-    ],
-    us:[
-      {c:"NVIDIA", h:"AI demand remains strong", i:"Structural growth intact"},
-      {c:"APPLE", h:"iPhone upgrade cycle slowing", i:"Short-term headwind"}
-    ],
-    legislation:[
-      {a:"Super", h:"Division 296 tax progressing", i:"High balance strategies impacted"},
-      {a:"Insurance", h:"TPD definitions tightening", i:"Review cover adequacy"}
-    ],
-    macro:[
-      {e:"US Rates", h:"Yields fell ~6bps", i:"Supports equities & gold"},
-      {e:"FX", h:"USD weakened overnight", i:"AUD and resources lifted"}
+    overnight:[
+      "US yields fell ~6bps, supporting equities and gold",
+      "USD weakened, lifting AUD and resource stocks",
+      "Banks lagged amid margin pressure"
     ]
   };
-}
 
-function cls(v){
-  if(v.includes("+")) return "positive";
-  if(v.includes("-")) return "negative";
-  return "";
-}
-
-function refreshAll(){
-  const d = getData();
-
-  marketTable.innerHTML = d.markets.map(x=>`
+  marketRows.innerHTML = data.markets.map(r=>`
     <tr>
-      <td>${x.a}</td>
-      <td>${x.l}</td>
-      <td class="${cls(x.d)}">${x.d}</td>
-      <td class="${cls(x.y)}">${x.y}</td>
-      <td class="${cls(x.c)}">${x.c}</td>
+      <td class="asset">${r[0]}</td>
+      <td class="level">${r[1]}</td>
+      <td class="${r[2].includes('-')?'neg':'pos'}">${r[2]}</td>
+      <td class="${r[3].includes('-')?'neg':'pos'}">${r[3]}</td>
+      <td class="${r[4].includes('-')?'neg':'pos'}">${r[4]}</td>
     </tr>
   `).join("");
 
-  asxNews.innerHTML = d.asx.map(x=>`
-    <tr><td>${x.c}</td><td>${x.h}</td><td>${x.i}</td></tr>
-  `).join("");
-  usNews.innerHTML = d.us.map(x=>`
-    <tr><td>${x.c}</td><td>${x.h}</td><td>${x.i}</td></tr>
-  `).join("");
-  legNews.innerHTML = d.legislation.map(x=>`
-    <tr><td>${x.a}</td><td>${x.h}</td><td>${x.i}</td></tr>
-  `).join("");
-  macroNews.innerHTML = d.macro.map(x=>`
-    <tr><td>${x.e}</td><td>${x.h}</td><td>${x.i}</td></tr>
-  `).join("");
-
-  talkingPoints.innerHTML = [
-    "US yields fell, supporting equities and gold",
-    "USD weakness lifted AUD and resources",
-    "Banks lagged amid margin pressure",
-    "Equity volatility eased with lower VIX"
-  ].map(t=>`<li>${t}</li>`).join("");
-
-  refreshStatus.textContent = "Last refreshed: " + new Date().toLocaleTimeString();
+  overnightBullets.innerHTML = data.overnight.map(x=>`<li>${x}</li>`).join("");
 }
 
-// initial load
-refreshAll();
+refreshData();
 </script>
 
 </body>
