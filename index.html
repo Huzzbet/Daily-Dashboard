@@ -13,6 +13,7 @@
   --text:#e7eefc;
   --muted:#9fb0d0;
   --green:#2bd47d;
+  --amber:#ffd166;
   --red:#ff5c7a;
   --accent:#6ee7ff;
   --shadow:0 18px 40px rgba(0,0,0,.35);
@@ -36,17 +37,8 @@ body{
   padding:22px 18px 60px;
 }
 
-h1{
-  margin:0;
-  font-size:26px;
-  font-weight:600;
-}
-
-.sub{
-  margin-top:6px;
-  color:var(--muted);
-  font-size:14px;
-}
+h1{margin:0;font-size:26px;font-weight:600}
+.sub{margin-top:6px;color:var(--muted);font-size:14px}
 
 .card{
   background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.01));
@@ -64,18 +56,9 @@ h1{
   margin-bottom:10px;
 }
 
-.card-header h2{
-  margin:0;
-  font-size:17px;
-  font-weight:600;
-}
+.card-header h2{margin:0;font-size:17px;font-weight:600}
+.card-header span{font-size:13px;color:var(--muted)}
 
-.card-header span{
-  font-size:13px;
-  color:var(--muted);
-}
-
-/* ===== BUTTON ===== */
 .btn{
   margin-top:14px;
   padding:10px 16px;
@@ -86,17 +69,12 @@ h1{
   font-weight:600;
   cursor:pointer;
 }
+
 .btn:hover{filter:brightness(1.1)}
 
-/* ===== MARKET REGIME ===== */
 .regime{
   font-size:18px;
   margin:12px 0 6px;
-}
-
-.regime span{
-  color:var(--green);
-  font-weight:600;
 }
 
 .regime-dot{
@@ -104,12 +82,10 @@ h1{
   width:18px;
   height:18px;
   border-radius:50%;
-  background:radial-gradient(circle at 30% 30%, #7CFF9C, #2bd47d);
   margin-right:8px;
   vertical-align:middle;
 }
 
-/* ===== MARKET TABLE ===== */
 .market-table{
   width:100%;
   border-collapse:collapse;
@@ -135,48 +111,13 @@ h1{
 .pos{color:var(--green)}
 .neg{color:var(--red)}
 
-/* ===== LISTS ===== */
-.bullets{
-  margin:12px 0 0 18px;
-  padding:0;
-}
+.bullets{margin:12px 0 0 18px;padding:0}
+.bullets li{margin:10px 0;font-size:15px;line-height:1.45}
 
-.bullets li{
-  margin:10px 0;
-  font-size:15px;
-  line-height:1.45;
-}
-
-.bullets a{
-  color:#d6e0f0;
-  text-decoration:none;
-}
-
-.bullets a:hover{
-  color:var(--accent);
-  text-decoration:underline;
-}
-
-.news-list{
-  list-style:none;
-  padding:0;
-  margin:8px 0 0 0;
-}
-
-.news-list li{
-  margin:10px 0;
-  line-height:1.45;
-}
-
-.news-list a{
-  color:#dbe6ff;
-  text-decoration:none;
-}
-
-.news-list a:hover{
-  color:var(--accent);
-  text-decoration:underline;
-}
+.news-list{list-style:none;padding:0;margin:8px 0 0 0}
+.news-list li{margin:10px 0}
+.news-list a{color:#dbe6ff;text-decoration:none}
+.news-list a:hover{color:var(--accent);text-decoration:underline}
 </style>
 </head>
 
@@ -188,22 +129,27 @@ h1{
 
 <button class="btn" onclick="refreshData()">🔄 Refresh</button>
 
-<!-- ===== MARKET REGIME ===== -->
+<!-- MARKET REGIME -->
 <div class="card">
   <div class="card-header">
     <h2>Market Regime</h2>
     <span>High-level context</span>
   </div>
 
-  <div class="regime">
-    Current stance:
-    <span><span class="regime-dot"></span>Risk-On</span>
-  </div>
-
+  <div class="regime" id="regimeLabel"></div>
   <ul class="bullets" id="regimeDrivers"></ul>
 </div>
 
-<!-- ===== MARKET PERFORMANCE ===== -->
+<!-- CLIENT TALKING POINTS -->
+<div class="card">
+  <div class="card-header">
+    <h2>Client Talking Points</h2>
+    <span>Auto-generated</span>
+  </div>
+  <ul class="bullets" id="clientTalkingPoints"></ul>
+</div>
+
+<!-- MARKET TABLE -->
 <div class="card">
   <div class="card-header">
     <h2>Market Performance Overview</h2>
@@ -224,58 +170,56 @@ h1{
   </table>
 </div>
 
-<!-- ===== ASX NEWS ===== -->
-<div class="card">
-  <div class="card-header">
-    <h2>ASX Company News</h2>
-    <span>AFR · ASX</span>
-  </div>
-  <ul class="news-list" id="asxNews"></ul>
-</div>
-
-<!-- ===== US NEWS ===== -->
-<div class="card">
-  <div class="card-header">
-    <h2>US Company News</h2>
-    <span>Finviz · Earnings</span>
-  </div>
-  <ul class="news-list" id="usNews"></ul>
-</div>
-
-<!-- ===== LEGISLATION ===== -->
-<div class="card">
-  <div class="card-header">
-    <h2>Super & Insurance – Legislative Updates</h2>
-    <span>ASIC · Treasury</span>
-  </div>
-  <ul class="news-list" id="legNews"></ul>
-</div>
-
-<!-- ===== MACRO ===== -->
-<div class="card">
-  <div class="card-header">
-    <h2>Major Economic Headlines</h2>
-    <span>AFR · Global</span>
-  </div>
-  <ul class="news-list" id="macroNews"></ul>
-</div>
-
 </div>
 
 <script>
 function refreshData(){
 
-  // ===== MARKET REGIME DRIVERS =====
+  const markets = {
+    asx:+0.62,
+    sp:-0.31,
+    vix:13.8,
+    yields:-6,
+    aud:+0.48
+  };
+
+  // ===== RISK ENGINE =====
+  let regime = "Neutral";
+  let colour = "--amber";
+  let dot = "#ffd166";
+
+  if(markets.vix < 15 && markets.yields < 0 && markets.aud > 0){
+    regime = "Risk-On";
+    colour = "--green";
+    dot = "#2bd47d";
+  }
+
+  if(markets.vix > 20){
+    regime = "Risk-Off";
+    colour = "--red";
+    dot = "#ff5c7a";
+  }
+
+  regimeLabel.innerHTML = `
+    Current stance:
+    <span style="color:var(${colour});font-weight:600;">
+      <span class="regime-dot" style="background:${dot}"></span>${regime}
+    </span>
+  `;
+
+  // ===== REGIME DRIVERS =====
   regimeDrivers.innerHTML = `
-    <li><a href="https://www.afr.com/markets/equity-markets/volatility-eases-as-markets-stabilise" target="_blank">
-      Volatility subdued; risk assets supported
-    </a></li>
-    <li><a href="https://www.afr.com/markets/debt-markets/us-bond-yields-fall-on-rate-cut-bets" target="_blank">
-      Bond yields easing, favouring growth exposure
-    </a></li>
-    <li><a href="https://www.afr.com/markets/currencies/us-dollar-slides-as-rate-cut-expectations-build" target="_blank">
-      USD softer, supporting AUD and commodities
-    </a></li>
+    <li>Volatility subdued with VIX below stress levels</li>
+    <li>Bond yields easing, supporting growth assets</li>
+    <li>USD softer, lifting AUD and commodities</li>
+  `;
+
+  // ===== CLIENT TALKING POINTS =====
+  clientTalkingPoints.innerHTML = `
+    <li>Market conditions remain constructive, with lower volatility supporting equity exposure.</li>
+    <li>Falling bond yields are providing a tailwind for growth assets and longer-duration investments.</li>
+    <li>A softer US dollar has supported the Australian dollar and commodity-related sectors.</li>
+    <li>Overall positioning remains appropriate for a diversified, growth-oriented portfolio.</li>
   `;
 
   // ===== MARKET TABLE =====
@@ -296,58 +240,6 @@ function refreshData(){
       <td class="${r[4].includes('-')?'neg':'pos'}">${r[4]}</td>
     </tr>
   `).join("");
-
-  // ===== ASX NEWS =====
-  asxNews.innerHTML = `
-    <li><a href="https://www.afr.com/companies/mining/bhp-reaffirms-guidance-as-iron-ore-prices-stabilise" target="_blank">
-      BHP reaffirms guidance as iron ore prices stabilise
-    </a></li>
-    <li><a href="https://www.afr.com/companies/financial-services/banks-face-margin-pressure-as-deposit-competition-heats-up" target="_blank">
-      Banks face margin pressure as deposit competition heats up
-    </a></li>
-    <li><a href="https://www.afr.com/companies/healthcare/csl-sees-plasma-collections-normalise" target="_blank">
-      CSL sees plasma collections normalise
-    </a></li>
-  `;
-
-  // ===== US NEWS =====
-  usNews.innerHTML = `
-    <li><a href="https://finviz.com/news.ashx?t=NVDA" target="_blank">
-      Nvidia demand remains supply constrained amid AI boom
-    </a></li>
-    <li><a href="https://finviz.com/news.ashx?t=AAPL" target="_blank">
-      Apple faces slower iPhone upgrade cycle
-    </a></li>
-    <li><a href="https://finviz.com/news.ashx?t=TSLA" target="_blank">
-      Tesla cuts prices again amid EV competition
-    </a></li>
-  `;
-
-  // ===== LEGISLATION =====
-  legNews.innerHTML = `
-    <li><a href="https://treasury.gov.au/consultation/division-296-superannuation-tax" target="_blank">
-      Treasury progresses Division 296 tax on high super balances
-    </a></li>
-    <li><a href="https://asic.gov.au/regulatory-resources/financial-services/superannuation/" target="_blank">
-      ASIC increases scrutiny on super and advice compliance
-    </a></li>
-    <li><a href="https://asic.gov.au/regulatory-resources/financial-services/insurance/" target="_blank">
-      ASIC flags concerns over TPD policy definitions
-    </a></li>
-  `;
-
-  // ===== MACRO =====
-  macroNews.innerHTML = `
-    <li><a href="https://www.afr.com/markets/debt-markets/us-bond-yields-fall-on-rate-cut-bets" target="_blank">
-      US bond yields fall as rate-cut expectations build
-    </a></li>
-    <li><a href="https://www.afr.com/markets/currencies/aussie-dollar-rises-as-us-dollar-weakens" target="_blank">
-      Aussie dollar rises as US dollar weakens
-    </a></li>
-    <li><a href="https://www.afr.com/policy/economy/global-growth-outlook-improves-as-inflation-eases" target="_blank">
-      Global growth outlook improves as inflation eases
-    </a></li>
-  `;
 }
 
 refreshData();
