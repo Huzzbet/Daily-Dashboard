@@ -25,9 +25,7 @@
 body{
   margin:0;
   font-family:var(--font);
-  background:
-    radial-gradient(900px 500px at 50% -20%, #13284a, transparent),
-    var(--bg);
+  background:radial-gradient(900px 500px at 50% -20%, #13284a, transparent), var(--bg);
   color:var(--text);
 }
 
@@ -114,10 +112,26 @@ h1{margin:0;font-size:26px;font-weight:600}
 .bullets{margin:12px 0 0 18px;padding:0}
 .bullets li{margin:10px 0;font-size:15px;line-height:1.45}
 
-.news-list{list-style:none;padding:0;margin:8px 0 0 0}
-.news-list li{margin:10px 0}
-.news-list a{color:#dbe6ff;text-decoration:none}
-.news-list a:hover{color:var(--accent);text-decoration:underline}
+.news-list{
+  list-style:none;
+  padding:0;
+  margin:8px 0 0 0;
+}
+
+.news-list li{
+  margin:10px 0;
+  line-height:1.45;
+}
+
+.news-list a{
+  color:#dbe6ff;
+  text-decoration:none;
+}
+
+.news-list a:hover{
+  color:var(--accent);
+  text-decoration:underline;
+}
 </style>
 </head>
 
@@ -135,7 +149,6 @@ h1{margin:0;font-size:26px;font-weight:600}
     <h2>Market Regime</h2>
     <span>High-level context</span>
   </div>
-
   <div class="regime" id="regimeLabel"></div>
   <ul class="bullets" id="regimeDrivers"></ul>
 </div>
@@ -155,19 +168,50 @@ h1{margin:0;font-size:26px;font-weight:600}
     <h2>Market Performance Overview</h2>
     <span>Daily · YTD · CY</span>
   </div>
-
   <table class="market-table">
     <thead>
       <tr>
-        <th>ASSET</th>
-        <th>LEVEL</th>
-        <th>1-DAY</th>
-        <th>2026 YTD</th>
-        <th>2025 CY</th>
+        <th>ASSET</th><th>LEVEL</th><th>1-DAY</th><th>2026 YTD</th><th>2025 CY</th>
       </tr>
     </thead>
     <tbody id="marketRows"></tbody>
   </table>
+</div>
+
+<!-- ASX NEWS -->
+<div class="card">
+  <div class="card-header">
+    <h2>ASX Company News</h2>
+    <span>AFR · ASX</span>
+  </div>
+  <ul class="news-list" id="asxNews"></ul>
+</div>
+
+<!-- US NEWS -->
+<div class="card">
+  <div class="card-header">
+    <h2>US Company News</h2>
+    <span>Finviz · Earnings</span>
+  </div>
+  <ul class="news-list" id="usNews"></ul>
+</div>
+
+<!-- LEGISLATION -->
+<div class="card">
+  <div class="card-header">
+    <h2>Super & Insurance – Legislative Updates</h2>
+    <span>ASIC · Treasury</span>
+  </div>
+  <ul class="news-list" id="legNews"></ul>
+</div>
+
+<!-- MACRO -->
+<div class="card">
+  <div class="card-header">
+    <h2>Major Economic Headlines</h2>
+    <span>AFR · Global</span>
+  </div>
+  <ul class="news-list" id="macroNews"></ul>
 </div>
 
 </div>
@@ -175,26 +219,21 @@ h1{margin:0;font-size:26px;font-weight:600}
 <script>
 function refreshData(){
 
-  const markets = {
-    asx:+0.62,
-    sp:-0.31,
-    vix:13.8,
-    yields:-6,
-    aud:+0.48
-  };
+  // ===== RISK ENGINE INPUTS =====
+  const vix = 13.8;
+  const yields = -6;
+  const aud = 0.48;
 
-  // ===== RISK ENGINE =====
   let regime = "Neutral";
   let colour = "--amber";
   let dot = "#ffd166";
 
-  if(markets.vix < 15 && markets.yields < 0 && markets.aud > 0){
+  if(vix < 15 && yields < 0 && aud > 0){
     regime = "Risk-On";
     colour = "--green";
     dot = "#2bd47d";
   }
-
-  if(markets.vix > 20){
+  if(vix > 20){
     regime = "Risk-Off";
     colour = "--red";
     dot = "#ff5c7a";
@@ -207,22 +246,19 @@ function refreshData(){
     </span>
   `;
 
-  // ===== REGIME DRIVERS =====
   regimeDrivers.innerHTML = `
-    <li>Volatility subdued with VIX below stress levels</li>
-    <li>Bond yields easing, supporting growth assets</li>
-    <li>USD softer, lifting AUD and commodities</li>
+    <li>Volatility subdued; risk assets supported</li>
+    <li>Bond yields easing, favouring growth exposure</li>
+    <li>USD softer, supporting AUD and commodities</li>
   `;
 
-  // ===== CLIENT TALKING POINTS =====
   clientTalkingPoints.innerHTML = `
-    <li>Market conditions remain constructive, with lower volatility supporting equity exposure.</li>
-    <li>Falling bond yields are providing a tailwind for growth assets and longer-duration investments.</li>
-    <li>A softer US dollar has supported the Australian dollar and commodity-related sectors.</li>
-    <li>Overall positioning remains appropriate for a diversified, growth-oriented portfolio.</li>
+    <li>Market conditions remain supportive for growth-oriented portfolios.</li>
+    <li>Lower volatility and easing bond yields are providing a tailwind to equities.</li>
+    <li>Currency movements have supported Australian assets and commodities.</li>
+    <li>Current positioning remains appropriate within a diversified strategy.</li>
   `;
 
-  // ===== MARKET TABLE =====
   marketRows.innerHTML = [
     ["ASX 200","7,482","+0.62%","+3.4%","+9.8%"],
     ["S&P 500","4,892","-0.31%","+1.9%","+22.4%"],
@@ -240,6 +276,54 @@ function refreshData(){
       <td class="${r[4].includes('-')?'neg':'pos'}">${r[4]}</td>
     </tr>
   `).join("");
+
+  asxNews.innerHTML = `
+    <li><a href="https://www.afr.com/companies/mining/bhp-reaffirms-guidance-as-iron-ore-prices-stabilise" target="_blank">
+      BHP reaffirms guidance as iron ore prices stabilise
+    </a></li>
+    <li><a href="https://www.afr.com/companies/financial-services/banks-face-margin-pressure-as-deposit-competition-heats-up" target="_blank">
+      Banks face margin pressure as deposit competition heats up
+    </a></li>
+    <li><a href="https://www.afr.com/companies/healthcare/csl-sees-plasma-collections-normalise" target="_blank">
+      CSL sees plasma collections normalise
+    </a></li>
+  `;
+
+  usNews.innerHTML = `
+    <li><a href="https://finviz.com/news.ashx?t=NVDA" target="_blank">
+      Nvidia demand remains supply constrained amid AI boom
+    </a></li>
+    <li><a href="https://finviz.com/news.ashx?t=AAPL" target="_blank">
+      Apple faces slower iPhone upgrade cycle
+    </a></li>
+    <li><a href="https://finviz.com/news.ashx?t=TSLA" target="_blank">
+      Tesla cuts prices again amid EV competition
+    </a></li>
+  `;
+
+  legNews.innerHTML = `
+    <li><a href="https://treasury.gov.au/consultation/division-296-superannuation-tax" target="_blank">
+      Treasury progresses Division 296 tax on high super balances
+    </a></li>
+    <li><a href="https://asic.gov.au/regulatory-resources/financial-services/superannuation/" target="_blank">
+      ASIC increases scrutiny on super and advice compliance
+    </a></li>
+    <li><a href="https://asic.gov.au/regulatory-resources/financial-services/insurance/" target="_blank">
+      ASIC flags concerns over TPD policy definitions
+    </a></li>
+  `;
+
+  macroNews.innerHTML = `
+    <li><a href="https://www.afr.com/markets/debt-markets/us-bond-yields-fall-on-rate-cut-bets" target="_blank">
+      US bond yields fall as rate-cut expectations build
+    </a></li>
+    <li><a href="https://www.afr.com/markets/currencies/aussie-dollar-rises-as-us-dollar-weakens" target="_blank">
+      Aussie dollar rises as US dollar weakens
+    </a></li>
+    <li><a href="https://www.afr.com/policy/economy/global-growth-outlook-improves-as-inflation-eases" target="_blank">
+      Global growth outlook improves as inflation eases
+    </a></li>
+  `;
 }
 
 refreshData();
