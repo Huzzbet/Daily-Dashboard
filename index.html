@@ -48,6 +48,16 @@ th{text-transform:uppercase;font-size:11px;letter-spacing:.16em;color:var(--mute
 .negative{color:var(--bad)}
 .warning{color:var(--warn)}
 .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.grid-5{display:grid;grid-template-columns:repeat(5,1fr);gap:16px}
+.market-box{
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:14px;
+  background:rgba(255,255,255,.03);
+}
+.market-box h3{margin:0 0 6px 0;font-size:13px;color:var(--muted);letter-spacing:.08em}
+.market-box .price{font-size:20px;font-weight:700}
+.market-box .chg{font-size:13px;margin-top:4px}
 .btn{
   padding:10px 14px;
   border-radius:12px;
@@ -58,7 +68,10 @@ th{text-transform:uppercase;font-size:11px;letter-spacing:.16em;color:var(--mute
   font-weight:600;
 }
 .btn:hover{filter:brightness(1.1)}
-@media(max-width:1000px){.grid-2{grid-template-columns:1fr}}
+@media(max-width:1000px){
+  .grid-2{grid-template-columns:1fr}
+  .grid-5{grid-template-columns:1fr 1fr}
+}
 </style>
 </head>
 
@@ -73,7 +86,14 @@ th{text-transform:uppercase;font-size:11px;letter-spacing:.16em;color:var(--mute
   <span class="sub" id="refreshStatus">Last refreshed: just now</span>
 </div>
 
-<!-- CLIENT TALKING POINTS -->
+<!-- ================= LIVE MARKET PRICES ================= -->
+<div class="card">
+<h2>Live Market Prices</h2>
+<div class="grid-5" id="marketPrices"></div>
+<div class="sub" id="marketMeta"></div>
+</div>
+
+<!-- ================= CLIENT TALKING POINTS ================= -->
 <div class="card">
 <h2>Client Talking Points (Auto-Generated)</h2>
 <ul id="talkingPoints" style="margin:0;padding-left:18px;"></ul>
@@ -124,10 +144,16 @@ th{text-transform:uppercase;font-size:11px;letter-spacing:.16em;color:var(--mute
 <script>
 /* =========================
    SIMULATED LIVE FEEDS
-   (Replace with APIs later)
 ========================= */
 function fetchFeeds(){
   return {
+    markets:[
+      {n:"ASX 200", p:7482, c:"+0.62%", cls:"positive"},
+      {n:"S&P 500", p:4892, c:"-0.31%", cls:"negative"},
+      {n:"NASDAQ", p:16320, c:"-0.45%", cls:"negative"},
+      {n:"AUD/USD", p:0.672, c:"+0.48%", cls:"positive"},
+      {n:"US 10Y", p:"4.12%", c:"-6 bps", cls:"warning"}
+    ],
     asx:[
       {c:"BHP", h:"Iron ore shipments steady; costs contained", i:"Earnings stability", cls:"positive"},
       {c:"CBA", h:"NIM pressure from deposit competition", i:"Margins normalising", cls:"warning"},
@@ -150,43 +176,51 @@ function fetchFeeds(){
 }
 
 /* =========================
-   RENDER + TALKING POINTS
+   RENDER EVERYTHING
 ========================= */
 function refreshFeeds(){
   const f = fetchFeeds();
 
+  // Market prices
+  marketPrices.innerHTML = f.markets.map(m=>`
+    <div class="market-box">
+      <h3>${m.n}</h3>
+      <div class="price">${m.p}</div>
+      <div class="chg ${m.cls}">${m.c}</div>
+    </div>
+  `).join("");
+  marketMeta.textContent = "Live snapshot · " + new Date().toLocaleTimeString();
+
+  // ASX
   asxNews.innerHTML = f.asx.map(x=>`
     <tr><td>${x.c}</td><td>${x.h}</td><td class="${x.cls}">${x.i}</td></tr>
   `).join("");
+  asxMeta.textContent = "Source: AFR · " + new Date().toLocaleTimeString();
 
+  // US
   usNews.innerHTML = f.us.map(x=>`
     <tr><td>${x.c}</td><td>${x.h}</td><td class="${x.cls}">${x.i}</td></tr>
   `).join("");
+  usMeta.textContent = "Source: Finviz · " + new Date().toLocaleTimeString();
 
+  // Legislation
   legNews.innerHTML = f.legislation.map(x=>`
     <tr><td>${x.a}</td><td>${x.h}</td><td class="${x.cls}">${x.i}</td></tr>
   `).join("");
+  legMeta.textContent = "Source: ASIC / Treasury · " + new Date().toLocaleTimeString();
 
+  // Macro
   macroNews.innerHTML = f.macro.map(x=>`
     <tr><td>${x.e}</td><td>${x.h}</td><td class="${x.cls}">${x.i}</td></tr>
   `).join("");
-
-  asxMeta.textContent = "Source: AFR · " + new Date().toLocaleTimeString();
-  usMeta.textContent = "Source: Finviz · " + new Date().toLocaleTimeString();
-  legMeta.textContent = "Source: ASIC / Treasury · " + new Date().toLocaleTimeString();
   macroMeta.textContent = "Source: AFR / Global · " + new Date().toLocaleTimeString();
 
-  // Recalculate client talking points
+  // Talking points
   const points = [];
-  f.asx.concat(f.us).forEach(x=>{
-    points.push(`${x.c}: ${x.h} — ${x.i}`);
-  });
-  f.legislation.forEach(x=>{
-    points.push(`Legislation (${x.a}): ${x.h}`);
-  });
-  f.macro.forEach(x=>{
-    points.push(`Macro (${x.e}): ${x.h}`);
-  });
+  f.markets.forEach(m=>points.push(`Markets: ${m.n} at ${m.p} (${m.c})`));
+  f.asx.concat(f.us).forEach(x=>points.push(`${x.c}: ${x.h}`));
+  f.legislation.forEach(x=>points.push(`Legislation – ${x.a}: ${x.h}`));
+  f.macro.forEach(x=>points.push(`Macro – ${x.e}: ${x.h}`));
 
   talkingPoints.innerHTML = points.slice(0,6).map(p=>`<li>${p}</li>`).join("");
 
