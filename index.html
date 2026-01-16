@@ -24,7 +24,9 @@
 body{
   margin:0;
   font-family:var(--font);
-  background:radial-gradient(900px 500px at 50% -20%, #13284a, transparent), var(--bg);
+  background:
+    radial-gradient(900px 500px at 50% -20%, #13284a, transparent),
+    var(--bg);
   color:var(--text);
 }
 
@@ -73,6 +75,40 @@ h1{
   color:var(--muted);
 }
 
+/* ===== BUTTON ===== */
+.btn{
+  margin-top:14px;
+  padding:10px 16px;
+  border-radius:14px;
+  background:rgba(110,231,255,.14);
+  border:1px solid rgba(110,231,255,.35);
+  color:var(--text);
+  font-weight:600;
+  cursor:pointer;
+}
+.btn:hover{filter:brightness(1.1)}
+
+/* ===== MARKET REGIME ===== */
+.regime{
+  font-size:18px;
+  margin:12px 0 6px;
+}
+
+.regime span{
+  color:var(--green);
+  font-weight:600;
+}
+
+.regime-dot{
+  display:inline-block;
+  width:18px;
+  height:18px;
+  border-radius:50%;
+  background:radial-gradient(circle at 30% 30%, #7CFF9C, #2bd47d);
+  margin-right:8px;
+  vertical-align:middle;
+}
+
 /* ===== MARKET TABLE ===== */
 .market-table{
   width:100%;
@@ -99,27 +135,7 @@ h1{
 .pos{color:var(--green)}
 .neg{color:var(--red)}
 
-/* ===== MARKET REGIME ===== */
-.regime{
-  font-size:18px;
-  margin:12px 0 6px;
-}
-
-.regime span{
-  color:var(--green);
-  font-weight:600;
-}
-
-.regime-dot{
-  display:inline-block;
-  width:18px;
-  height:18px;
-  border-radius:50%;
-  background:radial-gradient(circle at 30% 30%, #7CFF9C, #2bd47d);
-  margin-right:8px;
-  vertical-align:middle;
-}
-
+/* ===== LISTS ===== */
 .bullets{
   margin:12px 0 0 18px;
   padding:0;
@@ -141,18 +157,26 @@ h1{
   text-decoration:underline;
 }
 
-/* ===== BUTTON ===== */
-.btn{
-  margin-top:14px;
-  padding:10px 16px;
-  border-radius:14px;
-  background:rgba(110,231,255,.14);
-  border:1px solid rgba(110,231,255,.35);
-  color:var(--text);
-  font-weight:600;
-  cursor:pointer;
+.news-list{
+  list-style:none;
+  padding:0;
+  margin:8px 0 0 0;
 }
-.btn:hover{filter:brightness(1.1)}
+
+.news-list li{
+  margin:10px 0;
+  line-height:1.45;
+}
+
+.news-list a{
+  color:#dbe6ff;
+  text-decoration:none;
+}
+
+.news-list a:hover{
+  color:var(--accent);
+  text-decoration:underline;
+}
 </style>
 </head>
 
@@ -200,6 +224,42 @@ h1{
   </table>
 </div>
 
+<!-- ===== ASX NEWS ===== -->
+<div class="card">
+  <div class="card-header">
+    <h2>ASX Company News</h2>
+    <span>AFR · ASX</span>
+  </div>
+  <ul class="news-list" id="asxNews"></ul>
+</div>
+
+<!-- ===== US NEWS ===== -->
+<div class="card">
+  <div class="card-header">
+    <h2>US Company News</h2>
+    <span>Finviz · Earnings</span>
+  </div>
+  <ul class="news-list" id="usNews"></ul>
+</div>
+
+<!-- ===== LEGISLATION ===== -->
+<div class="card">
+  <div class="card-header">
+    <h2>Super & Insurance – Legislative Updates</h2>
+    <span>ASIC · Treasury</span>
+  </div>
+  <ul class="news-list" id="legNews"></ul>
+</div>
+
+<!-- ===== MACRO ===== -->
+<div class="card">
+  <div class="card-header">
+    <h2>Major Economic Headlines</h2>
+    <span>AFR · Global</span>
+  </div>
+  <ul class="news-list" id="macroNews"></ul>
+</div>
+
 </div>
 
 <script>
@@ -207,13 +267,13 @@ function refreshData(){
 
   // ===== MARKET REGIME DRIVERS =====
   regimeDrivers.innerHTML = `
-    <li><a href="https://www.afr.com/markets/equity-markets/volatility-eases-as-markets-stabilise-202601" target="_blank">
+    <li><a href="https://www.afr.com/markets/equity-markets/volatility-eases-as-markets-stabilise" target="_blank">
       Volatility subdued; risk assets supported
     </a></li>
-    <li><a href="https://www.afr.com/markets/debt-markets/us-bond-yields-fall-on-rate-cut-bets-202601" target="_blank">
+    <li><a href="https://www.afr.com/markets/debt-markets/us-bond-yields-fall-on-rate-cut-bets" target="_blank">
       Bond yields easing, favouring growth exposure
     </a></li>
-    <li><a href="https://www.afr.com/markets/currencies/us-dollar-slides-as-rate-cut-expectations-build-202601" target="_blank">
+    <li><a href="https://www.afr.com/markets/currencies/us-dollar-slides-as-rate-cut-expectations-build" target="_blank">
       USD softer, supporting AUD and commodities
     </a></li>
   `;
@@ -236,6 +296,58 @@ function refreshData(){
       <td class="${r[4].includes('-')?'neg':'pos'}">${r[4]}</td>
     </tr>
   `).join("");
+
+  // ===== ASX NEWS =====
+  asxNews.innerHTML = `
+    <li><a href="https://www.afr.com/companies/mining/bhp-reaffirms-guidance-as-iron-ore-prices-stabilise" target="_blank">
+      BHP reaffirms guidance as iron ore prices stabilise
+    </a></li>
+    <li><a href="https://www.afr.com/companies/financial-services/banks-face-margin-pressure-as-deposit-competition-heats-up" target="_blank">
+      Banks face margin pressure as deposit competition heats up
+    </a></li>
+    <li><a href="https://www.afr.com/companies/healthcare/csl-sees-plasma-collections-normalise" target="_blank">
+      CSL sees plasma collections normalise
+    </a></li>
+  `;
+
+  // ===== US NEWS =====
+  usNews.innerHTML = `
+    <li><a href="https://finviz.com/news.ashx?t=NVDA" target="_blank">
+      Nvidia demand remains supply constrained amid AI boom
+    </a></li>
+    <li><a href="https://finviz.com/news.ashx?t=AAPL" target="_blank">
+      Apple faces slower iPhone upgrade cycle
+    </a></li>
+    <li><a href="https://finviz.com/news.ashx?t=TSLA" target="_blank">
+      Tesla cuts prices again amid EV competition
+    </a></li>
+  `;
+
+  // ===== LEGISLATION =====
+  legNews.innerHTML = `
+    <li><a href="https://treasury.gov.au/consultation/division-296-superannuation-tax" target="_blank">
+      Treasury progresses Division 296 tax on high super balances
+    </a></li>
+    <li><a href="https://asic.gov.au/regulatory-resources/financial-services/superannuation/" target="_blank">
+      ASIC increases scrutiny on super and advice compliance
+    </a></li>
+    <li><a href="https://asic.gov.au/regulatory-resources/financial-services/insurance/" target="_blank">
+      ASIC flags concerns over TPD policy definitions
+    </a></li>
+  `;
+
+  // ===== MACRO =====
+  macroNews.innerHTML = `
+    <li><a href="https://www.afr.com/markets/debt-markets/us-bond-yields-fall-on-rate-cut-bets" target="_blank">
+      US bond yields fall as rate-cut expectations build
+    </a></li>
+    <li><a href="https://www.afr.com/markets/currencies/aussie-dollar-rises-as-us-dollar-weakens" target="_blank">
+      Aussie dollar rises as US dollar weakens
+    </a></li>
+    <li><a href="https://www.afr.com/policy/economy/global-growth-outlook-improves-as-inflation-eases" target="_blank">
+      Global growth outlook improves as inflation eases
+    </a></li>
+  `;
 }
 
 refreshData();
