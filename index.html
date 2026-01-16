@@ -19,6 +19,7 @@
   --radius:22px;
   --font:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
 }
+
 *{box-sizing:border-box}
 body{
   margin:0;
@@ -26,9 +27,24 @@ body{
   background:radial-gradient(900px 500px at 50% -20%, #13284a, transparent), var(--bg);
   color:var(--text);
 }
-.container{max-width:1200px;margin:auto;padding:22px 18px 60px}
-h1{margin:0;font-size:26px;font-weight:600}
-.sub{margin-top:6px;color:var(--muted);font-size:14px}
+
+.container{
+  max-width:1200px;
+  margin:auto;
+  padding:22px 18px 60px;
+}
+
+h1{
+  margin:0;
+  font-size:26px;
+  font-weight:600;
+}
+
+.sub{
+  margin-top:6px;
+  color:var(--muted);
+  font-size:14px;
+}
 
 .card{
   background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.01));
@@ -57,6 +73,7 @@ h1{margin:0;font-size:26px;font-weight:600}
   color:var(--muted);
 }
 
+/* ===== MARKET TABLE ===== */
 .market-table{
   width:100%;
   border-collapse:collapse;
@@ -82,6 +99,49 @@ h1{margin:0;font-size:26px;font-weight:600}
 .pos{color:var(--green)}
 .neg{color:var(--red)}
 
+/* ===== MARKET REGIME ===== */
+.regime{
+  font-size:18px;
+  margin:12px 0 6px;
+}
+
+.regime span{
+  color:var(--green);
+  font-weight:600;
+}
+
+.regime-dot{
+  display:inline-block;
+  width:18px;
+  height:18px;
+  border-radius:50%;
+  background:radial-gradient(circle at 30% 30%, #7CFF9C, #2bd47d);
+  margin-right:8px;
+  vertical-align:middle;
+}
+
+.bullets{
+  margin:12px 0 0 18px;
+  padding:0;
+}
+
+.bullets li{
+  margin:10px 0;
+  font-size:15px;
+  line-height:1.45;
+}
+
+.bullets a{
+  color:#d6e0f0;
+  text-decoration:none;
+}
+
+.bullets a:hover{
+  color:var(--accent);
+  text-decoration:underline;
+}
+
+/* ===== BUTTON ===== */
 .btn{
   margin-top:14px;
   padding:10px 16px;
@@ -93,38 +153,6 @@ h1{margin:0;font-size:26px;font-weight:600}
   cursor:pointer;
 }
 .btn:hover{filter:brightness(1.1)}
-
-.news-list{
-  margin:8px 0 0 0;
-  padding:0;
-  list-style:none;
-}
-
-.news-list li{
-  margin:10px 0;
-  line-height:1.45;
-}
-
-.news-list a{
-  color:#dbe6ff;
-  text-decoration:none;
-}
-
-.news-list a:hover{
-  color:var(--accent);
-  text-decoration:underline;
-}
-
-.bullets{
-  margin:6px 0 0 18px;
-  padding:0;
-}
-
-.bullets li{
-  margin:10px 0;
-  color:#d6e0f0;
-  font-size:15px;
-}
 </style>
 </head>
 
@@ -134,73 +162,63 @@ h1{margin:0;font-size:26px;font-weight:600}
 <h1>Internal Market & Advice Dashboard</h1>
 <div class="sub">Australia · Melbourne · Internal Use Only</div>
 
-<button class="btn" onclick="refresh()">🔄 Refresh</button>
+<button class="btn" onclick="refreshData()">🔄 Refresh</button>
 
-<!-- MARKET PERFORMANCE -->
+<!-- ===== MARKET REGIME ===== -->
+<div class="card">
+  <div class="card-header">
+    <h2>Market Regime</h2>
+    <span>High-level context</span>
+  </div>
+
+  <div class="regime">
+    Current stance:
+    <span><span class="regime-dot"></span>Risk-On</span>
+  </div>
+
+  <ul class="bullets" id="regimeDrivers"></ul>
+</div>
+
+<!-- ===== MARKET PERFORMANCE ===== -->
 <div class="card">
   <div class="card-header">
     <h2>Market Performance Overview</h2>
     <span>Daily · YTD · CY</span>
   </div>
+
   <table class="market-table">
     <thead>
       <tr>
-        <th>ASSET</th><th>LEVEL</th><th>1-DAY</th><th>2026 YTD</th><th>2025 CY</th>
+        <th>ASSET</th>
+        <th>LEVEL</th>
+        <th>1-DAY</th>
+        <th>2026 YTD</th>
+        <th>2025 CY</th>
       </tr>
     </thead>
     <tbody id="marketRows"></tbody>
   </table>
 </div>
 
-<!-- WHAT CHANGED OVERNIGHT -->
-<div class="card">
-  <div class="card-header">
-    <h2>What Changed Overnight</h2>
-    <span>Key drivers</span>
-  </div>
-  <ul class="bullets" id="overnight"></ul>
-</div>
-
-<!-- ASX NEWS -->
-<div class="card">
-  <div class="card-header">
-    <h2>ASX Company News</h2>
-    <span>AFR · ASX Releases</span>
-  </div>
-  <ul class="news-list" id="asxNews"></ul>
-</div>
-
-<!-- US NEWS -->
-<div class="card">
-  <div class="card-header">
-    <h2>US Company News</h2>
-    <span>Finviz · Earnings</span>
-  </div>
-  <ul class="news-list" id="usNews"></ul>
-</div>
-
-<!-- LEGISLATION -->
-<div class="card">
-  <div class="card-header">
-    <h2>Super & Insurance – Legislative Updates</h2>
-    <span>ASIC · Treasury</span>
-  </div>
-  <ul class="news-list" id="legNews"></ul>
-</div>
-
-<!-- MACRO -->
-<div class="card">
-  <div class="card-header">
-    <h2>Major Economic Headlines</h2>
-    <span>AFR · Global</span>
-  </div>
-  <ul class="news-list" id="macroNews"></ul>
-</div>
-
 </div>
 
 <script>
-function refresh(){
+function refreshData(){
+
+  // ===== MARKET REGIME DRIVERS =====
+  regimeDrivers.innerHTML = `
+    <li><a href="https://www.afr.com/markets/equity-markets/volatility-eases-as-markets-stabilise-202601" target="_blank">
+      Volatility subdued; risk assets supported
+    </a></li>
+    <li><a href="https://www.afr.com/markets/debt-markets/us-bond-yields-fall-on-rate-cut-bets-202601" target="_blank">
+      Bond yields easing, favouring growth exposure
+    </a></li>
+    <li><a href="https://www.afr.com/markets/currencies/us-dollar-slides-as-rate-cut-expectations-build-202601" target="_blank">
+      USD softer, supporting AUD and commodities
+    </a></li>
+  `;
+
+  // ===== MARKET TABLE =====
   marketRows.innerHTML = [
     ["ASX 200","7,482","+0.62%","+3.4%","+9.8%"],
     ["S&P 500","4,892","-0.31%","+1.9%","+22.4%"],
@@ -216,40 +234,11 @@ function refresh(){
       <td class="${r[2].includes('-')?'neg':'pos'}">${r[2]}</td>
       <td class="${r[3].includes('-')?'neg':'pos'}">${r[3]}</td>
       <td class="${r[4].includes('-')?'neg':'pos'}">${r[4]}</td>
-    </tr>`).join("");
-
-  overnight.innerHTML = [
-    "US yields fell ~6bps, supporting equities and gold",
-    "USD weakened, lifting AUD and resource stocks",
-    "Banks lagged amid margin pressure"
-  ].map(x=>`<li>${x}</li>`).join("");
-
-  asxNews.innerHTML = `
-    <li><a href="https://www.afr.com/companies/mining/bhp-reaffirms-guidance-as-iron-ore-prices-stabilise" target="_blank">BHP reaffirms guidance as iron ore prices stabilise</a></li>
-    <li><a href="https://www.afr.com/companies/financial-services/banks-face-margin-pressure-as-deposit-competition-heats-up" target="_blank">Banks face margin pressure as deposit competition heats up</a></li>
-    <li><a href="https://www.afr.com/companies/healthcare/csl-sees-plasma-collections-normalise" target="_blank">CSL sees plasma collections normalise</a></li>
-  `;
-
-  usNews.innerHTML = `
-    <li><a href="https://finviz.com/news.ashx?t=NVDA" target="_blank">Nvidia demand remains supply constrained as AI spend accelerates</a></li>
-    <li><a href="https://finviz.com/news.ashx?t=AAPL" target="_blank">Apple faces slower iPhone upgrade cycle</a></li>
-    <li><a href="https://finviz.com/news.ashx?t=TSLA" target="_blank">Tesla cuts prices again amid EV competition</a></li>
-  `;
-
-  legNews.innerHTML = `
-    <li><a href="https://treasury.gov.au/consultation/division-296-superannuation-tax" target="_blank">Treasury progresses Division 296 tax on high super balances</a></li>
-    <li><a href="https://asic.gov.au/regulatory-resources/financial-services/superannuation/" target="_blank">ASIC increases scrutiny on super and advice compliance</a></li>
-    <li><a href="https://asic.gov.au/regulatory-resources/financial-services/insurance/" target="_blank">ASIC flags concerns over TPD policy definitions</a></li>
-  `;
-
-  macroNews.innerHTML = `
-    <li><a href="https://www.afr.com/markets/debt-markets/us-bond-yields-fall-on-rate-cut-bets-202601" target="_blank">US bond yields fall as rate-cut expectations grow</a></li>
-    <li><a href="https://www.afr.com/markets/currencies/aussie-dollar-rises-as-us-dollar-weakens-202601" target="_blank">Aussie dollar rises as US dollar weakens</a></li>
-    <li><a href="https://www.afr.com/policy/economy/global-growth-outlook-improves-as-inflation-eases-202601" target="_blank">Global growth outlook improves as inflation eases</a></li>
-  `;
+    </tr>
+  `).join("");
 }
 
-refresh();
+refreshData();
 </script>
 
 </body>
