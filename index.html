@@ -110,6 +110,15 @@ h1{margin:0;font-size:26px;font-weight:600}
   border-bottom:1px solid var(--border);
 }
 
+.market-table a{
+  color:#dbe6ff;
+  text-decoration:none;
+}
+.market-table a:hover{
+  color:var(--accent);
+  text-decoration:underline;
+}
+
 .pos{color:var(--green)}
 .neg{color:var(--red)}
 
@@ -121,7 +130,6 @@ h1{margin:0;font-size:26px;font-weight:600}
 .news-list a{color:#dbe6ff;text-decoration:none}
 .news-list a:hover{color:var(--accent);text-decoration:underline}
 
-/* Adviser Impact Badges */
 .badge{
   display:inline-block;
   padding:4px 10px;
@@ -172,7 +180,12 @@ h1{margin:0;font-size:26px;font-weight:600}
   <table class="market-table">
     <thead>
       <tr>
-        <th>ASSET</th><th>LEVEL</th><th>1-DAY</th><th>2026 YTD</th><th>2025 CY</th>
+        <th>ASSET</th>
+        <th>TICKER</th>
+        <th>LEVEL</th>
+        <th>1-DAY</th>
+        <th>2026 YTD</th>
+        <th>2025 CY</th>
       </tr>
     </thead>
     <tbody id="marketRows"></tbody>
@@ -218,257 +231,134 @@ h1{margin:0;font-size:26px;font-weight:600}
 </div>
 
 <script>
-/* =========================
-   LIVE MARKET DATA (Yahoo)
-   ========================= */
+const ASSETS = [
+  { key:"asx",    name:"ASX 200",      symbol:"^AXJO" },
+  { key:"sp",     name:"S&P 500",      symbol:"^GSPC" },
+  { key:"nasdaq", name:"NASDAQ",       symbol:"^IXIC" },
+  { key:"aud",    name:"AUD / USD",    symbol:"AUDUSD=X" },
+  { key:"us10y",  name:"US 10Y Yield", symbol:"^TNX", yield:true },
+  { key:"gold",   name:"Gold",         symbol:"GC=F" },
+  { key:"vix",    name:"VIX",          symbol:"^VIX" }
+];
 
-/**
- * Yahoo Chart endpoint. We pull ~2 years daily data so we can compute:
- * - 1-day (current vs prev close)
- * - 2026 YTD (current vs last close of 2025)
- * - 2025 CY (last close of 2025 vs last close of 2024)
- */
-async function yahooChart(symbol, range="2y", interval="1d"){
-  const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?range=${range}&interval=${interval}`;
-  const res = await fetch(url, { cache: "no-store" });
+async function fetchChart(symbol){
+  const res = await fetch(
+    `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?range=2y&interval=1d`,
+    { cache:"no-store" }
+  );
   const json = await res.json();
-  if(!json?.chart?.result?.[0]) throw new Error("No Yahoo result");
   return json.chart.result[0];
 }
 
-/** Find the closest available close on/near a target date (YYYY-MM-DD). */
-function closestClose(chart, targetDateStr){
-  const target = new Date(targetDateStr + "T00:00:00Z").getTime() / 1000; // seconds
-  const ts = chart.timestamp || [];
-  const closes = chart.indicators?.quote?.[0]?.close || [];
-  if(!ts.length || !closes.length) return null;
-
-  // find nearest timestamp index by absolute difference
-  let bestIdx = -1;
-  let bestDiff = Infinity;
-  for(let i=0;i<ts.length;i++){
-    const c = closes[i];
-    if(c == null) continue;
-    const diff = Math.abs(ts[i] - target);
-    if(diff < bestDiff){
-      bestDiff = diff;
-      bestIdx = i;
-    }
-  }
-  return bestIdx >= 0 ? closes[bestIdx] : null;
+function nearestClose(chart, dateStr){
+  const t = new Date(dateStr+"T00:00:00Z").getTime()/1000;
+  let best=null, bestDiff=Infinity;
+  chart.timestamp.forEach((ts,i)=>{
+    const c=chart.indicators.quote[0].close[i];
+    if(c==null) return;
+    const d=Math.abs(ts-t);
+    if(d<bestDiff){bestDiff=d;best=c;}
+  });
+  return best;
 }
-
-/** Format helpers */
-function fmtPct(x){ return `${(x>=0? "" : "")}${x.toFixed(2)}%`; }
-function clsPosNeg(x){ return x < 0 ? "neg" : "pos"; }
-
-/**
- * Asset mapping (Yahoo symbols)
- * Note: ^TNX is 10Y yield index where value ~= yield * 10 (e.g. 41.2 -> 4.12%)
- */
-const ASSETS = [
-  { key:"asx",    name:"ASX 200",      symbol:"^AXJO",  type:"index", decimals:0 },
-  { key:"sp",     name:"S&P 500",      symbol:"^GSPC",  type:"index", decimals:0 },
-  { key:"nasdaq", name:"NASDAQ",       symbol:"^IXIC",  type:"index", decimals:0 },
-  { key:"aud",    name:"AUD / USD",    symbol:"AUDUSD=X", type:"fx", decimals:3 },
-  { key:"us10y",  name:"US 10Y Yield", symbol:"^TNX",   type:"yield", decimals:2 },
-  { key:"gold",   name:"Gold",         symbol:"GC=F",   type:"commodity", decimals:0 },
-  { key:"vix",    name:"VIX",          symbol:"^VIX",   type:"vol", decimals:1 }
-];
-
-/**
- * Fetch one asset and compute:
- * levelDisplay, d1Display, ytdDisplay, cyDisplay, and raw numeric for regime logic
- */
-async function computeAsset(a){
-  const chart = await yahooChart(a.symbol, "2y", "1d");
-  const meta = chart.meta || {};
-
-  const current = meta.regularMarketPrice;
-  const prevClose = meta.previousClose;
-
-  if(current == null || prevClose == null) throw new Error("Missing current/prev");
-
-  // Date anchors:
-  // - End of 2025 trading year close (approx by closest daily close to Dec 31)
-  // - End of 2024 trading year close (approx by closest daily close to Dec 31)
-  const close2025 = closestClose(chart, "2025-12-31");
-  const close2024 = closestClose(chart, "2024-12-31");
-
-  // For 2026 YTD: current vs end-2025 close (if missing, fall back to current to show 0.00)
-  // For 2025 CY: end-2025 close vs end-2024 close (if missing, show N/A)
-  let ytd = null;
-  if(close2025 != null && close2025 !== 0){
-    ytd = ((current - close2025) / close2025) * 100;
-  }
-
-  let cy = null;
-  if(close2025 != null && close2024 != null && close2024 !== 0){
-    cy = ((close2025 - close2024) / close2024) * 100;
-  }
-
-  // 1-day % for most; yields we show bps
-  const d1pct = ((current - prevClose) / prevClose) * 100;
-
-  if(a.type === "yield"){
-    // Convert ^TNX (yield*10) to percent
-    const curY = current / 10;
-    const prevY = prevClose / 10;
-
-    const d1bps = (curY - prevY) * 100; // 1% = 100 bps
-    const ytdBps = (close2025 != null) ? ((curY - (close2025/10)) * 100) : null;
-    const cyBps  = (close2025 != null && close2024 != null) ? (((close2025/10) - (close2024/10)) * 100) : null;
-
-    return {
-      key: a.key,
-      name: a.name,
-      level: curY,
-      levelDisplay: `${curY.toFixed(2)}%`,
-      d1: d1bps,
-      d1Display: `${d1bps>=0? "" : ""}${d1bps.toFixed(0)} bps`,
-      ytd: ytdBps,
-      ytdDisplay: (ytdBps==null) ? "N/A" : `${ytdBps>=0? "" : ""}${ytdBps.toFixed(0)} bps`,
-      cy: cyBps,
-      cyDisplay: (cyBps==null) ? "N/A" : `${cyBps>=0? "" : ""}${cyBps.toFixed(0)} bps`,
-      // for regime:
-      d1ForRegime: d1bps
-    };
-  }
-
-  // Default formatting
-  const levelDisplay =
-    (a.type === "fx") ? current.toFixed(a.decimals)
-    : current.toFixed(a.decimals);
-
-  const d1Display = fmtPct(d1pct);
-  const ytdDisplay = (ytd == null) ? "N/A" : fmtPct(ytd);
-  const cyDisplay  = (cy == null)  ? "N/A" : fmtPct(cy);
-
-  return {
-    key: a.key,
-    name: a.name,
-    level: current,
-    levelDisplay,
-    d1: d1pct,
-    d1Display,
-    ytd,
-    ytdDisplay,
-    cy,
-    cyDisplay,
-    d1ForRegime: d1pct
-  };
-}
-
-/* =========================
-   YOUR ORIGINAL APP LOGIC
-   ========================= */
 
 async function refreshData(){
-  const btn = document.getElementById("refreshBtn");
-  btn.innerText = "Refreshing…";
-  btn.disabled = true;
+  const btn=document.getElementById("refreshBtn");
+  btn.innerText="Refreshing…";
+  btn.disabled=true;
 
-  // Keep your button UX
-  setTimeout(()=>{ if(btn.disabled){ btn.innerText="Refreshing…"; } }, 150);
+  const rows=[];
+  const data={};
 
-  // 1) Fetch live markets
-  let results = [];
-  try{
-    results = await Promise.all(ASSETS.map(computeAsset));
-  }catch(err){
-    // If Yahoo blocks/rate-limits, fall back to your original static snapshot so the app still works.
-    console.warn("Yahoo fetch failed, falling back to static snapshot:", err);
-    results = [
-      {key:"asx",name:"ASX 200",levelDisplay:"7482",d1Display:"0.62%",ytdDisplay:"3.4%",cyDisplay:"9.8%",d1:0.62,ytd:3.4,cy:9.8, level:7482, d1ForRegime:0.62},
-      {key:"sp",name:"S&P 500",levelDisplay:"4892",d1Display:"-0.31%",ytdDisplay:"1.9%",cyDisplay:"22.4%",d1:-0.31,ytd:1.9,cy:22.4, level:4892, d1ForRegime:-0.31},
-      {key:"nasdaq",name:"NASDAQ",levelDisplay:"16320",d1Display:"-0.45%",ytdDisplay:"-0.8%",cyDisplay:"31.6%",d1:-0.45,ytd:-0.8,cy:31.6, level:16320, d1ForRegime:-0.45},
-      {key:"aud",name:"AUD / USD",levelDisplay:"0.672",d1Display:"0.48%",ytdDisplay:"1.2%",cyDisplay:"-4.1%",d1:0.48,ytd:1.2,cy:-4.1, level:0.672, d1ForRegime:0.48},
-      {key:"us10y",name:"US 10Y Yield",levelDisplay:"4.12%",d1Display:"-6 bps",ytdDisplay:"-14 bps",cyDisplay:"68 bps",d1:-6,ytd:-14,cy:68, level:4.12, d1ForRegime:-6},
-      {key:"gold",name:"Gold",levelDisplay:"2048",d1Display:"1.10%",ytdDisplay:"2.7%",cyDisplay:"13.2%",d1:1.10,ytd:2.7,cy:13.2, level:2048, d1ForRegime:1.10},
-      {key:"vix",name:"VIX",levelDisplay:"13.8",d1Display:"-4.2%",ytdDisplay:"-9.5%",cyDisplay:"-18.7%",d1:-4.2,ytd:-9.5,cy:-18.7, level:13.8, d1ForRegime:-4.2}
-    ];
+  for(const a of ASSETS){
+    const chart=await fetchChart(a.symbol);
+    const m=chart.meta;
+    let cur=m.regularMarketPrice;
+    let prev=m.previousClose;
+
+    if(a.yield){ cur/=10; prev/=10; }
+
+    const d1=a.yield ? (cur-prev)*100 : ((cur-prev)/prev)*100;
+
+    const c25=nearestClose(chart,"2025-12-31");
+    const c24=nearestClose(chart,"2024-12-31");
+
+    let ytd="N/A", cy="N/A";
+    if(c25!=null){
+      const v=a.yield?cur*10:c25;
+      ytd=a.yield?`${((cur-(c25/10))*100).toFixed(0)} bps`:`${(((cur-c25)/c25)*100).toFixed(2)}%`;
+    }
+    if(c25!=null && c24!=null){
+      cy=a.yield?`${(((c25-c24)/10)*100).toFixed(0)} bps`:`${(((c25-c24)/c24)*100).toFixed(2)}%`;
+    }
+
+    data[a.key]={lvl:cur,d:d1};
+
+    rows.push(`
+      <tr>
+        <td>${a.name}</td>
+        <td>${a.symbol}</td>
+        <td>
+          <a href="https://finance.yahoo.com/quote/${encodeURIComponent(a.symbol)}" target="_blank">
+            ${a.yield?cur.toFixed(2)+"%":cur.toFixed(a.key==="aud"?3:0)}
+          </a>
+        </td>
+        <td class="${d1<0?"neg":"pos"}">
+          ${a.yield?`${d1.toFixed(0)} bps`:`${d1.toFixed(2)}%`}
+        </td>
+        <td class="${String(ytd).includes("-")?"neg":"pos"}">${ytd}</td>
+        <td class="${String(cy).includes("-")?"neg":"pos"}">${cy}</td>
+      </tr>
+    `);
   }
 
-  // Convert results into a convenient lookup for regime logic
-  const data = {};
-  results.forEach(r => {
-    data[r.key] = {
-      lvl: r.level,
-      d: r.d1ForRegime,
-      ytd: r.ytd,
-      cy: r.cy
-    };
-  });
+  marketRows.innerHTML=rows.join("");
 
-  // 2) Market regime (same logic as you had, now driven by live values)
-  let regime="Neutral", colour="--amber", dot="#ffd166";
-  // Your original rule:
-  // if VIX < 15 and US10Y d < 0 and AUD d > 0 => Risk-On
-  // if VIX > 20 => Risk-Off
-  if(data.vix?.lvl < 15 && data.us10y?.d < 0 && data.aud?.d > 0){
-    regime="Risk-On"; colour="--green"; dot="#2bd47d";
+  let regime="Neutral",colour="--amber",dot="#ffd166";
+  if(data.vix.lvl<15 && data.us10y.d<0 && data.aud.d>0){
+    regime="Risk-On";colour="--green";dot="#2bd47d";
   }
-  if(data.vix?.lvl > 20){
-    regime="Risk-Off"; colour="--red"; dot="#ff5c7a";
+  if(data.vix.lvl>20){
+    regime="Risk-Off";colour="--red";dot="#ff5c7a";
   }
 
-  regimeLabel.innerHTML = `Current stance:
+  regimeLabel.innerHTML=`Current stance:
     <span style="color:var(${colour});font-weight:600;">
     <span class="regime-dot" style="background:${dot}"></span>${regime}</span>`;
 
-  // Keep your original driver text (unchanged)
-  regimeDrivers.innerHTML = `
+  regimeDrivers.innerHTML=`
     <li>Volatility subdued; risk assets supported</li>
     <li>Bond yields easing, favouring growth exposure</li>
     <li>USD softer, supporting AUD and commodities</li>`;
 
-  // Keep your original client points (unchanged)
-  clientTalkingPoints.innerHTML = `
+  clientTalkingPoints.innerHTML=`
     <li>Market conditions remain supportive for growth-oriented portfolios.</li>
     <li>Lower volatility and easing bond yields support equity exposure.</li>
     <li>Currency moves have favoured Australian assets.</li>
     <li>Portfolio positioning remains appropriate.</li>`;
 
-  // 3) Market performance table (NOW LIVE)
-  marketRows.innerHTML = results.map(r => {
-    const isBps = r.name === "US 10Y Yield";
-    const dClass  = isBps ? (r.d1ForRegime < 0 ? "neg" : "pos") : (String(r.d1Display).includes("-") ? "neg" : "pos");
-    const yClass  = (String(r.ytdDisplay).includes("-") ? "neg" : "pos");
-    const cyClass = (String(r.cyDisplay).includes("-") ? "neg" : "pos");
-
-    return `<tr>
-      <td>${r.name}</td>
-      <td>${r.levelDisplay}</td>
-      <td class="${dClass}">${r.d1Display}</td>
-      <td class="${r.ytdDisplay==="N/A" ? "" : yClass}">${r.ytdDisplay}</td>
-      <td class="${r.cyDisplay==="N/A" ? "" : cyClass}">${r.cyDisplay}</td>
-    </tr>`;
-  }).join("");
-
-  // 4) News blocks (UNCHANGED static content)
-  asxNews.innerHTML = `
+  asxNews.innerHTML=`
     <li><span class="badge badge-mid">Sector Watch</span><a href="https://www.afr.com/companies/mining/bhp-reaffirms-guidance-as-iron-ore-prices-stabilise" target="_blank">BHP reaffirms guidance as iron ore prices stabilise</a></li>
     <li><span class="badge badge-high">Portfolio Relevant</span><a href="https://www.afr.com/companies/financial-services/banks-face-margin-pressure-as-deposit-competition-heats-up" target="_blank">Banks face margin pressure</a></li>
     <li><span class="badge badge-mid">Sector Watch</span><a href="https://www.afr.com/companies/healthcare/csl-sees-plasma-collections-normalise" target="_blank">CSL sees plasma collections normalise</a></li>`;
 
-  usNews.innerHTML = `
+  usNews.innerHTML=`
     <li><span class="badge badge-mid">Sector Watch</span><a href="https://finviz.com/news.ashx?t=NVDA" target="_blank">Nvidia demand remains strong</a></li>
     <li><span class="badge badge-high">Portfolio Relevant</span><a href="https://finviz.com/news.ashx?t=AAPL" target="_blank">Apple faces slower upgrade cycle</a></li>
     <li><span class="badge badge-mid">Sector Watch</span><a href="https://finviz.com/news.ashx?t=TSLA" target="_blank">Tesla cuts prices again</a></li>`;
 
-  legNews.innerHTML = `
+  legNews.innerHTML=`
     <li><span class="badge badge-high">Portfolio Relevant</span><a href="https://treasury.gov.au/consultation/division-296-superannuation-tax" target="_blank">Division 296 tax progresses</a></li>
     <li><span class="badge badge-high">Portfolio Relevant</span><a href="https://asic.gov.au/regulatory-resources/financial-services/superannuation/" target="_blank">ASIC increases advice scrutiny</a></li>
     <li><span class="badge badge-mid">Sector Watch</span><a href="https://asic.gov.au/regulatory-resources/financial-services/insurance/" target="_blank">ASIC flags TPD concerns</a></li>`;
 
-  macroNews.innerHTML = `
+  macroNews.innerHTML=`
     <li><span class="badge badge-high">Portfolio Relevant</span><a href="https://www.afr.com/markets/debt-markets/us-bond-yields-fall-on-rate-cut-bets" target="_blank">US bond yields fall</a></li>
     <li><span class="badge badge-mid">Sector Watch</span><a href="https://www.afr.com/markets/currencies/aussie-dollar-rises-as-us-dollar-weakens" target="_blank">AUD rises as USD weakens</a></li>
     <li><span class="badge badge-low">Market Context</span><a href="https://www.afr.com/policy/economy/global-growth-outlook-improves-as-inflation-eases" target="_blank">Global growth outlook improves</a></li>`;
 
-  // Done
-  btn.innerText = "🔄 Refresh";
-  btn.disabled = false;
+  btn.innerText="🔄 Refresh";
+  btn.disabled=false;
 }
 
 refreshData();
