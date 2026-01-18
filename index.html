@@ -63,16 +63,22 @@ h1{margin:0;font-size:26px;font-weight:600}
 </div>
 
 <script>
-const PROXY_BASE="https://wild-dream-69cc.seanhurren.workers.dev";
+const PROXY="https://wild-dream-69cc.seanhurren.workers.dev";
 
 const ASSETS=[
-{name:"ASX 200",symbol:"^AXJO",d:0},{name:"S&P 500",symbol:"^GSPC",d:0},{name:"NASDAQ",symbol:"^IXIC",d:0},
-{name:"AUD / USD",symbol:"AUDUSD=X",d:3},{name:"US 10Y Yield",symbol:"^TNX",d:2,y:true},{name:"Gold",symbol:"GC=F",d:0},{name:"VIX",symbol:"^VIX",d:1}
+{name:"ASX 200",symbol:"^AXJO",d:0},
+{name:"S&P 500",symbol:"^GSPC",d:0},
+{name:"NASDAQ",symbol:"^IXIC",d:0},
+{name:"AUD / USD",symbol:"AUDUSD=X",d:3},
+{name:"US 10Y Yield",symbol:"^TNX",d:2,y:true},
+{name:"Gold",symbol:"GC=F",d:0},
+{name:"VIX",symbol:"^VIX",d:1}
 ];
 
 async function fetchYahoo(sym){
-const r=await fetch(`${PROXY_BASE}?symbol=${encodeURIComponent(sym)}`);
-const j=await r.json();return j.chart.result[0];
+const r=await fetch(`${PROXY}?symbol=${encodeURIComponent(sym)}`);
+const j=await r.json();
+return j.chart.result[0];
 }
 
 function pct(a,b){return(((a-b)/b)*100).toFixed(2)+"%";}
@@ -83,7 +89,9 @@ for(const a of ASSETS){
 const c=await fetchYahoo(a.symbol);
 let cur=c.meta.regularMarketPrice,prev=c.meta.previousClose;
 if(a.y){cur/=10;prev/=10;}
-rows+=`<tr><td>${a.name}</td><td>${a.symbol}</td>
+rows+=`<tr>
+<td>${a.name}</td>
+<td>${a.symbol}</td>
 <td><a href="https://finance.yahoo.com/quote/${a.symbol}" target="_blank">${cur.toFixed(a.d)}${a.y?"%":""}</a></td>
 <td class="${cur>=prev?"pos":"neg"}">${a.y?((cur-prev)*100).toFixed(0)+" bps":pct(cur,prev)}</td>
 <td>—</td><td>—</td></tr>`;
