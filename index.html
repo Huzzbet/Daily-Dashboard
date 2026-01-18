@@ -4,81 +4,53 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Internal Market & Advice Dashboard</title>
-
 <style>
-:root{
-  --bg:#0b1220;--card:#0f1828;--border:rgba(255,255,255,.08);--text:#e7eefc;--muted:#9fb0d0;
-  --green:#2bd47d;--amber:#ffd166;--red:#ff5c7a;--accent:#6ee7ff;--shadow:0 18px 40px rgba(0,0,0,.35);
-  --radius:22px;--font:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
-}
+:root{--bg:#0b1220;--card:#0f1828;--border:rgba(255,255,255,.08);--text:#e7eefc;--muted:#9fb0d0;
+--green:#2bd47d;--amber:#ffd166;--red:#ff5c7a;--accent:#6ee7ff;--shadow:0 18px 40px rgba(0,0,0,.35);
+--radius:22px;--font:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
 *{box-sizing:border-box}
 body{margin:0;font-family:var(--font);background:radial-gradient(900px 500px at 50% -20%, #13284a, transparent),var(--bg);color:var(--text)}
 .container{max-width:1200px;margin:auto;padding:22px 18px 60px}
-h1{margin:0;font-size:26px;font-weight:600}
-.sub{margin-top:6px;color:var(--muted);font-size:14px}
-.card{background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.01));border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px;margin-top:22px}
-.card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
-.card-header h2{margin:0;font-size:17px;font-weight:600}
-.card-header span{font-size:13px;color:var(--muted)}
-.btn{margin-top:14px;padding:11px 18px;border-radius:14px;background:linear-gradient(180deg, rgba(110,231,255,.25), rgba(110,231,255,.12));border:1px solid rgba(110,231,255,.35);color:var(--text);font-weight:600;cursor:pointer}
+h1{margin:0;font-size:26px;font-weight:600}.sub{color:var(--muted);font-size:14px}
+.card{background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.01));border:1px solid var(--border);
+border-radius:var(--radius);box-shadow:var(--shadow);padding:18px;margin-top:22px}
+.card-header{display:flex;justify-content:space-between;align-items:center}
+.btn{margin-top:14px;padding:11px 18px;border-radius:14px;background:linear-gradient(180deg, rgba(110,231,255,.25), rgba(110,231,255,.12));
+border:1px solid rgba(110,231,255,.35);color:var(--text);font-weight:600;cursor:pointer}
 .market-table{width:100%;border-collapse:collapse}
 .market-table th{font-size:11px;color:var(--muted);letter-spacing:.12em;padding:12px 6px;text-align:left}
 .market-table td{padding:14px 6px;font-size:15px}
 .market-table tr:not(:last-child){border-bottom:1px solid var(--border)}
-.market-table a{color:#dbe6ff;text-decoration:none}
-.market-table a:hover{color:var(--accent);text-decoration:underline}
 .pos{color:var(--green)}.neg{color:var(--red)}
-.bullets{margin:12px 0 0 18px;padding:0}.bullets li{margin:10px 0;font-size:15px}
-.news-list{list-style:none;padding:0;margin:8px 0 0}.news-list li{margin:12px 0}
-.badge{padding:4px 10px;border-radius:999px;font-size:11px;font-weight:600;margin-right:8px}
-.badge-high{background:rgba(255,92,122,.18);color:#ff5c7a}
-.badge-mid{background:rgba(255,209,102,.18);color:#ffd166}
-.badge-low{background:rgba(43,212,125,.18);color:#2bd47d}
 </style>
 </head>
-
 <body>
 <div class="container">
-
 <h1>Internal Market & Advice Dashboard</h1>
 <div class="sub">Australia · Melbourne · Internal Use Only</div>
 <button class="btn" onclick="refreshData()">🔄 Refresh</button>
-
-<div class="card"><div class="card-header"><h2>Market Regime</h2><span>High-level context</span></div>
-<div id="regimeLabel"></div><ul class="bullets" id="regimeDrivers"></ul></div>
-
-<div class="card"><div class="card-header"><h2>Client Talking Points</h2><span>Auto-generated</span></div>
-<ul class="bullets" id="clientTalkingPoints"></ul></div>
 
 <div class="card"><div class="card-header"><h2>Market Performance Overview</h2><span>Daily · YTD · CY</span></div>
 <table class="market-table"><thead>
 <tr><th>ASSET</th><th>TICKER</th><th>LEVEL</th><th>1-DAY</th><th>2026 YTD</th><th>2025 CY</th></tr>
 </thead><tbody id="marketRows"></tbody></table></div>
-
-<div class="card"><div class="card-header"><h2>ASX Company News</h2><span>AFR · ASX</span></div><ul class="news-list" id="asxNews"></ul></div>
-<div class="card"><div class="card-header"><h2>US Company News</h2><span>Finviz · Earnings</span></div><ul class="news-list" id="usNews"></ul></div>
-<div class="card"><div class="card-header"><h2>Super & Insurance – Legislative Updates</h2><span>ASIC · Treasury</span></div><ul class="news-list" id="legNews"></ul></div>
-<div class="card"><div class="card-header"><h2>Major Economic Headlines</h2><span>AFR · Global</span></div><ul class="news-list" id="macroNews"></ul></div>
-
 </div>
 
 <script>
 const PROXY="https://wild-dream-69cc.seanhurren.workers.dev";
-
 const ASSETS=[
-{name:"ASX 200",symbol:"^AXJO",d:0},
-{name:"S&P 500",symbol:"^GSPC",d:0},
-{name:"NASDAQ",symbol:"^IXIC",d:0},
-{name:"AUD / USD",symbol:"AUDUSD=X",d:3},
-{name:"US 10Y Yield",symbol:"^TNX",d:2,y:true},
-{name:"Gold",symbol:"GC=F",d:0},
-{name:"VIX",symbol:"^VIX",d:1}
+{name:"ASX 200",symbol:"^AXJO"},
+{name:"S&P 500",symbol:"^GSPC"},
+{name:"NASDAQ",symbol:"^IXIC"},
+{name:"AUD / USD",symbol:"AUDUSD=X"},
+{name:"US 10Y Yield",symbol:"^TNX",y:true},
+{name:"Gold",symbol:"GC=F"},
+{name:"VIX",symbol:"^VIX"}
 ];
 
-async function fetchYahoo(sym){
-const r=await fetch(`${PROXY}?symbol=${encodeURIComponent(sym)}`);
-const j=await r.json();
-return j.chart.result[0];
+async function fetchRange(sym,range){
+const r=await fetch(`${PROXY}?symbol=${encodeURIComponent(sym)}&range=${range}`);
+const j=await r.json();return j.chart.result[0];
 }
 
 function pct(a,b){return(((a-b)/b)*100).toFixed(2)+"%";}
@@ -86,15 +58,23 @@ function pct(a,b){return(((a-b)/b)*100).toFixed(2)+"%";}
 async function refreshData(){
 let rows="";
 for(const a of ASSETS){
-const c=await fetchYahoo(a.symbol);
-let cur=c.meta.regularMarketPrice,prev=c.meta.previousClose;
-if(a.y){cur/=10;prev/=10;}
+const day=await fetchRange(a.symbol,"1d");
+const ytd=await fetchRange(a.symbol,"ytd");
+const cy=await fetchRange(a.symbol,"1y");
+
+let cur=day.meta.regularMarketPrice,prev=day.meta.previousClose;
+let ytdStart=ytd.meta.chartPreviousClose;
+let cyStart=cy.meta.chartPreviousClose;
+
+if(a.y){cur/=10;prev/=10;ytdStart/=10;cyStart/=10;}
+
 rows+=`<tr>
-<td>${a.name}</td>
-<td>${a.symbol}</td>
-<td><a href="https://finance.yahoo.com/quote/${a.symbol}" target="_blank">${cur.toFixed(a.d)}${a.y?"%":""}</a></td>
+<td>${a.name}</td><td>${a.symbol}</td>
+<td>${cur.toFixed(2)}${a.y?"%":""}</td>
 <td class="${cur>=prev?"pos":"neg"}">${a.y?((cur-prev)*100).toFixed(0)+" bps":pct(cur,prev)}</td>
-<td>—</td><td>—</td></tr>`;
+<td class="${cur>=ytdStart?"pos":"neg"}">${pct(cur,ytdStart)}</td>
+<td class="${cur>=cyStart?"pos":"neg"}">${pct(cur,cyStart)}</td>
+</tr>`;
 }
 marketRows.innerHTML=rows;
 }
