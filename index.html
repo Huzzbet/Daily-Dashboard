@@ -4,36 +4,76 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Internal Market & Advice Dashboard</title>
+
 <style>
-:root{--bg:#0b1220;--card:#0f1828;--border:rgba(255,255,255,.08);--text:#e7eefc;--muted:#9fb0d0;
---green:#2bd47d;--amber:#ffd166;--red:#ff5c7a;--accent:#6ee7ff;--shadow:0 18px 40px rgba(0,0,0,.35);
---radius:22px;--font:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
+:root{
+  --bg:#0b1220;--card:#0f1828;--border:rgba(255,255,255,.08);--text:#e7eefc;--muted:#9fb0d0;
+  --green:#2bd47d;--amber:#ffd166;--red:#ff5c7a;--accent:#6ee7ff;--shadow:0 18px 40px rgba(0,0,0,.35);
+  --radius:22px;--font:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
+}
 *{box-sizing:border-box}
 body{margin:0;font-family:var(--font);background:radial-gradient(900px 500px at 50% -20%, #13284a, transparent),var(--bg);color:var(--text)}
 .container{max-width:1200px;margin:auto;padding:22px 18px 60px}
-h1{margin:0;font-size:26px;font-weight:600}.sub{color:var(--muted);font-size:14px}
-.card{background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.01));border:1px solid var(--border);
-border-radius:var(--radius);box-shadow:var(--shadow);padding:18px;margin-top:22px}
-.card-header{display:flex;justify-content:space-between;align-items:center}
-.btn{margin-top:14px;padding:11px 18px;border-radius:14px;background:linear-gradient(180deg, rgba(110,231,255,.25), rgba(110,231,255,.12));
-border:1px solid rgba(110,231,255,.35);color:var(--text);font-weight:600;cursor:pointer}
+h1{margin:0;font-size:26px;font-weight:600}
+.sub{margin-top:6px;color:var(--muted);font-size:14px}
+.card{background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.01));
+border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);
+padding:18px;margin-top:22px}
+.card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.card-header h2{margin:0;font-size:17px;font-weight:600}
+.card-header span{font-size:13px;color:var(--muted)}
+.btn{
+  margin-top:14px;padding:12px 20px;border-radius:16px;
+  background:linear-gradient(180deg,#6ee7ff,#3fbcd4);
+  border:none;color:#052c36;font-weight:700;
+  box-shadow:0 8px 18px rgba(110,231,255,.35);
+  cursor:pointer;transition:all .15s ease;
+}
+.btn:active{
+  transform:translateY(3px);
+  box-shadow:0 3px 8px rgba(0,0,0,.35) inset;
+}
 .market-table{width:100%;border-collapse:collapse}
 .market-table th{font-size:11px;color:var(--muted);letter-spacing:.12em;padding:12px 6px;text-align:left}
 .market-table td{padding:14px 6px;font-size:15px}
 .market-table tr:not(:last-child){border-bottom:1px solid var(--border)}
+.market-table a{color:#dbe6ff;text-decoration:none}
+.market-table a:hover{color:var(--accent);text-decoration:underline}
 .pos{color:var(--green)}.neg{color:var(--red)}
+.bullets{margin:12px 0 0 18px;padding:0}
+.bullets li{margin:10px 0}
+.news-list{list-style:none;padding:0;margin:8px 0 0}
+.news-list li{margin:12px 0}
+.badge{padding:4px 10px;border-radius:999px;font-size:11px;font-weight:600;margin-right:8px}
+.badge-high{background:rgba(255,92,122,.18);color:#ff5c7a}
+.badge-mid{background:rgba(255,209,102,.18);color:#ffd166}
+.badge-low{background:rgba(43,212,125,.18);color:#2bd47d}
 </style>
 </head>
+
 <body>
 <div class="container">
+
 <h1>Internal Market & Advice Dashboard</h1>
 <div class="sub">Australia · Melbourne · Internal Use Only</div>
 <button class="btn" onclick="refreshData()">🔄 Refresh</button>
+
+<div class="card"><div class="card-header"><h2>Market Regime</h2><span>High-level context</span></div>
+<div id="regimeLabel"></div><ul class="bullets" id="regimeDrivers"></ul></div>
+
+<div class="card"><div class="card-header"><h2>Client Talking Points</h2><span>Auto-generated</span></div>
+<ul class="bullets" id="clientTalkingPoints"></ul></div>
 
 <div class="card"><div class="card-header"><h2>Market Performance Overview</h2><span>Daily · YTD · CY</span></div>
 <table class="market-table"><thead>
 <tr><th>ASSET</th><th>TICKER</th><th>LEVEL</th><th>1-DAY</th><th>2026 YTD</th><th>2025 CY</th></tr>
 </thead><tbody id="marketRows"></tbody></table></div>
+
+<div class="card"><div class="card-header"><h2>ASX Company News</h2><span>AFR · ASX</span></div><ul class="news-list" id="asxNews"></ul></div>
+<div class="card"><div class="card-header"><h2>US Company News</h2><span>Finviz · Earnings</span></div><ul class="news-list" id="usNews"></ul></div>
+<div class="card"><div class="card-header"><h2>Super & Insurance – Legislative Updates</h2><span>ASIC · Treasury</span></div><ul class="news-list" id="legNews"></ul></div>
+<div class="card"><div class="card-header"><h2>Major Economic Headlines</h2><span>AFR · Global</span></div><ul class="news-list" id="macroNews"></ul></div>
+
 </div>
 
 <script>
@@ -52,7 +92,6 @@ async function fetchRange(sym,range){
 const r=await fetch(`${PROXY}?symbol=${encodeURIComponent(sym)}&range=${range}`);
 const j=await r.json();return j.chart.result[0];
 }
-
 function pct(a,b){return(((a-b)/b)*100).toFixed(2)+"%";}
 
 async function refreshData(){
@@ -60,23 +99,37 @@ let rows="";
 for(const a of ASSETS){
 const day=await fetchRange(a.symbol,"1d");
 const ytd=await fetchRange(a.symbol,"ytd");
-const cy=await fetchRange(a.symbol,"1y");
+const cy=await fetchRange(a.symbol,"2y");
 
-let cur=day.meta.regularMarketPrice,prev=day.meta.previousClose;
+let cur=day.meta.regularMarketPrice, prev=day.meta.previousClose;
 let ytdStart=ytd.meta.chartPreviousClose;
-let cyStart=cy.meta.chartPreviousClose;
 
-if(a.y){cur/=10;prev/=10;ytdStart/=10;cyStart/=10;}
+let cyPrices=cy.indicators.quote[0].close;
+let cyTimes=cy.timestamp;
+
+let start2025 = cyPrices[cyTimes.findIndex(t=>new Date(t*1000).getFullYear()===2025)];
+let end2025 = [...cyPrices].reverse()[ [...cyTimes].reverse().findIndex(t=>new Date(t*1000).getFullYear()===2025)];
+
+if(a.y){cur/=10;prev/=10;ytdStart/=10;start2025/=10;end2025/=10;}
 
 rows+=`<tr>
 <td>${a.name}</td><td>${a.symbol}</td>
 <td>${cur.toFixed(2)}${a.y?"%":""}</td>
 <td class="${cur>=prev?"pos":"neg"}">${a.y?((cur-prev)*100).toFixed(0)+" bps":pct(cur,prev)}</td>
 <td class="${cur>=ytdStart?"pos":"neg"}">${pct(cur,ytdStart)}</td>
-<td class="${cur>=cyStart?"pos":"neg"}">${pct(cur,cyStart)}</td>
+<td class="${end2025>=start2025?"pos":"neg"}">${pct(end2025,start2025)}</td>
 </tr>`;
 }
 marketRows.innerHTML=rows;
+
+regimeLabel.innerHTML="Current stance: <b>Risk-On</b>";
+regimeDrivers.innerHTML="<li>Volatility subdued</li><li>Bond yields easing</li><li>USD softer supporting risk assets</li>";
+clientTalkingPoints.innerHTML="<li>Markets remain supportive for growth portfolios</li><li>Maintain equity exposure</li><li>Volatility remains low</li>";
+
+asxNews.innerHTML="<li><span class='badge badge-mid'>Sector Watch</span>BHP reaffirms guidance</li>";
+usNews.innerHTML="<li><span class='badge badge-high'>Portfolio Relevant</span>Nvidia demand remains strong</li>";
+legNews.innerHTML="<li><span class='badge badge-high'>Portfolio Relevant</span>Division 296 tax progresses</li>";
+macroNews.innerHTML="<li><span class='badge badge-mid'>Sector Watch</span>US bond yields fall</li>";
 }
 refreshData();
 </script>
