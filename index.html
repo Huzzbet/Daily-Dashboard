@@ -214,7 +214,7 @@ h1{margin:0;font-size:26px;font-weight:600}
 </div>
 
 <script>
-/** Cloudflare Worker (Yahoo proxy) */
+/** Cloudflare Worker (Yahoo proxy + RSS proxy) */
 const PROXY = "https://wild-dream-69cc.seanhurren.workers.dev";
 
 /** Market symbols */
@@ -228,6 +228,14 @@ const ASSETS = [
   { name:"VIX",          symbol:"^VIX", link:"https://finance.yahoo.com/quote/%5EVIX" }
 ];
 
+/** News feeds (A: AFR / Finviz / Treasury / Reuters) */
+const FEEDS = {
+  asx: "https://www.afr.com/rss",
+  us:  "https://finviz.com/feed.ashx",
+  leg: "https://treasury.gov.au/rss.xml",
+  macro:"https://www.reutersagency.com/feed/?taxonomy=best-sectors&post_type=best"
+};
+
 async function yahooChart(symbol, range){
   const url = `${PROXY}?symbol=${encodeURIComponent(symbol)}&range=${encodeURIComponent(range)}`;
   const res = await fetch(url);
@@ -237,6 +245,33 @@ async function yahooChart(symbol, range){
   const result = json?.chart?.result?.[0];
   if(!result) throw new Error("Yahoo returned no result");
   return result;
+}
+
+/** RSS fetch through Worker */
+async function fetchRSS(url){
+  const res = await fetch(`${PROXY}?url=${encodeURIComponent(url)}`);
+  const xmlText = await res.text();
+  const xml = new DOMParser().parseFromString(xmlText, "text/xml");
+
+  // Try RSS <item> first, then Atom <entry>
+  let items = [...xml.querySelectorAll("item")].map(i=>({
+    title:i.querySelector("title")?.textContent?.trim() || "",
+    link:(i.querySelector("link")?.textContent || "").trim()
+  }));
+
+  if(items.length === 0){
+    items = [...xml.querySelectorAll("entry")].map(e=>{
+      const title = e.querySelector("title")?.textContent?.trim() || "";
+      const linkEl = e.querySelector('link[rel="alternate"]') || e.querySelector("link");
+      const link = (linkEl?.getAttribute("href") || linkEl?.textContent || "").trim();
+      return { title, link };
+    });
+  }
+
+  // Remove blanks
+  items = items.filter(x => x.title && x.link);
+
+  return items.slice(0,6);
 }
 
 /** helpers */
@@ -271,50 +306,38 @@ function lastNonNull(closes){
   }
   return null;
 }
-function fmtNum(x, dp=2){
-  if(!isNum(x)) return "—";
-  return x.toFixed(dp);
-}
-function signClass(delta){
-  if(!isNum(delta)) return "";
-  return delta >= 0 ? "pos" : "neg";
-}
 
 /** Market regime logic from live indicators */
 function computeRegime(m){
-  // m contains: vixLvl, vixChgPct, spChgPct, ndxChgPct, asxChgPct, audChgPct, us10yChgBps, us10yLvl
-  // Score: positive = risk-on, negative = risk-off
   let score = 0;
   const drivers = [];
 
-  // Volatility
   if(isNum(m.vixLvl)){
     if(m.vixLvl < 15){ score += 2; drivers.push(`Volatility low (VIX ${m.vixLvl.toFixed(1)}), supportive of risk assets.`); }
     else if(m.vixLvl < 20){ score += 0; drivers.push(`Volatility moderate (VIX ${m.vixLvl.toFixed(1)}), risk-neutral backdrop.`); }
     else { score -= 2; drivers.push(`Volatility elevated (VIX ${m.vixLvl.toFixed(1)}), defensive tone.`); }
   }
 
-  // Rates (US 10Y)
   if(isNum(m.us10yChgBps)){
     if(m.us10yChgBps <= -5){ score += 1; drivers.push(`US 10Y yields eased (${m.us10yChgBps.toFixed(0)} bps), supportive for growth.`); }
     else if(m.us10yChgBps >= 5){ score -= 1; drivers.push(`US 10Y yields rose (${m.us10yChgBps.toFixed(0)} bps), tightening conditions.`); }
     else { drivers.push(`US 10Y yields stable (${m.us10yChgBps.toFixed(0)} bps).`); }
   }
 
-  // Equity breadth (US)
-  const usBreadth = (isNum(m.spChgPct)?(m.spChgPct>0?1:(m.spChgPct<0?-1:0)):0) + (isNum(m.ndxChgPct)?(m.ndxChgPct>0?1:(m.ndxChgPct<0?-1:0)):0);
+  const usBreadth =
+    (isNum(m.spChgPct)?(m.spChgPct>0?1:(m.spChgPct<0?-1:0)):0) +
+    (isNum(m.ndxChgPct)?(m.ndxChgPct>0?1:(m.ndxChgPct<0?-1:0)):0);
+
   if(usBreadth >= 2){ score += 1; drivers.push(`US equities broadly higher (S&P & NASDAQ up), indicating risk appetite.`); }
   else if(usBreadth <= -2){ score -= 1; drivers.push(`US equities broadly lower (S&P & NASDAQ down), risk appetite softer.`); }
   else { drivers.push(`US equities mixed, suggesting selective risk-taking.`); }
 
-  // FX risk gauge (AUD)
   if(isNum(m.audChgPct)){
     if(m.audChgPct >= 0.25){ score += 1; drivers.push(`AUD stronger (${m.audChgPct.toFixed(2)}%), consistent with risk-on / commodity support.`); }
     else if(m.audChgPct <= -0.25){ score -= 1; drivers.push(`AUD softer (${m.audChgPct.toFixed(2)}%), consistent with risk caution / USD bid.`); }
     else { drivers.push(`AUD broadly steady (${m.audChgPct.toFixed(2)}%).`); }
   }
 
-  // AU vs US confirmation
   if(isNum(m.asxChgPct)){
     if(m.asxChgPct > 0 && usBreadth > 0) drivers.push(`Australia and US moving in the same direction (risk signal confirmed).`);
     else if(m.asxChgPct < 0 && usBreadth < 0) drivers.push(`Australia and US both softer (risk-off confirmation).`);
@@ -322,7 +345,7 @@ function computeRegime(m){
   }
 
   let label = "Neutral";
-  let color = "#ffd166"; // amber
+  let color = "#ffd166";
   if(score >= 3){ label = "Risk-On"; color = "#2bd47d"; }
   if(score <= -2){ label = "Risk-Off"; color = "#ff5c7a"; }
 
@@ -333,34 +356,59 @@ function computeRegime(m){
 function buildTalkingPoints(m){
   const bullets = [];
 
-  // US macro pulse via yields + equity + VIX (market-implied conditions)
   if(isNum(m.us10yChgBps) && isNum(m.vixLvl)){
     if(m.us10yChgBps <= -5 && m.vixLvl < 18) bullets.push(`US conditions look easier at the margin: yields down and volatility contained, supportive for equities.`);
     else if(m.us10yChgBps >= 5 && m.vixLvl >= 18) bullets.push(`US conditions are tightening at the margin: yields up and volatility higher, favouring quality/defensive tilts.`);
     else bullets.push(`US signals are mixed: yields/volatility not sending a strong one-way message today.`);
   }
 
-  // Australia pulse via ASX + AUD
   if(isNum(m.asxChgPct) && isNum(m.audChgPct)){
     if(m.asxChgPct > 0 && m.audChgPct >= 0) bullets.push(`Australia is tracking a constructive tone: ASX higher with a steady-to-firmer AUD.`);
     else if(m.asxChgPct < 0 && m.audChgPct < 0) bullets.push(`Australia is softer: weaker ASX and AUD can reflect a more cautious global risk tone.`);
     else bullets.push(`Australia is mixed: index direction and FX aren’t fully aligned, consistent with rotation rather than a broad risk shift.`);
   }
 
-  // Positioning style note
   if(isNum(m.vixLvl)){
     if(m.vixLvl < 15) bullets.push(`Low volatility tends to reward disciplined rebalancing and trend-following exposure (avoid over-trading noise).`);
     else if(m.vixLvl > 20) bullets.push(`Higher volatility environment: emphasise diversification, liquidity, and staggered entry points.`);
     else bullets.push(`Moderate volatility: keep core exposures, be selective with adds around key levels.`);
   }
 
-  // Yield-specific note
   if(isNum(m.us10yLvl) && isNum(m.us10yChgBps)){
     bullets.push(`US 10Y yield is ${m.us10yLvl.toFixed(2)}% (${m.us10yChgBps.toFixed(0)} bps on the day) — useful context for growth vs value leadership.`);
   }
 
-  // Keep it concise (4–5 bullets)
   return bullets.slice(0,5);
+}
+
+/** NEW: Live news refresh */
+async function refreshNews(){
+  const [asx, us, leg, macro] = await Promise.all([
+    fetchRSS(FEEDS.asx),
+    fetchRSS(FEEDS.us),
+    fetchRSS(FEEDS.leg),
+    fetchRSS(FEEDS.macro)
+  ]);
+
+  asxNews.innerHTML = asx.map(n=>`
+    <li><a href="${n.link}" target="_blank" rel="noopener">
+      <span class="badge badge-mid">AFR</span>${n.title}
+    </a></li>`).join("");
+
+  usNews.innerHTML = us.map(n=>`
+    <li><a href="${n.link}" target="_blank" rel="noopener">
+      <span class="badge badge-high">Finviz</span>${n.title}
+    </a></li>`).join("");
+
+  legNews.innerHTML = leg.map(n=>`
+    <li><a href="${n.link}" target="_blank" rel="noopener">
+      <span class="badge badge-high">Treasury</span>${n.title}
+    </a></li>`).join("");
+
+  macroNews.innerHTML = macro.map(n=>`
+    <li><a href="${n.link}" target="_blank" rel="noopener">
+      <span class="badge badge-low">Reuters</span>${n.title}
+    </a></li>`).join("");
 }
 
 async function refreshAll(){
@@ -372,7 +420,6 @@ async function refreshAll(){
   marketRows.innerHTML = `<tr><td colspan="6" class="smallmuted">Loading live market data…</td></tr>`;
 
   try{
-    // Collect metrics we’ll use for regime + talking points
     const metrics = {
       vixLvl:null, vixChgPct:null,
       spChgPct:null, ndxChgPct:null, asxChgPct:null,
@@ -413,7 +460,6 @@ async function refreshAll(){
       let start2025 = firstCloseForYear(tStamps, tCloses, 2025);
       let end2025   = lastCloseForYear(tStamps, tCloses, 2025);
 
-      // ^TNX uses 10x yield
       if(a.y){
         if(isNum(cur)) cur = cur/10;
         if(isNum(prevClose)) prevClose = prevClose/10;
@@ -444,8 +490,7 @@ async function refreshAll(){
         <td class="${cyClass}">${cyText}</td>
       </tr>`;
 
-      // Capture key metrics for regime + talking points
-      if(a.symbol === "^VIX"){ metrics.vixLvl = cur; metrics.vixChgPct = oneDayDeltaPct; }
+      if(a.symbol === "^VIX"){ metrics.vixLvl = cur; }
       if(a.symbol === "^GSPC"){ metrics.spChgPct = oneDayDeltaPct; }
       if(a.symbol === "^IXIC"){ metrics.ndxChgPct = oneDayDeltaPct; }
       if(a.symbol === "^AXJO"){ metrics.asxChgPct = oneDayDeltaPct; }
@@ -455,7 +500,6 @@ async function refreshAll(){
 
     marketRows.innerHTML = rows;
 
-    // --- Auto Market Regime (ONLY section changed per request) ---
     const reg = computeRegime(metrics);
     regimeLabel.innerHTML = `
       <span class="regime-dot" style="background:${reg.color}"></span>
@@ -464,60 +508,21 @@ async function refreshAll(){
     `;
     regimeDrivers.innerHTML = reg.drivers.slice(0,5).map(d=>`<li>${d}</li>`).join("");
 
-    // --- Updated Client Talking Points (ONLY section changed per request) ---
     const tps = buildTalkingPoints(metrics);
     clientTalkingPoints.innerHTML = tps.map(t=>`<li>${t}</li>`).join("");
 
-    // NEWS (unchanged layout; full-row clickable)
-    asxNews.innerHTML = `
-      <li><a href="https://www.afr.com/companies/mining/bhp-reaffirms-guidance-as-iron-ore-prices-stabilise" target="_blank" rel="noopener">
-        <span class="badge badge-mid">Sector Watch</span> BHP reaffirms guidance as iron ore prices stabilise
-      </a></li>
-      <li><a href="https://www.afr.com/companies/financial-services/banks-face-margin-pressure-as-deposit-competition-heats-up" target="_blank" rel="noopener">
-        <span class="badge badge-high">Portfolio Relevant</span> Banks face margin pressure as deposit competition heats up
-      </a></li>
-      <li><a href="https://www.afr.com/companies/healthcare/csl-sees-plasma-collections-normalise" target="_blank" rel="noopener">
-        <span class="badge badge-mid">Sector Watch</span> CSL sees plasma collections normalise
-      </a></li>`;
-
-    usNews.innerHTML = `
-      <li><a href="https://finviz.com/news.ashx?t=NVDA" target="_blank" rel="noopener">
-        <span class="badge badge-high">Portfolio Relevant</span> Nvidia — latest headlines
-      </a></li>
-      <li><a href="https://finviz.com/news.ashx?t=AAPL" target="_blank" rel="noopener">
-        <span class="badge badge-mid">Sector Watch</span> Apple — latest headlines
-      </a></li>
-      <li><a href="https://finviz.com/news.ashx?t=TSLA" target="_blank" rel="noopener">
-        <span class="badge badge-mid">Sector Watch</span> Tesla — latest headlines
-      </a></li>`;
-
-    legNews.innerHTML = `
-      <li><a href="https://treasury.gov.au/consultation/division-296-superannuation-tax" target="_blank" rel="noopener">
-        <span class="badge badge-high">Portfolio Relevant</span> Treasury — Division 296 super tax consultation
-      </a></li>
-      <li><a href="https://asic.gov.au/regulatory-resources/financial-services/superannuation/" target="_blank" rel="noopener">
-        <span class="badge badge-high">Portfolio Relevant</span> ASIC — Superannuation regulatory updates
-      </a></li>
-      <li><a href="https://asic.gov.au/regulatory-resources/financial-services/insurance/" target="_blank" rel="noopener">
-        <span class="badge badge-mid">Sector Watch</span> ASIC — Insurance regulatory updates
-      </a></li>`;
-
-    macroNews.innerHTML = `
-      <li><a href="https://www.afr.com/markets/debt-markets" target="_blank" rel="noopener">
-        <span class="badge badge-mid">Macro</span> AFR — Debt markets headlines
-      </a></li>
-      <li><a href="https://www.afr.com/markets/currencies" target="_blank" rel="noopener">
-        <span class="badge badge-low">Market Context</span> AFR — Currency headlines
-      </a></li>
-      <li><a href="https://www.afr.com/policy/economy" target="_blank" rel="noopener">
-        <span class="badge badge-low">Market Context</span> AFR — Economy headlines
-      </a></li>`;
+    // NEW: refresh news each time button pressed
+    await refreshNews();
 
   } catch(err){
     marketRows.innerHTML = `<tr><td colspan="6" class="neg">Error loading data: ${String(err.message || err)}</td></tr>`;
     regimeLabel.innerHTML = `<span class="regime-dot" style="background:#ff5c7a"></span><b style="color:#ff5c7a">Error</b>`;
     regimeDrivers.innerHTML = `<li>${String(err.message || err)}</li>`;
     clientTalkingPoints.innerHTML = `<li>Unable to generate talking points until market data loads.</li>`;
+    asxNews.innerHTML = `<li><a href="#" onclick="return false;"><span class="badge badge-mid">AFR</span>News unavailable.</a></li>`;
+    usNews.innerHTML = `<li><a href="#" onclick="return false;"><span class="badge badge-high">Finviz</span>News unavailable.</a></li>`;
+    legNews.innerHTML = `<li><a href="#" onclick="return false;"><span class="badge badge-high">Treasury</span>News unavailable.</a></li>`;
+    macroNews.innerHTML = `<li><a href="#" onclick="return false;"><span class="badge badge-low">Reuters</span>News unavailable.</a></li>`;
   } finally {
     btn.disabled = false;
     btn.innerText = oldText;
