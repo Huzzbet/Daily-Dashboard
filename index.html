@@ -117,6 +117,16 @@ h1{margin:0;font-size:26px;font-weight:600}
 .badge-low{ background:rgba(43,212,125,.18); color:#2bd47d; }
 
 .smallmuted{color:var(--muted);font-size:12px}
+
+/* Regime dot */
+.regime-dot{
+  display:inline-block;
+  width:14px;height:14px;
+  border-radius:50%;
+  margin-right:10px;
+  vertical-align:middle;
+  box-shadow:0 0 0 3px rgba(255,255,255,.06);
+}
 </style>
 </head>
 
@@ -236,7 +246,6 @@ function safePct(current, base){
   return (((current - base) / base) * 100).toFixed(2) + "%";
 }
 function safeBps(current, base){
-  // both are in % (e.g. 4.12) => delta% * 100 = bps
   if(!isNum(current) || !isNum(base)) return "—";
   return ((current - base) * 100).toFixed(0) + " bps";
 }
@@ -262,6 +271,97 @@ function lastNonNull(closes){
   }
   return null;
 }
+function fmtNum(x, dp=2){
+  if(!isNum(x)) return "—";
+  return x.toFixed(dp);
+}
+function signClass(delta){
+  if(!isNum(delta)) return "";
+  return delta >= 0 ? "pos" : "neg";
+}
+
+/** Market regime logic from live indicators */
+function computeRegime(m){
+  // m contains: vixLvl, vixChgPct, spChgPct, ndxChgPct, asxChgPct, audChgPct, us10yChgBps, us10yLvl
+  // Score: positive = risk-on, negative = risk-off
+  let score = 0;
+  const drivers = [];
+
+  // Volatility
+  if(isNum(m.vixLvl)){
+    if(m.vixLvl < 15){ score += 2; drivers.push(`Volatility low (VIX ${m.vixLvl.toFixed(1)}), supportive of risk assets.`); }
+    else if(m.vixLvl < 20){ score += 0; drivers.push(`Volatility moderate (VIX ${m.vixLvl.toFixed(1)}), risk-neutral backdrop.`); }
+    else { score -= 2; drivers.push(`Volatility elevated (VIX ${m.vixLvl.toFixed(1)}), defensive tone.`); }
+  }
+
+  // Rates (US 10Y)
+  if(isNum(m.us10yChgBps)){
+    if(m.us10yChgBps <= -5){ score += 1; drivers.push(`US 10Y yields eased (${m.us10yChgBps.toFixed(0)} bps), supportive for growth.`); }
+    else if(m.us10yChgBps >= 5){ score -= 1; drivers.push(`US 10Y yields rose (${m.us10yChgBps.toFixed(0)} bps), tightening conditions.`); }
+    else { drivers.push(`US 10Y yields stable (${m.us10yChgBps.toFixed(0)} bps).`); }
+  }
+
+  // Equity breadth (US)
+  const usBreadth = (isNum(m.spChgPct)?(m.spChgPct>0?1:(m.spChgPct<0?-1:0)):0) + (isNum(m.ndxChgPct)?(m.ndxChgPct>0?1:(m.ndxChgPct<0?-1:0)):0);
+  if(usBreadth >= 2){ score += 1; drivers.push(`US equities broadly higher (S&P & NASDAQ up), indicating risk appetite.`); }
+  else if(usBreadth <= -2){ score -= 1; drivers.push(`US equities broadly lower (S&P & NASDAQ down), risk appetite softer.`); }
+  else { drivers.push(`US equities mixed, suggesting selective risk-taking.`); }
+
+  // FX risk gauge (AUD)
+  if(isNum(m.audChgPct)){
+    if(m.audChgPct >= 0.25){ score += 1; drivers.push(`AUD stronger (${m.audChgPct.toFixed(2)}%), consistent with risk-on / commodity support.`); }
+    else if(m.audChgPct <= -0.25){ score -= 1; drivers.push(`AUD softer (${m.audChgPct.toFixed(2)}%), consistent with risk caution / USD bid.`); }
+    else { drivers.push(`AUD broadly steady (${m.audChgPct.toFixed(2)}%).`); }
+  }
+
+  // AU vs US confirmation
+  if(isNum(m.asxChgPct)){
+    if(m.asxChgPct > 0 && usBreadth > 0) drivers.push(`Australia and US moving in the same direction (risk signal confirmed).`);
+    else if(m.asxChgPct < 0 && usBreadth < 0) drivers.push(`Australia and US both softer (risk-off confirmation).`);
+    else drivers.push(`Australia diverging from the US, which can reflect local sector rotation.`);
+  }
+
+  let label = "Neutral";
+  let color = "#ffd166"; // amber
+  if(score >= 3){ label = "Risk-On"; color = "#2bd47d"; }
+  if(score <= -2){ label = "Risk-Off"; color = "#ff5c7a"; }
+
+  return { score, label, color, drivers };
+}
+
+/** Talking points driven from same live inputs */
+function buildTalkingPoints(m){
+  const bullets = [];
+
+  // US macro pulse via yields + equity + VIX (market-implied conditions)
+  if(isNum(m.us10yChgBps) && isNum(m.vixLvl)){
+    if(m.us10yChgBps <= -5 && m.vixLvl < 18) bullets.push(`US conditions look easier at the margin: yields down and volatility contained, supportive for equities.`);
+    else if(m.us10yChgBps >= 5 && m.vixLvl >= 18) bullets.push(`US conditions are tightening at the margin: yields up and volatility higher, favouring quality/defensive tilts.`);
+    else bullets.push(`US signals are mixed: yields/volatility not sending a strong one-way message today.`);
+  }
+
+  // Australia pulse via ASX + AUD
+  if(isNum(m.asxChgPct) && isNum(m.audChgPct)){
+    if(m.asxChgPct > 0 && m.audChgPct >= 0) bullets.push(`Australia is tracking a constructive tone: ASX higher with a steady-to-firmer AUD.`);
+    else if(m.asxChgPct < 0 && m.audChgPct < 0) bullets.push(`Australia is softer: weaker ASX and AUD can reflect a more cautious global risk tone.`);
+    else bullets.push(`Australia is mixed: index direction and FX aren’t fully aligned, consistent with rotation rather than a broad risk shift.`);
+  }
+
+  // Positioning style note
+  if(isNum(m.vixLvl)){
+    if(m.vixLvl < 15) bullets.push(`Low volatility tends to reward disciplined rebalancing and trend-following exposure (avoid over-trading noise).`);
+    else if(m.vixLvl > 20) bullets.push(`Higher volatility environment: emphasise diversification, liquidity, and staggered entry points.`);
+    else bullets.push(`Moderate volatility: keep core exposures, be selective with adds around key levels.`);
+  }
+
+  // Yield-specific note
+  if(isNum(m.us10yLvl) && isNum(m.us10yChgBps)){
+    bullets.push(`US 10Y yield is ${m.us10yLvl.toFixed(2)}% (${m.us10yChgBps.toFixed(0)} bps on the day) — useful context for growth vs value leadership.`);
+  }
+
+  // Keep it concise (4–5 bullets)
+  return bullets.slice(0,5);
+}
 
 async function refreshAll(){
   const btn = document.getElementById("refreshBtn");
@@ -269,54 +369,51 @@ async function refreshAll(){
   const oldText = btn.innerText;
   btn.innerText = "Refreshing…";
 
-  // show loading state for market table
   marketRows.innerHTML = `<tr><td colspan="6" class="smallmuted">Loading live market data…</td></tr>`;
 
   try{
-    // MARKET TABLE (live)
+    // Collect metrics we’ll use for regime + talking points
+    const metrics = {
+      vixLvl:null, vixChgPct:null,
+      spChgPct:null, ndxChgPct:null, asxChgPct:null,
+      audChgPct:null,
+      us10yLvl:null, us10yChgBps:null
+    };
+
     let rows = "";
+
     for(const a of ASSETS){
-      // 1D for current + day change baseline
       const d1 = await yahooChart(a.symbol, "1d");
       const dMeta = d1.meta || {};
       const dCloses = d1?.indicators?.quote?.[0]?.close || [];
 
-      // YTD for 2026 YTD baseline
       const ytd = await yahooChart(a.symbol, "ytd");
       const yMeta = ytd.meta || {};
 
-      // 2Y for extracting 2025 CY start/end (robust)
       const twoY = await yahooChart(a.symbol, "2y");
       const tStamps = twoY.timestamp || [];
       const tCloses = twoY?.indicators?.quote?.[0]?.close || [];
 
-      // current price: prefer regularMarketPrice, else last close
       let cur = isNum(dMeta.regularMarketPrice) ? dMeta.regularMarketPrice : lastNonNull(dCloses);
 
-      // previous close for 1-day: previousClose OR chartPreviousClose OR fallback series
       let prevClose =
         (isNum(dMeta.previousClose) ? dMeta.previousClose : null) ??
         (isNum(dMeta.chartPreviousClose) ? dMeta.chartPreviousClose : null);
 
-      // series fallback if still missing: take last close that is NOT the current close
       if(!isNum(prevClose) && dCloses.length >= 2){
-        const last = lastNonNull(dCloses);
-        // find prior non-null
         let prior = null;
         for(let i=dCloses.length-2;i>=0;i--){
           if(isNum(dCloses[i])) { prior = dCloses[i]; break; }
         }
-        prevClose = isNum(prior) ? prior : last;
+        prevClose = isNum(prior) ? prior : lastNonNull(dCloses);
       }
 
-      // 2026 YTD baseline: chartPreviousClose is the baseline for the chosen range (Yahoo behaviour)
       let ytdBase = isNum(yMeta.chartPreviousClose) ? yMeta.chartPreviousClose : null;
 
-      // 2025 CY: use first and last NON-NULL close within 2025
       let start2025 = firstCloseForYear(tStamps, tCloses, 2025);
       let end2025   = lastCloseForYear(tStamps, tCloses, 2025);
 
-      // Special handling for ^TNX (Yahoo uses 10x yield, e.g. 41.2 = 4.12%)
+      // ^TNX uses 10x yield
       if(a.y){
         if(isNum(cur)) cur = cur/10;
         if(isNum(prevClose)) prevClose = prevClose/10;
@@ -325,43 +422,53 @@ async function refreshAll(){
         if(isNum(end2025)) end2025 = end2025/10;
       }
 
-      // Render values
-      const levelText = isNum(cur) ? (a.y ? cur.toFixed(2)+"%" : cur.toFixed(2)) : "—";
-
       const oneDayText = a.y ? safeBps(cur, prevClose) : safePct(cur, prevClose);
-      const oneDayClass = (isNum(cur) && isNum(prevClose) && cur >= prevClose) ? "pos" : "neg";
+      const oneDayDeltaPct = (!a.y && isNum(cur) && isNum(prevClose) && prevClose !== 0) ? ((cur-prevClose)/prevClose)*100 : null;
+      const oneDayDeltaBps = (a.y && isNum(cur) && isNum(prevClose)) ? (cur-prevClose)*100 : null;
 
       const ytdText = safePct(cur, ytdBase);
-      const ytdClass = (isNum(cur) && isNum(ytdBase) && cur >= ytdBase) ? "pos" : "neg";
-
       const cyText = safePct(end2025, start2025);
-      const cyClass = (isNum(end2025) && isNum(start2025) && end2025 >= start2025) ? "pos" : "neg";
+
+      const oneDayClass = (oneDayText==="—") ? "" : ((a.y ? (oneDayDeltaBps>=0) : (oneDayDeltaPct>=0)) ? "pos":"neg");
+      const ytdClass = (ytdText==="—") ? "" : ((isNum(cur) && isNum(ytdBase) && cur>=ytdBase) ? "pos":"neg");
+      const cyClass  = (cyText==="—") ? "" : ((isNum(end2025) && isNum(start2025) && end2025>=start2025) ? "pos":"neg");
+
+      const levelText = isNum(cur) ? (a.y ? cur.toFixed(2)+"%" : cur.toFixed(2)) : "—";
 
       rows += `<tr>
         <td>${a.name}</td>
         <td><a href="${a.link}" target="_blank" rel="noopener">${a.symbol}</a></td>
         <td>${levelText}</td>
-        <td class="${oneDayText==='—'?'':oneDayClass}">${oneDayText}</td>
-        <td class="${ytdText==='—'?'':ytdClass}">${ytdText}</td>
-        <td class="${cyText==='—'?'':cyClass}">${cyText}</td>
+        <td class="${oneDayClass}">${oneDayText}</td>
+        <td class="${ytdClass}">${ytdText}</td>
+        <td class="${cyClass}">${cyText}</td>
       </tr>`;
+
+      // Capture key metrics for regime + talking points
+      if(a.symbol === "^VIX"){ metrics.vixLvl = cur; metrics.vixChgPct = oneDayDeltaPct; }
+      if(a.symbol === "^GSPC"){ metrics.spChgPct = oneDayDeltaPct; }
+      if(a.symbol === "^IXIC"){ metrics.ndxChgPct = oneDayDeltaPct; }
+      if(a.symbol === "^AXJO"){ metrics.asxChgPct = oneDayDeltaPct; }
+      if(a.symbol === "AUDUSD=X"){ metrics.audChgPct = oneDayDeltaPct; }
+      if(a.symbol === "^TNX"){ metrics.us10yLvl = cur; metrics.us10yChgBps = oneDayDeltaBps; }
     }
+
     marketRows.innerHTML = rows;
 
-    // Regime (keep simple; you can later base this on vix/yields)
-    regimeLabel.innerHTML = "Current stance: <b>Neutral</b>";
-    regimeDrivers.innerHTML = `
-      <li>Market table refreshed from Yahoo via Cloudflare proxy.</li>
-      <li>Use VIX + yields + USD to classify Risk-On / Risk-Off next.</li>
-      <li>Data reflects last trading day when live is unavailable.</li>`;
+    // --- Auto Market Regime (ONLY section changed per request) ---
+    const reg = computeRegime(metrics);
+    regimeLabel.innerHTML = `
+      <span class="regime-dot" style="background:${reg.color}"></span>
+      <b style="color:${reg.color}">${reg.label}</b>
+      <span class="smallmuted"> · Score ${reg.score}</span>
+    `;
+    regimeDrivers.innerHTML = reg.drivers.slice(0,5).map(d=>`<li>${d}</li>`).join("");
 
-    // Talking points (placeholder, but refreshes)
-    clientTalkingPoints.innerHTML = `
-      <li>Live market snapshot updated for today’s session (or last trading day).</li>
-      <li>Use the 1-Day move to frame short-term volatility and positioning.</li>
-      <li>2026 YTD and 2025 CY provide longer-term context for clients.</li>`;
+    // --- Updated Client Talking Points (ONLY section changed per request) ---
+    const tps = buildTalkingPoints(metrics);
+    clientTalkingPoints.innerHTML = tps.map(t=>`<li>${t}</li>`).join("");
 
-    // NEWS (clickable full-row links)
+    // NEWS (unchanged layout; full-row clickable)
     asxNews.innerHTML = `
       <li><a href="https://www.afr.com/companies/mining/bhp-reaffirms-guidance-as-iron-ore-prices-stabilise" target="_blank" rel="noopener">
         <span class="badge badge-mid">Sector Watch</span> BHP reaffirms guidance as iron ore prices stabilise
@@ -408,6 +515,9 @@ async function refreshAll(){
 
   } catch(err){
     marketRows.innerHTML = `<tr><td colspan="6" class="neg">Error loading data: ${String(err.message || err)}</td></tr>`;
+    regimeLabel.innerHTML = `<span class="regime-dot" style="background:#ff5c7a"></span><b style="color:#ff5c7a">Error</b>`;
+    regimeDrivers.innerHTML = `<li>${String(err.message || err)}</li>`;
+    clientTalkingPoints.innerHTML = `<li>Unable to generate talking points until market data loads.</li>`;
   } finally {
     btn.disabled = false;
     btn.innerText = oldText;
