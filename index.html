@@ -179,7 +179,7 @@ h1{margin:0;font-size:26px;font-weight:600}
   <div class="card">
     <div class="card-header">
       <h2>ASX Company News</h2>
-      <span>AFR · ASX</span>
+      <span>AFR · Curated</span>
     </div>
     <ul class="news-list" id="asxNews"></ul>
   </div>
@@ -188,7 +188,7 @@ h1{margin:0;font-size:26px;font-weight:600}
   <div class="card">
     <div class="card-header">
       <h2>US Company News</h2>
-      <span>Finviz · Earnings</span>
+      <span>Finviz · Curated</span>
     </div>
     <ul class="news-list" id="usNews"></ul>
   </div>
@@ -197,7 +197,7 @@ h1{margin:0;font-size:26px;font-weight:600}
   <div class="card">
     <div class="card-header">
       <h2>Super & Insurance – Legislative Updates</h2>
-      <span>ASIC · Treasury</span>
+      <span>Treasury · Curated</span>
     </div>
     <ul class="news-list" id="legNews"></ul>
   </div>
@@ -206,7 +206,7 @@ h1{margin:0;font-size:26px;font-weight:600}
   <div class="card">
     <div class="card-header">
       <h2>Major Economic Headlines</h2>
-      <span>AFR · Global</span>
+      <span>AFR Policy · Curated</span>
     </div>
     <ul class="news-list" id="macroNews"></ul>
   </div>
@@ -228,13 +228,28 @@ const ASSETS = [
   { name:"VIX",          symbol:"^VIX", link:"https://finance.yahoo.com/quote/%5EVIX" }
 ];
 
-/** News feeds (A: AFR / Finviz / Treasury / Reuters) */
+/**
+ * News feeds (more adviser-relevant)
+ * Note: AFR RSS endpoints can vary; if one feed doesn’t return items, swap it for another AFR RSS URL.
+ */
 const FEEDS = {
-  asx: "https://www.afr.com/rss",
-  us:  "https://finviz.com/feed.ashx",
-  leg: "https://treasury.gov.au/rss.xml",
-  macro:"https://www.reutersagency.com/feed/?taxonomy=best-sectors&post_type=best"
+  asx:  "https://www.afr.com/companies/rss",     // ASX/companies-focused
+  us:   "https://finviz.com/feed.ashx",          // US earnings/company headlines
+  leg:  "https://treasury.gov.au/rss.xml",       // Treasury updates
+  macro:"https://www.afr.com/politics/rss"       // Policy / macro / regulation context
 };
+
+/** Adviser relevance keywords (filters RSS titles) */
+const KEYWORDS = [
+  "superannuation","super","retirement","pension",
+  "asic","apra","treasury","ato",
+  "financial advice","adviser","advice",
+  "insurance","tPD","tpd","income protection","life insurance",
+  "div 296","division 296","tax","smsf","self managed",
+  "earnings","results","profit","guidance","upgrade","downgrade",
+  "rate cut","rate hike","inflation","rba",
+  "etf","managed fund","fund manager","markets","equities"
+];
 
 async function yahooChart(symbol, range){
   const url = `${PROXY}?symbol=${encodeURIComponent(symbol)}&range=${encodeURIComponent(range)}`;
@@ -247,7 +262,7 @@ async function yahooChart(symbol, range){
   return result;
 }
 
-/** RSS fetch through Worker */
+/** RSS fetch through Worker + adviser relevance filter */
 async function fetchRSS(url){
   const res = await fetch(`${PROXY}?url=${encodeURIComponent(url)}`);
   const xmlText = await res.text();
@@ -271,7 +286,16 @@ async function fetchRSS(url){
   // Remove blanks
   items = items.filter(x => x.title && x.link);
 
-  return items.slice(0,6);
+  // Adviser relevance filter (title-based)
+  const filtered = items.filter(i => {
+    const t = i.title.toLowerCase();
+    return KEYWORDS.some(k => t.includes(k.toLowerCase()));
+  });
+
+  // If the filter is too strict (no results), fallback to unfiltered list
+  const finalItems = (filtered.length > 0) ? filtered : items;
+
+  return finalItems.slice(0,6);
 }
 
 /** helpers */
@@ -381,7 +405,7 @@ function buildTalkingPoints(m){
   return bullets.slice(0,5);
 }
 
-/** NEW: Live news refresh */
+/** Live news refresh */
 async function refreshNews(){
   const [asx, us, leg, macro] = await Promise.all([
     fetchRSS(FEEDS.asx),
@@ -407,7 +431,7 @@ async function refreshNews(){
 
   macroNews.innerHTML = macro.map(n=>`
     <li><a href="${n.link}" target="_blank" rel="noopener">
-      <span class="badge badge-low">Reuters</span>${n.title}
+      <span class="badge badge-low">AFR</span>${n.title}
     </a></li>`).join("");
 }
 
@@ -511,7 +535,7 @@ async function refreshAll(){
     const tps = buildTalkingPoints(metrics);
     clientTalkingPoints.innerHTML = tps.map(t=>`<li>${t}</li>`).join("");
 
-    // NEW: refresh news each time button pressed
+    // refresh news each time button pressed
     await refreshNews();
 
   } catch(err){
@@ -522,7 +546,7 @@ async function refreshAll(){
     asxNews.innerHTML = `<li><a href="#" onclick="return false;"><span class="badge badge-mid">AFR</span>News unavailable.</a></li>`;
     usNews.innerHTML = `<li><a href="#" onclick="return false;"><span class="badge badge-high">Finviz</span>News unavailable.</a></li>`;
     legNews.innerHTML = `<li><a href="#" onclick="return false;"><span class="badge badge-high">Treasury</span>News unavailable.</a></li>`;
-    macroNews.innerHTML = `<li><a href="#" onclick="return false;"><span class="badge badge-low">Reuters</span>News unavailable.</a></li>`;
+    macroNews.innerHTML = `<li><a href="#" onclick="return false;"><span class="badge badge-low">AFR</span>News unavailable.</a></li>`;
   } finally {
     btn.disabled = false;
     btn.innerText = oldText;
