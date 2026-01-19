@@ -88,7 +88,7 @@ h1{margin:0;font-size:26px;font-weight:600}
 .news-list{list-style:none;padding:0;margin:8px 0 0 0}
 .news-list li{margin:12px 0;line-height:1.45}
 .news-list a{
-  display:block;                 /* whole row clickable */
+  display:block;
   padding:10px 10px;
   border-radius:14px;
   color:#dbe6ff;
@@ -103,7 +103,6 @@ h1{margin:0;font-size:26px;font-weight:600}
   background:rgba(110,231,255,.06);
 }
 
-/* Adviser Impact Badges */
 .badge{
   display:inline-block;
   padding:4px 10px;
@@ -113,12 +112,11 @@ h1{margin:0;font-size:26px;font-weight:600}
   margin-right:10px;
 }
 .badge-high{ background:rgba(255,92,122,.18); color:#ff5c7a; }
-.badge-mid{ background:rgba(255,209,102,.18); color:#ffd166; }
-.badge-low{ background:rgba(43,212,125,.18); color:#2bd47d; }
+.badge-mid{  background:rgba(255,209,102,.18); color:#ffd166; }
+.badge-low{  background:rgba(43,212,125,.18); color:#2bd47d; }
 
 .smallmuted{color:var(--muted);font-size:12px}
 
-/* Regime dot */
 .regime-dot{
   display:inline-block;
   width:14px;height:14px;
@@ -133,7 +131,7 @@ h1{margin:0;font-size:26px;font-weight:600}
 <body>
 <div class="container">
 
-  <h1>Internal Market & Advice Dashboard</h1>
+  <h1>Internal Market &amp; Advice Dashboard</h1>
   <div class="sub">Australia · Melbourne · Internal Use Only</div>
 
   <button class="btn" id="refreshBtn" onclick="refreshAll()">🔄 Refresh</button>
@@ -188,7 +186,7 @@ h1{margin:0;font-size:26px;font-weight:600}
   <div class="card">
     <div class="card-header">
       <h2>US Company News</h2>
-      <span>Nasdaq · Curated</span>
+      <span>Earnings · Filings</span>
     </div>
     <ul class="news-list" id="usNews"></ul>
   </div>
@@ -196,8 +194,8 @@ h1{margin:0;font-size:26px;font-weight:600}
   <!-- LEGISLATION -->
   <div class="card">
     <div class="card-header">
-      <h2>Super & Insurance – Legislative Updates</h2>
-      <span>ASIC · Curated</span>
+      <h2>Super &amp; Insurance – Legislative Updates</h2>
+      <span>ASIC · APRA · Treasury</span>
     </div>
     <ul class="news-list" id="legNews"></ul>
   </div>
@@ -206,7 +204,7 @@ h1{margin:0;font-size:26px;font-weight:600}
   <div class="card">
     <div class="card-header">
       <h2>Major Economic Headlines</h2>
-      <span>RBA · Curated</span>
+      <span>RBA · ABS · Policy</span>
     </div>
     <ul class="news-list" id="macroNews"></ul>
   </div>
@@ -228,33 +226,35 @@ const ASSETS = [
   { name:"VIX",          symbol:"^VIX", link:"https://finance.yahoo.com/quote/%5EVIX" }
 ];
 
-/**
- * News feeds (proxy-friendly + adviser-relevant so they actually populate)
+/** Adviser-grade feeds (multi-source, proxy-friendly)
+ *  NOTE: Some publisher RSS endpoints can change. If a feed goes quiet,
+ *  swap that URL for another RSS source while keeping the same arrays.
  */
 const FEEDS = {
-  asx:  "https://www.asx.com.au/rss/asx-news.xml",
-  us:   "https://www.nasdaq.com/feed/rssoutbound?category=Stocks",
-  leg:  "https://www.asic.gov.au/rss/news.xml",
-  macro:"https://www.rba.gov.au/rss/rss-cb.xml"
+  asx: [
+    "https://www.asx.com.au/rss/asx-announcements.xml" // ASX Announcements
+  ],
+  us: [
+    "https://www.nasdaq.com/feed/rssoutbound?category=Earnings", // Nasdaq earnings
+    "https://www.sec.gov/Archives/edgar/usgaap.rss.xml"          // SEC filings (financials)
+  ],
+  leg: [
+    "https://www.asic.gov.au/rss/news.xml", // ASIC
+    "https://www.apra.gov.au/rss",          // APRA
+    "https://treasury.gov.au/rss.xml"       // Treasury
+  ],
+  macro: [
+    "https://www.rba.gov.au/rss/rss-cb.xml", // RBA
+    "https://www.abs.gov.au/rss.xml",        // ABS
+    "https://www.afr.com/politics/rss"       // AFR Policy
+  ]
 };
 
-/** Adviser relevance keywords (filters RSS titles) */
-const KEYWORDS = [
-  "superannuation","super","retirement","pension",
-  "asic","apra","treasury","ato",
-  "financial advice","adviser","advice",
-  "insurance","tpd","income protection","life insurance",
-  "div 296","division 296","tax","smsf","self managed",
-  "earnings","results","profit","guidance","upgrade","downgrade",
-  "rate cut","rate hike","inflation","rba",
-  "etf","managed fund","fund manager","markets","equities"
-];
-
-/** Impact-tag keywords */
+/** Impact tagging keywords */
 const IMPACT = {
   high: [
     "rate decision","cash rate","monetary policy","statement on monetary policy",
-    "regulatory guide","guidance","enforcement","ban","license","licence","breach",
+    "regulatory guide","enforcement","ban","license","licence","breach",
     "superannuation","div 296","division 296","retirement","pension",
     "insurance","tpd","income protection","life insurance",
     "profit warning","trading halt","capital raising","entitlement offer","placement",
@@ -265,64 +265,9 @@ const IMPACT = {
     "rba","asic","apra","treasury","ato",
     "results","outlook","guidance update","etf","managed fund","fund"
   ]
-  // low: default
 };
 
-function impactTag(title){
-  const t = (title || "").toLowerCase();
-  if(IMPACT.high.some(k => t.includes(k))) return { cls:"badge-high", txt:"🔴 High Impact" };
-  if(IMPACT.mid.some(k  => t.includes(k))) return { cls:"badge-mid",  txt:"🟠 Medium Impact" };
-  return { cls:"badge-low", txt:"🟢 Low Impact" };
-}
-
-async function yahooChart(symbol, range){
-  const url = `${PROXY}?symbol=${encodeURIComponent(symbol)}&range=${encodeURIComponent(range)}`;
-  const res = await fetch(url);
-  const text = await res.text();
-  let json;
-  try { json = JSON.parse(text); } catch(e){ throw new Error("Proxy did not return JSON"); }
-  const result = json?.chart?.result?.[0];
-  if(!result) throw new Error("Yahoo returned no result");
-  return result;
-}
-
-/** RSS fetch through Worker + adviser relevance filter */
-async function fetchRSS(url){
-  const res = await fetch(`${PROXY}?url=${encodeURIComponent(url)}`);
-  const xmlText = await res.text();
-  const xml = new DOMParser().parseFromString(xmlText, "text/xml");
-
-  // Try RSS <item> first, then Atom <entry>
-  let items = [...xml.querySelectorAll("item")].map(i=>({
-    title:i.querySelector("title")?.textContent?.trim() || "",
-    link:(i.querySelector("link")?.textContent || "").trim()
-  }));
-
-  if(items.length === 0){
-    items = [...xml.querySelectorAll("entry")].map(e=>{
-      const title = e.querySelector("title")?.textContent?.trim() || "";
-      const linkEl = e.querySelector('link[rel="alternate"]') || e.querySelector("link");
-      const link = (linkEl?.getAttribute("href") || linkEl?.textContent || "").trim();
-      return { title, link };
-    });
-  }
-
-  // Remove blanks
-  items = items.filter(x => x.title && x.link);
-
-  // Adviser relevance filter (title-based)
-  const filtered = items.filter(i => {
-    const t = i.title.toLowerCase();
-    return KEYWORDS.some(k => t.includes(k.toLowerCase()));
-  });
-
-  // If the filter is too strict (no results), fallback to unfiltered list
-  const finalItems = (filtered.length > 0) ? filtered : items;
-
-  return finalItems.slice(0,6);
-}
-
-/** helpers */
+/** Helpers */
 function isNum(x){ return typeof x === "number" && Number.isFinite(x); }
 function safePct(current, base){
   if(!isNum(current) || !isNum(base) || base === 0) return "—";
@@ -331,6 +276,10 @@ function safePct(current, base){
 function safeBps(current, base){
   if(!isNum(current) || !isNum(base)) return "—";
   return ((current - base) * 100).toFixed(0) + " bps";
+}
+function lastNonNull(closes){
+  for(let i=closes.length-1;i>=0;i--) if(isNum(closes[i])) return closes[i];
+  return null;
 }
 function firstCloseForYear(timestamps, closes, year){
   for(let i=0;i<timestamps.length;i++){
@@ -348,21 +297,71 @@ function lastCloseForYear(timestamps, closes, year){
   }
   return null;
 }
-function lastNonNull(closes){
-  for(let i=closes.length-1;i>=0;i--){
-    if(isNum(closes[i])) return closes[i];
-  }
-  return null;
+
+function impactTag(title){
+  const t = (title || "").toLowerCase();
+  if(IMPACT.high.some(k=>t.includes(k))) return { cls:"badge-high", txt:"🔴 High Impact" };
+  if(IMPACT.mid.some(k=>t.includes(k)))  return { cls:"badge-mid",  txt:"🟠 Medium Impact" };
+  return { cls:"badge-low", txt:"🟢 Low Impact" };
 }
 
-/** Market regime logic from live indicators */
+/** Yahoo through worker */
+async function yahooChart(symbol, range){
+  const url = `${PROXY}?symbol=${encodeURIComponent(symbol)}&range=${encodeURIComponent(range)}`;
+  const res = await fetch(url);
+  const text = await res.text();
+  let json;
+  try { json = JSON.parse(text); } catch(e){ throw new Error("Proxy did not return JSON"); }
+  const result = json?.chart?.result?.[0];
+  if(!result) throw new Error("Yahoo returned no result");
+  return result;
+}
+
+/** RSS fetch through worker (RSS + Atom), returns up to 8 items */
+async function fetchRSS(url){
+  const res = await fetch(`${PROXY}?url=${encodeURIComponent(url)}`);
+  const xmlText = await res.text();
+  const xml = new DOMParser().parseFromString(xmlText, "text/xml");
+
+  let items = [...xml.querySelectorAll("item")].map(i=>({
+    title: i.querySelector("title")?.textContent?.trim() || "",
+    link:  (i.querySelector("link")?.textContent || "").trim()
+  }));
+
+  if(items.length === 0){
+    items = [...xml.querySelectorAll("entry")].map(e=>{
+      const title = e.querySelector("title")?.textContent?.trim() || "";
+      const linkEl = e.querySelector('link[rel="alternate"]') || e.querySelector("link");
+      const link = (linkEl?.getAttribute("href") || linkEl?.textContent || "").trim();
+      return { title, link };
+    });
+  }
+
+  items = items.filter(x => x.title && x.link);
+  return items.slice(0,8);
+}
+
+/** Merge + de-dup across multiple feeds */
+async function fetchGroup(arr){
+  const lists = await Promise.all(arr.map(u => fetchRSS(u)));
+  const flat = lists.flat();
+  const seen = new Set();
+  return flat.filter(i => {
+    const k = (i.title || "") + "|" + (i.link || "");
+    if(seen.has(k)) return false;
+    seen.add(k);
+    return true;
+  }).slice(0,8);
+}
+
+/** Market regime logic */
 function computeRegime(m){
   let score = 0;
   const drivers = [];
 
   if(isNum(m.vixLvl)){
     if(m.vixLvl < 15){ score += 2; drivers.push(`Volatility low (VIX ${m.vixLvl.toFixed(1)}), supportive of risk assets.`); }
-    else if(m.vixLvl < 20){ score += 0; drivers.push(`Volatility moderate (VIX ${m.vixLvl.toFixed(1)}), risk-neutral backdrop.`); }
+    else if(m.vixLvl < 20){ drivers.push(`Volatility moderate (VIX ${m.vixLvl.toFixed(1)}), risk-neutral backdrop.`); }
     else { score -= 2; drivers.push(`Volatility elevated (VIX ${m.vixLvl.toFixed(1)}), defensive tone.`); }
   }
 
@@ -400,7 +399,6 @@ function computeRegime(m){
   return { score, label, color, drivers };
 }
 
-/** Talking points driven from same live inputs */
 function buildTalkingPoints(m){
   const bullets = [];
 
@@ -429,46 +427,27 @@ function buildTalkingPoints(m){
   return bullets.slice(0,5);
 }
 
-/** Live news refresh + impact tagging */
 async function refreshNews(){
   const [asx, us, leg, macro] = await Promise.all([
-    fetchRSS(FEEDS.asx),
-    fetchRSS(FEEDS.us),
-    fetchRSS(FEEDS.leg),
-    fetchRSS(FEEDS.macro)
+    fetchGroup(FEEDS.asx),
+    fetchGroup(FEEDS.us),
+    fetchGroup(FEEDS.leg),
+    fetchGroup(FEEDS.macro)
   ]);
 
-  asxNews.innerHTML = asx.map(n=>{
-    const tag = impactTag(n.title);
-    return `
-      <li><a href="${n.link}" target="_blank" rel="noopener">
+  const render = (list, el) => {
+    el.innerHTML = list.map(n => {
+      const tag = impactTag(n.title);
+      return `<li><a href="${n.link}" target="_blank" rel="noopener">
         <span class="badge ${tag.cls}">${tag.txt}</span>${n.title}
       </a></li>`;
-  }).join("");
+    }).join("");
+  };
 
-  usNews.innerHTML = us.map(n=>{
-    const tag = impactTag(n.title);
-    return `
-      <li><a href="${n.link}" target="_blank" rel="noopener">
-        <span class="badge ${tag.cls}">${tag.txt}</span>${n.title}
-      </a></li>`;
-  }).join("");
-
-  legNews.innerHTML = leg.map(n=>{
-    const tag = impactTag(n.title);
-    return `
-      <li><a href="${n.link}" target="_blank" rel="noopener">
-        <span class="badge ${tag.cls}">${tag.txt}</span>${n.title}
-      </a></li>`;
-  }).join("");
-
-  macroNews.innerHTML = macro.map(n=>{
-    const tag = impactTag(n.title);
-    return `
-      <li><a href="${n.link}" target="_blank" rel="noopener">
-        <span class="badge ${tag.cls}">${tag.txt}</span>${n.title}
-      </a></li>`;
-  }).join("");
+  render(asx, asxNews);
+  render(us, usNews);
+  render(leg, legNews);
+  render(macro, macroNews);
 }
 
 async function refreshAll(){
@@ -481,7 +460,7 @@ async function refreshAll(){
 
   try{
     const metrics = {
-      vixLvl:null, vixChgPct:null,
+      vixLvl:null,
       spChgPct:null, ndxChgPct:null, asxChgPct:null,
       audChgPct:null,
       us10yLvl:null, us10yChgBps:null
@@ -520,6 +499,7 @@ async function refreshAll(){
       let start2025 = firstCloseForYear(tStamps, tCloses, 2025);
       let end2025   = lastCloseForYear(tStamps, tCloses, 2025);
 
+      // ^TNX is 10x yield points on Yahoo; normalise to %
       if(a.y){
         if(isNum(cur)) cur = cur/10;
         if(isNum(prevClose)) prevClose = prevClose/10;
@@ -571,7 +551,6 @@ async function refreshAll(){
     const tps = buildTalkingPoints(metrics);
     clientTalkingPoints.innerHTML = tps.map(t=>`<li>${t}</li>`).join("");
 
-    // refresh news each time button pressed
     await refreshNews();
 
   } catch(err){
@@ -579,10 +558,12 @@ async function refreshAll(){
     regimeLabel.innerHTML = `<span class="regime-dot" style="background:#ff5c7a"></span><b style="color:#ff5c7a">Error</b>`;
     regimeDrivers.innerHTML = `<li>${String(err.message || err)}</li>`;
     clientTalkingPoints.innerHTML = `<li>Unable to generate talking points until market data loads.</li>`;
-    asxNews.innerHTML = `<li><a href="#" onclick="return false;"><span class="badge badge-mid">🟠 Medium Impact</span>News unavailable.</a></li>`;
-    usNews.innerHTML = `<li><a href="#" onclick="return false;"><span class="badge badge-mid">🟠 Medium Impact</span>News unavailable.</a></li>`;
-    legNews.innerHTML = `<li><a href="#" onclick="return false;"><span class="badge badge-mid">🟠 Medium Impact</span>News unavailable.</a></li>`;
-    macroNews.innerHTML = `<li><a href="#" onclick="return false;"><span class="badge badge-mid">🟠 Medium Impact</span>News unavailable.</a></li>`;
+
+    const fallback = `<li><a href="#" onclick="return false;"><span class="badge badge-mid">🟠 Medium Impact</span>News unavailable.</a></li>`;
+    asxNews.innerHTML = fallback;
+    usNews.innerHTML = fallback;
+    legNews.innerHTML = fallback;
+    macroNews.innerHTML = fallback;
   } finally {
     btn.disabled = false;
     btn.innerText = oldText;
