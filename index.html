@@ -179,7 +179,7 @@ h1{margin:0;font-size:26px;font-weight:600}
   <div class="card">
     <div class="card-header">
       <h2>ASX Company News</h2>
-      <span>AFR · Curated</span>
+      <span>ASX · Curated</span>
     </div>
     <ul class="news-list" id="asxNews"></ul>
   </div>
@@ -188,7 +188,7 @@ h1{margin:0;font-size:26px;font-weight:600}
   <div class="card">
     <div class="card-header">
       <h2>US Company News</h2>
-      <span>Finviz · Curated</span>
+      <span>Nasdaq · Curated</span>
     </div>
     <ul class="news-list" id="usNews"></ul>
   </div>
@@ -197,7 +197,7 @@ h1{margin:0;font-size:26px;font-weight:600}
   <div class="card">
     <div class="card-header">
       <h2>Super & Insurance – Legislative Updates</h2>
-      <span>Treasury · Curated</span>
+      <span>ASIC · Curated</span>
     </div>
     <ul class="news-list" id="legNews"></ul>
   </div>
@@ -206,7 +206,7 @@ h1{margin:0;font-size:26px;font-weight:600}
   <div class="card">
     <div class="card-header">
       <h2>Major Economic Headlines</h2>
-      <span>AFR Policy · Curated</span>
+      <span>RBA · Curated</span>
     </div>
     <ul class="news-list" id="macroNews"></ul>
   </div>
@@ -229,14 +229,13 @@ const ASSETS = [
 ];
 
 /**
- * News feeds (more adviser-relevant)
- * Note: AFR RSS endpoints can vary; if one feed doesn’t return items, swap it for another AFR RSS URL.
+ * News feeds (proxy-friendly + adviser-relevant so they actually populate)
  */
 const FEEDS = {
-  asx:  "https://www.afr.com/companies/rss",     // ASX/companies-focused
-  us:   "https://finviz.com/feed.ashx",          // US earnings/company headlines
-  leg:  "https://treasury.gov.au/rss.xml",       // Treasury updates
-  macro:"https://www.afr.com/politics/rss"       // Policy / macro / regulation context
+  asx:  "https://www.asx.com.au/rss/asx-news.xml",
+  us:   "https://www.nasdaq.com/feed/rssoutbound?category=Stocks",
+  leg:  "https://www.asic.gov.au/rss/news.xml",
+  macro:"https://www.rba.gov.au/rss/rss-cb.xml"
 };
 
 /** Adviser relevance keywords (filters RSS titles) */
@@ -244,12 +243,37 @@ const KEYWORDS = [
   "superannuation","super","retirement","pension",
   "asic","apra","treasury","ato",
   "financial advice","adviser","advice",
-  "insurance","tPD","tpd","income protection","life insurance",
+  "insurance","tpd","income protection","life insurance",
   "div 296","division 296","tax","smsf","self managed",
   "earnings","results","profit","guidance","upgrade","downgrade",
   "rate cut","rate hike","inflation","rba",
   "etf","managed fund","fund manager","markets","equities"
 ];
+
+/** Impact-tag keywords */
+const IMPACT = {
+  high: [
+    "rate decision","cash rate","monetary policy","statement on monetary policy",
+    "regulatory guide","guidance","enforcement","ban","license","licence","breach",
+    "superannuation","div 296","division 296","retirement","pension",
+    "insurance","tpd","income protection","life insurance",
+    "profit warning","trading halt","capital raising","entitlement offer","placement",
+    "earnings beat","earnings miss","downgrade","upgrade"
+  ],
+  mid: [
+    "inflation","cpi","employment","wages","gdp",
+    "rba","asic","apra","treasury","ato",
+    "results","outlook","guidance update","etf","managed fund","fund"
+  ]
+  // low: default
+};
+
+function impactTag(title){
+  const t = (title || "").toLowerCase();
+  if(IMPACT.high.some(k => t.includes(k))) return { cls:"badge-high", txt:"🔴 High Impact" };
+  if(IMPACT.mid.some(k  => t.includes(k))) return { cls:"badge-mid",  txt:"🟠 Medium Impact" };
+  return { cls:"badge-low", txt:"🟢 Low Impact" };
+}
 
 async function yahooChart(symbol, range){
   const url = `${PROXY}?symbol=${encodeURIComponent(symbol)}&range=${encodeURIComponent(range)}`;
@@ -405,7 +429,7 @@ function buildTalkingPoints(m){
   return bullets.slice(0,5);
 }
 
-/** Live news refresh */
+/** Live news refresh + impact tagging */
 async function refreshNews(){
   const [asx, us, leg, macro] = await Promise.all([
     fetchRSS(FEEDS.asx),
@@ -414,25 +438,37 @@ async function refreshNews(){
     fetchRSS(FEEDS.macro)
   ]);
 
-  asxNews.innerHTML = asx.map(n=>`
-    <li><a href="${n.link}" target="_blank" rel="noopener">
-      <span class="badge badge-mid">AFR</span>${n.title}
-    </a></li>`).join("");
+  asxNews.innerHTML = asx.map(n=>{
+    const tag = impactTag(n.title);
+    return `
+      <li><a href="${n.link}" target="_blank" rel="noopener">
+        <span class="badge ${tag.cls}">${tag.txt}</span>${n.title}
+      </a></li>`;
+  }).join("");
 
-  usNews.innerHTML = us.map(n=>`
-    <li><a href="${n.link}" target="_blank" rel="noopener">
-      <span class="badge badge-high">Finviz</span>${n.title}
-    </a></li>`).join("");
+  usNews.innerHTML = us.map(n=>{
+    const tag = impactTag(n.title);
+    return `
+      <li><a href="${n.link}" target="_blank" rel="noopener">
+        <span class="badge ${tag.cls}">${tag.txt}</span>${n.title}
+      </a></li>`;
+  }).join("");
 
-  legNews.innerHTML = leg.map(n=>`
-    <li><a href="${n.link}" target="_blank" rel="noopener">
-      <span class="badge badge-high">Treasury</span>${n.title}
-    </a></li>`).join("");
+  legNews.innerHTML = leg.map(n=>{
+    const tag = impactTag(n.title);
+    return `
+      <li><a href="${n.link}" target="_blank" rel="noopener">
+        <span class="badge ${tag.cls}">${tag.txt}</span>${n.title}
+      </a></li>`;
+  }).join("");
 
-  macroNews.innerHTML = macro.map(n=>`
-    <li><a href="${n.link}" target="_blank" rel="noopener">
-      <span class="badge badge-low">AFR</span>${n.title}
-    </a></li>`).join("");
+  macroNews.innerHTML = macro.map(n=>{
+    const tag = impactTag(n.title);
+    return `
+      <li><a href="${n.link}" target="_blank" rel="noopener">
+        <span class="badge ${tag.cls}">${tag.txt}</span>${n.title}
+      </a></li>`;
+  }).join("");
 }
 
 async function refreshAll(){
@@ -543,10 +579,10 @@ async function refreshAll(){
     regimeLabel.innerHTML = `<span class="regime-dot" style="background:#ff5c7a"></span><b style="color:#ff5c7a">Error</b>`;
     regimeDrivers.innerHTML = `<li>${String(err.message || err)}</li>`;
     clientTalkingPoints.innerHTML = `<li>Unable to generate talking points until market data loads.</li>`;
-    asxNews.innerHTML = `<li><a href="#" onclick="return false;"><span class="badge badge-mid">AFR</span>News unavailable.</a></li>`;
-    usNews.innerHTML = `<li><a href="#" onclick="return false;"><span class="badge badge-high">Finviz</span>News unavailable.</a></li>`;
-    legNews.innerHTML = `<li><a href="#" onclick="return false;"><span class="badge badge-high">Treasury</span>News unavailable.</a></li>`;
-    macroNews.innerHTML = `<li><a href="#" onclick="return false;"><span class="badge badge-low">AFR</span>News unavailable.</a></li>`;
+    asxNews.innerHTML = `<li><a href="#" onclick="return false;"><span class="badge badge-mid">🟠 Medium Impact</span>News unavailable.</a></li>`;
+    usNews.innerHTML = `<li><a href="#" onclick="return false;"><span class="badge badge-mid">🟠 Medium Impact</span>News unavailable.</a></li>`;
+    legNews.innerHTML = `<li><a href="#" onclick="return false;"><span class="badge badge-mid">🟠 Medium Impact</span>News unavailable.</a></li>`;
+    macroNews.innerHTML = `<li><a href="#" onclick="return false;"><span class="badge badge-mid">🟠 Medium Impact</span>News unavailable.</a></li>`;
   } finally {
     btn.disabled = false;
     btn.innerText = oldText;
