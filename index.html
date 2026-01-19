@@ -19,6 +19,7 @@
   --shadow:0 20px 45px rgba(0,0,0,.45);
   --radius:22px;
   --font:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
+  --mono: ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
 }
 
 *{box-sizing:border-box}
@@ -30,9 +31,43 @@ body{
     var(--bg);
   color:var(--text);
 }
-.container{max-width:1200px;margin:auto;padding:22px 18px 60px}
-h1{margin:0;font-size:26px;font-weight:600}
+
+.container{max-width:1280px;margin:auto;padding:22px 18px 60px}
+.topbar{
+  display:flex; align-items:flex-end; justify-content:space-between; gap:14px;
+}
+h1{margin:0;font-size:26px;font-weight:650; letter-spacing:.2px}
 .sub{margin-top:6px;color:var(--muted);font-size:14px}
+
+.btn{
+  padding:14px 26px;
+  border-radius:18px;
+  background:linear-gradient(180deg,#6ee7ff,#38bcd4);
+  border:none;
+  color:#052c36;
+  font-weight:900;
+  font-size:15px;
+  box-shadow:0 10px 0 #2c9fb3, 0 16px 32px rgba(0,0,0,.5);
+  cursor:pointer;
+  transition:.12s ease;
+  white-space:nowrap;
+}
+.btn:active{
+  transform:translateY(6px);
+  box-shadow:0 3px 0 #2c9fb3, 0 6px 14px rgba(0,0,0,.6) inset;
+}
+.btn[disabled]{opacity:.65; cursor:not-allowed}
+
+.grid{
+  margin-top:18px;
+  display:grid;
+  grid-template-columns: 1.35fr .85fr;
+  gap:18px;
+  align-items:start;
+}
+@media (max-width: 980px){
+  .grid{grid-template-columns: 1fr;}
+}
 
 .card{
   background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.01));
@@ -40,33 +75,25 @@ h1{margin:0;font-size:26px;font-weight:600}
   border-radius:var(--radius);
   box-shadow:var(--shadow);
   padding:18px;
-  margin-top:22px;
 }
+.stack{display:flex; flex-direction:column; gap:18px}
+
 .card-header{
   display:flex;
   justify-content:space-between;
   align-items:center;
+  gap:12px;
   margin-bottom:10px;
 }
-.card-header h2{margin:0;font-size:17px;font-weight:600}
-.card-header span{font-size:13px;color:var(--muted)}
+.card-header h2{margin:0;font-size:16px;font-weight:700}
+.card-header span{font-size:12px;color:var(--muted)}
+.card-header .right{display:flex; align-items:center; gap:10px}
 
-.btn{
-  margin-top:14px;
-  padding:14px 26px;
-  border-radius:18px;
-  background:linear-gradient(180deg,#6ee7ff,#38bcd4);
-  border:none;
-  color:#052c36;
-  font-weight:800;
-  font-size:15px;
-  box-shadow:0 10px 0 #2c9fb3, 0 16px 32px rgba(0,0,0,.5);
-  cursor:pointer;
-  transition:.12s ease;
-}
-.btn:active{
-  transform:translateY(6px);
-  box-shadow:0 3px 0 #2c9fb3, 0 6px 14px rgba(0,0,0,.6) inset;
+.smallmuted{color:var(--muted);font-size:12px}
+.mono{font-family:var(--mono)}
+hr.sep{
+  border:none; height:1px; background:rgba(255,255,255,.07);
+  margin:12px 0;
 }
 
 .market-table{width:100%;border-collapse:collapse}
@@ -79,6 +106,8 @@ h1{margin:0;font-size:26px;font-weight:600}
 }
 .market-table td{padding:14px 6px;font-size:15px}
 .market-table tr:not(:last-child){border-bottom:1px solid var(--border)}
+.market-table a{color:var(--accent); text-decoration:none}
+.market-table a:hover{text-decoration:underline}
 .pos{color:var(--green)}
 .neg{color:var(--red)}
 
@@ -86,7 +115,7 @@ h1{margin:0;font-size:26px;font-weight:600}
 .bullets li{margin:10px 0;font-size:15px;line-height:1.45}
 
 .news-list{list-style:none;padding:0;margin:8px 0 0 0}
-.news-list li{margin:12px 0;line-height:1.45}
+.news-list li{margin:10px 0;line-height:1.45}
 .news-list a{
   display:block;
   padding:10px 10px;
@@ -104,18 +133,24 @@ h1{margin:0;font-size:26px;font-weight:600}
 }
 
 .badge{
-  display:inline-block;
+  display:inline-flex;
+  align-items:center;
   padding:4px 10px;
   border-radius:999px;
   font-size:11px;
-  font-weight:700;
+  font-weight:800;
   margin-right:10px;
+  letter-spacing:.02em;
+  gap:6px;
 }
 .badge-high{ background:rgba(255,92,122,.18); color:#ff5c7a; }
 .badge-mid{  background:rgba(255,209,102,.18); color:#ffd166; }
 .badge-low{  background:rgba(43,212,125,.18); color:#2bd47d; }
-
-.smallmuted{color:var(--muted);font-size:12px}
+.badge-src{
+  background:rgba(110,231,255,.10);
+  color:#aef3ff;
+  border:1px solid rgba(110,231,255,.18);
+}
 
 .regime-dot{
   display:inline-block;
@@ -125,94 +160,147 @@ h1{margin:0;font-size:26px;font-weight:600}
   vertical-align:middle;
   box-shadow:0 0 0 3px rgba(255,255,255,.06);
 }
+
+.feed-health{
+  display:flex; align-items:center; gap:8px;
+  font-size:12px; color:var(--muted);
+}
+.health-dot{
+  width:10px; height:10px; border-radius:50%;
+  box-shadow:0 0 0 3px rgba(255,255,255,.06);
+}
+.health-ok{background:var(--green)}
+.health-warn{background:var(--amber)}
+.health-bad{background:var(--red)}
 </style>
 </head>
 
 <body>
 <div class="container">
 
-  <h1>Internal Market &amp; Advice Dashboard</h1>
-  <div class="sub">Australia · Melbourne · Internal Use Only</div>
-
-  <button class="btn" id="refreshBtn" onclick="refreshAll()">🔄 Refresh</button>
-
-  <!-- MARKET REGIME -->
-  <div class="card">
-    <div class="card-header">
-      <h2>Market Regime</h2>
-      <span>High-level context</span>
+  <div class="topbar">
+    <div>
+      <h1>Internal Market &amp; Advice Dashboard</h1>
+      <div class="sub">Australia · Melbourne · Internal Use Only</div>
+      <div class="smallmuted" style="margin-top:8px">
+        <span class="mono" id="lastUpdated">Last updated: —</span>
+      </div>
     </div>
-    <div id="regimeLabel" class="smallmuted">—</div>
-    <ul class="bullets" id="regimeDrivers"></ul>
+
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:10px">
+      <button class="btn" id="refreshBtn" onclick="refreshAll()">🔄 Refresh</button>
+      <div class="feed-health" id="feedHealth">
+        <span class="health-dot health-warn"></span>
+        <span>Feeds: —</span>
+      </div>
+    </div>
   </div>
 
-  <!-- CLIENT TALKING POINTS -->
-  <div class="card">
-    <div class="card-header">
-      <h2>Client Talking Points</h2>
-      <span>Auto-generated</span>
-    </div>
-    <ul class="bullets" id="clientTalkingPoints"></ul>
-  </div>
+  <div class="grid">
 
-  <!-- MARKET TABLE -->
-  <div class="card">
-    <div class="card-header">
-      <h2>Market Performance Overview</h2>
-      <span>Daily · YTD · CY</span>
-    </div>
-    <table class="market-table">
-      <thead>
-        <tr>
-          <th>ASSET</th><th>TICKER</th><th>LEVEL</th><th>1-DAY</th><th>2026 YTD</th><th>2025 CY</th>
-        </tr>
-      </thead>
-      <tbody id="marketRows">
-        <tr><td colspan="6" class="smallmuted">Press refresh to load live data…</td></tr>
-      </tbody>
-    </table>
-  </div>
+    <!-- LEFT: CORE MARKET / CLIENT -->
+    <div class="stack">
 
-  <!-- ASX NEWS -->
-  <div class="card">
-    <div class="card-header">
-      <h2>ASX Company News</h2>
-      <span>ASX · Curated</span>
-    </div>
-    <ul class="news-list" id="asxNews"></ul>
-  </div>
+      <!-- MARKET REGIME -->
+      <div class="card">
+        <div class="card-header">
+          <h2>Market Regime</h2>
+          <span>High-level context</span>
+        </div>
+        <div id="regimeLabel" class="smallmuted">—</div>
+        <ul class="bullets" id="regimeDrivers"></ul>
+      </div>
 
-  <!-- US NEWS -->
-  <div class="card">
-    <div class="card-header">
-      <h2>US Company News</h2>
-      <span>Earnings · Filings</span>
-    </div>
-    <ul class="news-list" id="usNews"></ul>
-  </div>
+      <!-- CLIENT TALKING POINTS -->
+      <div class="card">
+        <div class="card-header">
+          <h2>Client Talking Points</h2>
+          <span>Auto-generated</span>
+        </div>
+        <ul class="bullets" id="clientTalkingPoints"></ul>
+      </div>
 
-  <!-- LEGISLATION -->
-  <div class="card">
-    <div class="card-header">
-      <h2>Super &amp; Insurance – Legislative Updates</h2>
-      <span>ASIC · APRA · Treasury</span>
-    </div>
-    <ul class="news-list" id="legNews"></ul>
-  </div>
+      <!-- MARKET TABLE -->
+      <div class="card">
+        <div class="card-header">
+          <h2>Market Performance Overview</h2>
+          <span>Daily · 2026 YTD · 2025 CY</span>
+        </div>
+        <table class="market-table">
+          <thead>
+            <tr>
+              <th>ASSET</th><th>TICKER</th><th>LEVEL</th><th>1-DAY</th><th>2026 YTD</th><th>2025 CY</th>
+            </tr>
+          </thead>
+          <tbody id="marketRows">
+            <tr><td colspan="6" class="smallmuted">Press refresh to load live data…</td></tr>
+          </tbody>
+        </table>
+      </div>
 
-  <!-- MACRO -->
-  <div class="card">
-    <div class="card-header">
-      <h2>Major Economic Headlines</h2>
-      <span>RBA · ABS · Policy</span>
     </div>
-    <ul class="news-list" id="macroNews"></ul>
+
+    <!-- RIGHT: NEWS HUB -->
+    <div class="stack">
+
+      <!-- ADVISER NEWS HUB -->
+      <div class="card">
+        <div class="card-header">
+          <h2>Financial Advice – News Hub</h2>
+          <span>FAAA · IFA · InvestorDaily · AFR Wealth</span>
+        </div>
+        <div class="smallmuted">Quick scan: what advisers should know today.</div>
+        <ul class="news-list" id="adviserNews"></ul>
+      </div>
+
+      <!-- ASX 200 NEWS -->
+      <div class="card">
+        <div class="card-header">
+          <h2>ASX 200 Company News</h2>
+          <span>Filtered · Announcements</span>
+        </div>
+        <div class="smallmuted">Filtered to major ASX 200 tickers (approx).</div>
+        <ul class="news-list" id="asxNews"></ul>
+      </div>
+
+      <!-- US NEWS -->
+      <div class="card">
+        <div class="card-header">
+          <h2>US Company News</h2>
+          <span>Earnings · Filings</span>
+        </div>
+        <ul class="news-list" id="usNews"></ul>
+      </div>
+
+      <!-- LEGISLATION -->
+      <div class="card">
+        <div class="card-header">
+          <h2>Super &amp; Insurance – Legislative Updates</h2>
+          <span>ASIC · APRA · Treasury</span>
+        </div>
+        <ul class="news-list" id="legNews"></ul>
+      </div>
+
+      <!-- MACRO -->
+      <div class="card">
+        <div class="card-header">
+          <h2>Major Economic Headlines</h2>
+          <span>RBA · ABS · Policy</span>
+        </div>
+        <ul class="news-list" id="macroNews"></ul>
+      </div>
+
+    </div>
   </div>
 
 </div>
 
 <script>
-/** Cloudflare Worker (Yahoo proxy + RSS proxy) */
+/** Cloudflare Worker (Yahoo proxy + RSS proxy)
+ *  NOTE: Must support:
+ *    - ?symbol=...&range=...  (Yahoo proxy)
+ *    - ?url=...              (RSS/Atom proxy)
+ */
 const PROXY = "https://wild-dream-69cc.seanhurren.workers.dev";
 
 /** Market symbols */
@@ -226,27 +314,44 @@ const ASSETS = [
   { name:"VIX",          symbol:"^VIX", link:"https://finance.yahoo.com/quote/%5EVIX" }
 ];
 
-/** Adviser-grade feeds (multi-source, proxy-friendly)
- *  NOTE: Some publisher RSS endpoints can change. If a feed goes quiet,
- *  swap that URL for another RSS source while keeping the same arrays.
+/** ASX 200 (approx major tickers list)
+ *  Used to filter ASX announcements RSS titles which commonly include "CODE - Title".
+ *  You can add/remove tickers anytime.
+ */
+const ASX200_TICKERS = new Set([
+  "BHP","CBA","NAB","WBC","ANZ","MQG","WES","WOW","CSL","TLS","GMG","ALL","RIO","FMG","COL","TCL","SCG","QBE","SUN",
+  "RHC","IAG","AMP","CPU","S32","ORG","STO","WDS","APA","ALD","BXB","ASX","REA","XRO","SEK","RMD","FPH","COH","A2M",
+  "IEL","JHX","SGP","NST","EVN","NCM","MIN","PLS","LYC","AIA","HVN","JBH","DMP","PME","CAR","TPG","IAG","BEN","BOQ",
+  "MGR","GPT","DXS","CHC","VCX","CIM","LLC","SGM","ARB","ELD","ILU","MPL","NXT","JDO","ACL","SUN","SOL","SHL","SYD",
+  "SUL","ALQ","BKW","AZJ","ORI","ORA","JLG","NEA","ZIP","WTC","BRG","PDN","APA","APX","IFL","HUB","MFG","GQG","VEA"
+]);
+
+/** Adviser-grade feeds (proxy-friendly)
+ *  If any feed ever goes quiet, swap URL here (structure stays stable).
  */
 const FEEDS = {
-  asx: [
-    "https://www.asx.com.au/rss/asx-announcements.xml" // ASX Announcements
+  adviser: [
+    { url:"https://faaa.au/media-releases/feed/",        src:"FAAA" },
+    { url:"https://www.ifa.com.au/news/?format=feed&type=rss", src:"IFA" },
+    // InvestorDaily feed patterns vary; this is the most common Joomla-style RSS pattern:
+    { url:"https://www.investordaily.com.au/news/?format=feed&type=rss", src:"InvestorDaily" },
+  ],
+  asx200: [
+    { url:"https://www.asx.com.au/rss/asx-announcements.xml", src:"ASX Announcements" }
   ],
   us: [
-    "https://www.nasdaq.com/feed/rssoutbound?category=Earnings", // Nasdaq earnings
-    "https://www.sec.gov/Archives/edgar/usgaap.rss.xml"          // SEC filings (financials)
+    { url:"https://www.nasdaq.com/feed/rssoutbound?category=Earnings", src:"Nasdaq" },
+    { url:"https://www.sec.gov/Archives/edgar/usgaap.rss.xml",         src:"SEC EDGAR" }
   ],
   leg: [
-    "https://www.asic.gov.au/rss/news.xml", // ASIC
-    "https://www.apra.gov.au/rss",          // APRA
-    "https://treasury.gov.au/rss.xml"       // Treasury
+    { url:"https://www.asic.gov.au/rss/news.xml", src:"ASIC" },
+    { url:"https://www.apra.gov.au/rss",          src:"APRA" },
+    { url:"https://treasury.gov.au/rss.xml",      src:"Treasury" }
   ],
   macro: [
-    "https://www.rba.gov.au/rss/rss-cb.xml", // RBA
-    "https://www.abs.gov.au/rss.xml",        // ABS
-    "https://www.afr.com/politics/rss"       // AFR Policy
+    { url:"https://www.rba.gov.au/rss/rss-cb.xml", src:"RBA" },
+    { url:"https://www.abs.gov.au/rss.xml",        src:"ABS" },
+    { url:"https://www.afr.com/politics/rss",      src:"AFR" }
   ]
 };
 
@@ -258,12 +363,12 @@ const IMPACT = {
     "superannuation","div 296","division 296","retirement","pension",
     "insurance","tpd","income protection","life insurance",
     "profit warning","trading halt","capital raising","entitlement offer","placement",
-    "earnings beat","earnings miss","downgrade","upgrade"
+    "earnings beat","earnings miss","downgrade","upgrade","guidance"
   ],
   mid: [
     "inflation","cpi","employment","wages","gdp",
     "rba","asic","apra","treasury","ato",
-    "results","outlook","guidance update","etf","managed fund","fund"
+    "results","outlook","guidance update","etf","managed fund","fund","super","advice"
   ]
 };
 
@@ -300,9 +405,27 @@ function lastCloseForYear(timestamps, closes, year){
 
 function impactTag(title){
   const t = (title || "").toLowerCase();
-  if(IMPACT.high.some(k=>t.includes(k))) return { cls:"badge-high", txt:"🔴 High Impact" };
-  if(IMPACT.mid.some(k=>t.includes(k)))  return { cls:"badge-mid",  txt:"🟠 Medium Impact" };
-  return { cls:"badge-low", txt:"🟢 Low Impact" };
+  if(IMPACT.high.some(k=>t.includes(k))) return { cls:"badge-high", txt:"🔴 High" };
+  if(IMPACT.mid.some(k=>t.includes(k)))  return { cls:"badge-mid",  txt:"🟠 Med" };
+  return { cls:"badge-low", txt:"🟢 Low" };
+}
+
+function fmtTimeAgo(dateMs){
+  if(!dateMs) return "";
+  const delta = Date.now() - dateMs;
+  const min = Math.floor(delta/60000);
+  if(min < 1) return "just now";
+  if(min < 60) return `${min}m ago`;
+  const hr = Math.floor(min/60);
+  if(hr < 24) return `${hr}h ago`;
+  const d = Math.floor(hr/24);
+  return `${d}d ago`;
+}
+
+function parseMaybeDate(str){
+  if(!str) return null;
+  const t = Date.parse(str);
+  return Number.isFinite(t) ? t : null;
 }
 
 /** Yahoo through worker */
@@ -317,41 +440,75 @@ async function yahooChart(symbol, range){
   return result;
 }
 
-/** RSS fetch through worker (RSS + Atom), returns up to 8 items */
+/** RSS/Atom fetch through worker, returns items with title/link/date */
 async function fetchRSS(url){
   const res = await fetch(`${PROXY}?url=${encodeURIComponent(url)}`);
   const xmlText = await res.text();
   const xml = new DOMParser().parseFromString(xmlText, "text/xml");
 
-  let items = [...xml.querySelectorAll("item")].map(i=>({
-    title: i.querySelector("title")?.textContent?.trim() || "",
-    link:  (i.querySelector("link")?.textContent || "").trim()
-  }));
+  // RSS <item>
+  let items = [...xml.querySelectorAll("item")].map(i=>{
+    const title = i.querySelector("title")?.textContent?.trim() || "";
+    const link  = (i.querySelector("link")?.textContent || "").trim();
+    const pub   = i.querySelector("pubDate")?.textContent?.trim() || i.querySelector("date")?.textContent?.trim() || "";
+    const dtMs  = parseMaybeDate(pub);
+    return { title, link, dateMs: dtMs };
+  });
 
+  // Atom <entry>
   if(items.length === 0){
     items = [...xml.querySelectorAll("entry")].map(e=>{
       const title = e.querySelector("title")?.textContent?.trim() || "";
       const linkEl = e.querySelector('link[rel="alternate"]') || e.querySelector("link");
       const link = (linkEl?.getAttribute("href") || linkEl?.textContent || "").trim();
-      return { title, link };
+      const upd = e.querySelector("updated")?.textContent?.trim() || e.querySelector("published")?.textContent?.trim() || "";
+      const dtMs = parseMaybeDate(upd);
+      return { title, link, dateMs: dtMs };
     });
   }
 
   items = items.filter(x => x.title && x.link);
-  return items.slice(0,8);
+  return items.slice(0,10);
 }
 
-/** Merge + de-dup across multiple feeds */
-async function fetchGroup(arr){
-  const lists = await Promise.all(arr.map(u => fetchRSS(u)));
-  const flat = lists.flat();
+/** Merge + de-dup across multiple feeds with source label */
+async function fetchGroup(feedObjs){
+  const results = await Promise.allSettled(feedObjs.map(async f=>{
+    const list = await fetchRSS(f.url);
+    return list.map(x=>({ ...x, src: f.src }));
+  }));
+
+  const ok = results.filter(r=>r.status==="fulfilled").map(r=>r.value).flat();
+  const failed = results.filter(r=>r.status==="rejected").length;
+
+  // De-dup by title|link
   const seen = new Set();
-  return flat.filter(i => {
+  let merged = ok.filter(i => {
     const k = (i.title || "") + "|" + (i.link || "");
     if(seen.has(k)) return false;
     seen.add(k);
     return true;
-  }).slice(0,8);
+  });
+
+  // Sort by date if available (desc), else keep as-is
+  merged.sort((a,b)=>{
+    if(a.dateMs && b.dateMs) return b.dateMs - a.dateMs;
+    if(a.dateMs && !b.dateMs) return -1;
+    if(!a.dateMs && b.dateMs) return 1;
+    return 0;
+  });
+
+  return { items: merged.slice(0,8), failed };
+}
+
+/** ASX 200 filter (from ASX announcements feed) */
+function filterAsx200(items){
+  // Common ASX RSS titles look like: "BHP - Quarterly Report" or "CSL - Appendix 4E"
+  return items.filter(it=>{
+    const t = (it.title || "").trim();
+    const code = t.split(" - ")[0]?.replace(/[^A-Z0-9]/g,"").toUpperCase();
+    return code && ASX200_TICKERS.has(code);
+  });
 }
 
 /** Market regime logic */
@@ -427,27 +584,71 @@ function buildTalkingPoints(m){
   return bullets.slice(0,5);
 }
 
+function setFeedHealth(totalFailed){
+  const el = document.getElementById("feedHealth");
+  const dot = el.querySelector(".health-dot");
+  const text = el.querySelector("span:last-child");
+
+  if(totalFailed === 0){
+    dot.className = "health-dot health-ok";
+    text.textContent = "Feeds: all live";
+  }else if(totalFailed <= 2){
+    dot.className = "health-dot health-warn";
+    text.textContent = `Feeds: ${totalFailed} delayed`;
+  }else{
+    dot.className = "health-dot health-bad";
+    text.textContent = `Feeds: issues (${totalFailed})`;
+  }
+}
+
+function renderNews(list, el){
+  if(!list || list.length === 0){
+    el.innerHTML = `<li><a href="#" onclick="return false;">
+      <span class="badge badge-mid">🟠 Med</span>
+      No items available.
+    </a></li>`;
+    return;
+  }
+
+  el.innerHTML = list.map(n => {
+    const tag = impactTag(n.title);
+    const ago = n.dateMs ? ` · <span class="smallmuted">${fmtTimeAgo(n.dateMs)}</span>` : "";
+    const srcBadge = n.src ? `<span class="badge badge-src">${n.src}</span>` : "";
+    return `<li><a href="${n.link}" target="_blank" rel="noopener">
+      <span class="badge ${tag.cls}">${tag.txt}</span>
+      ${srcBadge}
+      ${n.title}${ago}
+    </a></li>`;
+  }).join("");
+}
+
 async function refreshNews(){
-  const [asx, us, leg, macro] = await Promise.all([
-    fetchGroup(FEEDS.asx),
+  const groups = await Promise.all([
+    fetchGroup(FEEDS.adviser),
+    fetchGroup(FEEDS.asx200),
     fetchGroup(FEEDS.us),
     fetchGroup(FEEDS.leg),
     fetchGroup(FEEDS.macro)
   ]);
 
-  const render = (list, el) => {
-    el.innerHTML = list.map(n => {
-      const tag = impactTag(n.title);
-      return `<li><a href="${n.link}" target="_blank" rel="noopener">
-        <span class="badge ${tag.cls}">${tag.txt}</span>${n.title}
-      </a></li>`;
-    }).join("");
-  };
+  const adviser = groups[0];
+  const asxRaw  = groups[1];
+  const us      = groups[2];
+  const leg     = groups[3];
+  const macro   = groups[4];
 
-  render(asx, asxNews);
-  render(us, usNews);
-  render(leg, legNews);
-  render(macro, macroNews);
+  // ASX 200 filter
+  const asxFiltered = filterAsx200(asxRaw.items);
+
+  // Feed health indicator
+  const totalFailed = adviser.failed + asxRaw.failed + us.failed + leg.failed + macro.failed;
+  setFeedHealth(totalFailed);
+
+  renderNews(adviser.items, document.getElementById("adviserNews"));
+  renderNews(asxFiltered.slice(0,8), document.getElementById("asxNews"));
+  renderNews(us.items, document.getElementById("usNews"));
+  renderNews(leg.items, document.getElementById("legNews"));
+  renderNews(macro.items, document.getElementById("macroNews"));
 }
 
 async function refreshAll(){
@@ -456,7 +657,8 @@ async function refreshAll(){
   const oldText = btn.innerText;
   btn.innerText = "Refreshing…";
 
-  marketRows.innerHTML = `<tr><td colspan="6" class="smallmuted">Loading live market data…</td></tr>`;
+  document.getElementById("marketRows").innerHTML =
+    `<tr><td colspan="6" class="smallmuted">Loading live market data…</td></tr>`;
 
   try{
     const metrics = {
@@ -513,7 +715,7 @@ async function refreshAll(){
       const oneDayDeltaBps = (a.y && isNum(cur) && isNum(prevClose)) ? (cur-prevClose)*100 : null;
 
       const ytdText = safePct(cur, ytdBase);
-      const cyText = safePct(end2025, start2025);
+      const cyText  = safePct(end2025, start2025);
 
       const oneDayClass = (oneDayText==="—") ? "" : ((a.y ? (oneDayDeltaBps>=0) : (oneDayDeltaPct>=0)) ? "pos":"neg");
       const ytdClass = (ytdText==="—") ? "" : ((isNum(cur) && isNum(ytdBase) && cur>=ytdBase) ? "pos":"neg");
@@ -538,32 +740,48 @@ async function refreshAll(){
       if(a.symbol === "^TNX"){ metrics.us10yLvl = cur; metrics.us10yChgBps = oneDayDeltaBps; }
     }
 
-    marketRows.innerHTML = rows;
+    document.getElementById("marketRows").innerHTML = rows;
 
     const reg = computeRegime(metrics);
-    regimeLabel.innerHTML = `
+    document.getElementById("regimeLabel").innerHTML = `
       <span class="regime-dot" style="background:${reg.color}"></span>
       <b style="color:${reg.color}">${reg.label}</b>
       <span class="smallmuted"> · Score ${reg.score}</span>
     `;
-    regimeDrivers.innerHTML = reg.drivers.slice(0,5).map(d=>`<li>${d}</li>`).join("");
+    document.getElementById("regimeDrivers").innerHTML =
+      reg.drivers.slice(0,5).map(d=>`<li>${d}</li>`).join("");
 
     const tps = buildTalkingPoints(metrics);
-    clientTalkingPoints.innerHTML = tps.map(t=>`<li>${t}</li>`).join("");
+    document.getElementById("clientTalkingPoints").innerHTML =
+      tps.map(t=>`<li>${t}</li>`).join("");
 
     await refreshNews();
 
-  } catch(err){
-    marketRows.innerHTML = `<tr><td colspan="6" class="neg">Error loading data: ${String(err.message || err)}</td></tr>`;
-    regimeLabel.innerHTML = `<span class="regime-dot" style="background:#ff5c7a"></span><b style="color:#ff5c7a">Error</b>`;
-    regimeDrivers.innerHTML = `<li>${String(err.message || err)}</li>`;
-    clientTalkingPoints.innerHTML = `<li>Unable to generate talking points until market data loads.</li>`;
+    const now = new Date();
+    document.getElementById("lastUpdated").textContent =
+      `Last updated: ${now.toLocaleString("en-AU", { weekday:"short", year:"numeric", month:"short", day:"2-digit", hour:"2-digit", minute:"2-digit" })}`;
 
-    const fallback = `<li><a href="#" onclick="return false;"><span class="badge badge-mid">🟠 Medium Impact</span>News unavailable.</a></li>`;
-    asxNews.innerHTML = fallback;
-    usNews.innerHTML = fallback;
-    legNews.innerHTML = fallback;
-    macroNews.innerHTML = fallback;
+  } catch(err){
+    document.getElementById("marketRows").innerHTML =
+      `<tr><td colspan="6" class="neg">Error loading data: ${String(err.message || err)}</td></tr>`;
+    document.getElementById("regimeLabel").innerHTML =
+      `<span class="regime-dot" style="background:#ff5c7a"></span><b style="color:#ff5c7a">Error</b>`;
+    document.getElementById("regimeDrivers").innerHTML =
+      `<li>${String(err.message || err)}</li>`;
+    document.getElementById("clientTalkingPoints").innerHTML =
+      `<li>Unable to generate talking points until market data loads.</li>`;
+
+    const fallback = `<li><a href="#" onclick="return false;">
+      <span class="badge badge-mid">🟠 Med</span>News unavailable.
+    </a></li>`;
+
+    document.getElementById("adviserNews").innerHTML = fallback;
+    document.getElementById("asxNews").innerHTML = fallback;
+    document.getElementById("usNews").innerHTML = fallback;
+    document.getElementById("legNews").innerHTML = fallback;
+    document.getElementById("macroNews").innerHTML = fallback;
+
+    setFeedHealth(5);
   } finally {
     btn.disabled = false;
     btn.innerText = oldText;
