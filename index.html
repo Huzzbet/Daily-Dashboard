@@ -21,6 +21,50 @@
   --font:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
   --mono: ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
 }
+.news-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.news-table th,
+.news-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+}
+
+.news-table th {
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.center {
+  text-align: center;
+}
+
+.badge {
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.badge-afr {
+  background: rgba(110,231,255,0.15);
+  color: var(--accent);
+}
+
+.badge-asx {
+  background: rgba(43,212,125,0.15);
+  color: var(--green);
+}
+
+.badge-commentary {
+  background: rgba(255,209,102,0.15);
+  color: var(--amber);
+}
 
 *{box-sizing:border-box}
 body{
@@ -254,23 +298,31 @@ hr.sep{
       </div>
 
       <!-- ASX 200 NEWS -->
-      <div class="card">
-        <div class="card-header">
-          <h2>ASX 200 Company News</h2>
-          <span>Filtered · Announcements</span>
-        </div>
-        <div class="smallmuted">Filtered to major ASX 200 tickers (approx).</div>
-        <ul class="news-list" id="asxNews"></ul>
-      </div>
+      <<section class="card">
+  <div class="card-header">
+    <h3>ASX 200 Company News</h3>
+    <span class="muted">AFR • ASX Announcements</span>
+  </div>
 
-      <!-- US NEWS -->
-      <div class="card">
-        <div class="card-header">
-          <h2>US Company News</h2>
-          <span>Earnings · Filings</span>
-        </div>
-        <ul class="news-list" id="usNews"></ul>
-      </div>
+  <table class="news-table" id="asxNewsTable">
+    <thead>
+      <tr>
+        <th>Company</th>
+        <th>Headline</th>
+        <th>Source</th>
+        <th>Type</th>
+        <th>Time</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td colspan="5" class="muted center">
+          Loading ASX news…
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</section>
 
       <!-- LEGISLATION -->
       <div class="card">
