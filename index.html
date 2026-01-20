@@ -337,8 +337,25 @@ const FEEDS = {
     { url:"https://www.investordaily.com.au/news/?format=feed&type=rss", src:"InvestorDaily" },
   ],
   asx200: [
-    { url:"https://www.asx.com.au/rss/asx-announcements.xml", src:"ASX Announcements" }
+    const FEEDS = {
+  asx: [
+    "https://www.afr.com/companies/rss"   // AFR Companies (ASX coverage)
   ],
+  us: [
+    "https://www.nasdaq.com/feed/rssoutbound?category=Earnings",
+    "https://www.sec.gov/Archives/edgar/usgaap.rss.xml"
+  ],
+  leg: [
+    "https://www.asic.gov.au/rss/news.xml",
+    "https://www.apra.gov.au/rss",
+    "https://treasury.gov.au/rss.xml"
+  ],
+  macro: [
+    "https://www.rba.gov.au/rss/rss-cb.xml",
+    "https://www.abs.gov.au/rss.xml",
+    "https://www.afr.com/politics/rss"
+  ]
+};
   us: [
     { url:"https://www.nasdaq.com/feed/rssoutbound?category=Earnings", src:"Nasdaq" },
     { url:"https://www.sec.gov/Archives/edgar/usgaap.rss.xml",         src:"SEC EDGAR" }
