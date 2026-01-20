@@ -21,6 +21,10 @@
   --font:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
   --mono: ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
 }
+
+/* missing in your CSS but used in HTML */
+.muted{ color: var(--muted); }
+
 .news-table {
   width: 100%;
   border-collapse: collapse;
@@ -39,32 +43,7 @@
   font-weight: 600;
 }
 
-.center {
-  text-align: center;
-}
-
-.badge {
-  padding: 4px 8px;
-  border-radius: 999px;
-  font-size: 0.7rem;
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-.badge-afr {
-  background: rgba(110,231,255,0.15);
-  color: var(--accent);
-}
-
-.badge-asx {
-  background: rgba(43,212,125,0.15);
-  color: var(--green);
-}
-
-.badge-commentary {
-  background: rgba(255,209,102,0.15);
-  color: var(--amber);
-}
+.center { text-align: center; }
 
 *{box-sizing:border-box}
 body{
@@ -130,6 +109,7 @@ h1{margin:0;font-size:26px;font-weight:650; letter-spacing:.2px}
   margin-bottom:10px;
 }
 .card-header h2{margin:0;font-size:16px;font-weight:700}
+.card-header h3{margin:0;font-size:16px;font-weight:700}
 .card-header span{font-size:12px;color:var(--muted)}
 .card-header .right{display:flex; align-items:center; gap:10px}
 
@@ -297,32 +277,41 @@ hr.sep{
         <ul class="news-list" id="adviserNews"></ul>
       </div>
 
-      <!-- ASX 200 NEWS -->
-      <<section class="card">
-  <div class="card-header">
-    <h3>ASX 200 Company News</h3>
-    <span class="muted">AFR • ASX Announcements</span>
-  </div>
+      <!-- ASX 200 NEWS (FIXED) -->
+      <section class="card">
+        <div class="card-header">
+          <h3>ASX 200 Company News</h3>
+          <span class="muted">AFR • ASX Announcements</span>
+        </div>
 
-  <table class="news-table" id="asxNewsTable">
-    <thead>
-      <tr>
-        <th>Company</th>
-        <th>Headline</th>
-        <th>Source</th>
-        <th>Type</th>
-        <th>Time</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td colspan="5" class="muted center">
-          Loading ASX news…
-        </td>
-      </tr>
-    </tbody>
-  </table>
-</section>
+        <table class="news-table" id="asxNewsTable">
+          <thead>
+            <tr>
+              <th>Company</th>
+              <th>Headline</th>
+              <th>Source</th>
+              <th>Impact</th>
+              <th>Time</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td colspan="5" class="muted center">
+                Loading ASX news…
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- US COMPANY NEWS (RESTORED so JS doesn’t crash) -->
+      <div class="card">
+        <div class="card-header">
+          <h2>US Company News</h2>
+          <span>Earnings · SEC · Nasdaq</span>
+        </div>
+        <ul class="news-list" id="usNews"></ul>
+      </div>
 
       <!-- LEGISLATION -->
       <div class="card">
@@ -366,10 +355,7 @@ const ASSETS = [
   { name:"VIX",          symbol:"^VIX", link:"https://finance.yahoo.com/quote/%5EVIX" }
 ];
 
-/** ASX 200 (approx major tickers list)
- *  Used to filter ASX announcements RSS titles which commonly include "CODE - Title".
- *  You can add/remove tickers anytime.
- */
+/** ASX 200 (approx major tickers list) */
 const ASX200_TICKERS = new Set([
   "BHP","CBA","NAB","WBC","ANZ","MQG","WES","WOW","CSL","TLS","GMG","ALL","RIO","FMG","COL","TCL","SCG","QBE","SUN",
   "RHC","IAG","AMP","CPU","S32","ORG","STO","WDS","APA","ALD","BXB","ASX","REA","XRO","SEK","RMD","FPH","COH","A2M",
@@ -378,31 +364,27 @@ const ASX200_TICKERS = new Set([
   "SUL","ALQ","BKW","AZJ","ORI","ORA","JLG","NEA","ZIP","WTC","BRG","PDN","APA","APX","IFL","HUB","MFG","GQG","VEA"
 ]);
 
-/** Adviser-grade feeds (proxy-friendly)
- *  If any feed ever goes quiet, swap URL here (structure stays stable).
- */
+/** Feeds */
 const FEEDS = {
   adviser: [
     { url: "https://faaa.au/media-releases/feed/", src: "FAAA" },
     { url: "https://www.ifa.com.au/news/?format=feed&type=rss", src: "IFA" },
     { url: "https://www.investordaily.com.au/news/?format=feed&type=rss", src: "InvestorDaily" }
   ],
-
   asx200: [
     { url: "https://www.afr.com/rss/companies", src: "AFR" }
+    // Optional: add a second feed here if you have a reliable ASX announcements RSS you want to proxy.
+    // { url: "https://YOUR_ASX_ANNOUNCEMENTS_RSS", src: "ASX" }
   ],
-
   us: [
     { url: "https://www.nasdaq.com/feed/rssoutbound?category=Earnings", src: "Nasdaq" },
     { url: "https://www.sec.gov/Archives/edgar/usgaap.rss.xml", src: "SEC EDGAR" }
   ],
-
   leg: [
     { url: "https://www.asic.gov.au/rss/news.xml", src: "ASIC" },
     { url: "https://www.apra.gov.au/rss", src: "APRA" },
     { url: "https://treasury.gov.au/rss.xml", src: "Treasury" }
   ],
-
   macro: [
     { url: "https://www.rba.gov.au/rss/rss-cb.xml", src: "RBA" },
     { url: "https://www.abs.gov.au/rss.xml", src: "ABS" },
@@ -457,14 +439,12 @@ function lastCloseForYear(timestamps, closes, year){
   }
   return null;
 }
-
 function impactTag(title){
   const t = (title || "").toLowerCase();
   if(IMPACT.high.some(k=>t.includes(k))) return { cls:"badge-high", txt:"🔴 High" };
   if(IMPACT.mid.some(k=>t.includes(k)))  return { cls:"badge-mid",  txt:"🟠 Med" };
   return { cls:"badge-low", txt:"🟢 Low" };
 }
-
 function fmtTimeAgo(dateMs){
   if(!dateMs) return "";
   const delta = Date.now() - dateMs;
@@ -476,7 +456,6 @@ function fmtTimeAgo(dateMs){
   const d = Math.floor(hr/24);
   return `${d}d ago`;
 }
-
 function parseMaybeDate(str){
   if(!str) return null;
   const t = Date.parse(str);
@@ -495,7 +474,7 @@ async function yahooChart(symbol, range){
   return result;
 }
 
-/** RSS/Atom fetch through worker, returns items with title/link/date */
+/** RSS/Atom fetch through worker */
 async function fetchRSS(url){
   const res = await fetch(`${PROXY}?url=${encodeURIComponent(url)}`);
   const xmlText = await res.text();
@@ -536,7 +515,6 @@ async function fetchGroup(feedObjs){
   const ok = results.filter(r=>r.status==="fulfilled").map(r=>r.value).flat();
   const failed = results.filter(r=>r.status==="rejected").length;
 
-  // De-dup by title|link
   const seen = new Set();
   let merged = ok.filter(i => {
     const k = (i.title || "") + "|" + (i.link || "");
@@ -545,7 +523,6 @@ async function fetchGroup(feedObjs){
     return true;
   });
 
-  // Sort by date if available (desc), else keep as-is
   merged.sort((a,b)=>{
     if(a.dateMs && b.dateMs) return b.dateMs - a.dateMs;
     if(a.dateMs && !b.dateMs) return -1;
@@ -556,14 +533,72 @@ async function fetchGroup(feedObjs){
   return { items: merged.slice(0,8), failed };
 }
 
-/** ASX 200 filter (from ASX announcements feed) */
+/** Extract ticker from title like "BHP - ..." */
+function extractAsxCode(title){
+  const t = (title || "").trim();
+  const first = t.split(" - ")[0] || "";
+  const code = first.replace(/[^A-Z0-9]/g,"").toUpperCase();
+  return code || null;
+}
+
+/** Filter items down to ASX200 by parsing title */
 function filterAsx200(items){
-  // Common ASX RSS titles look like: "BHP - Quarterly Report" or "CSL - Appendix 4E"
   return items.filter(it=>{
-    const t = (it.title || "").trim();
-    const code = t.split(" - ")[0]?.replace(/[^A-Z0-9]/g,"").toUpperCase();
+    const code = extractAsxCode(it.title);
     return code && ASX200_TICKERS.has(code);
   });
+}
+
+/** Render list-based news, but SAFE if element missing */
+function renderNews(list, el){
+  if(!el) return; // prevents your crash
+  if(!list || list.length === 0){
+    el.innerHTML = `<li><a href="#" onclick="return false;">
+      <span class="badge badge-mid">🟠 Med</span>
+      No items available.
+    </a></li>`;
+    return;
+  }
+
+  el.innerHTML = list.map(n => {
+    const tag = impactTag(n.title);
+    const ago = n.dateMs ? ` · <span class="smallmuted">${fmtTimeAgo(n.dateMs)}</span>` : "";
+    const srcBadge = n.src ? `<span class="badge badge-src">${n.src}</span>` : "";
+    return `<li><a href="${n.link}" target="_blank" rel="noopener">
+      <span class="badge ${tag.cls}">${tag.txt}</span>
+      ${srcBadge}
+      ${n.title}${ago}
+    </a></li>`;
+  }).join("");
+}
+
+/** Render ASX table into #asxNewsTable */
+function renderAsxTable(items){
+  const tbody = document.querySelector("#asxNewsTable tbody");
+  if(!tbody) return;
+
+  if(!items || items.length === 0){
+    tbody.innerHTML = `<tr><td colspan="5" class="muted center">No items available.</td></tr>`;
+    return;
+  }
+
+  const rows = items.map(n=>{
+    const code = extractAsxCode(n.title);
+    const tag = impactTag(n.title);
+    const when = n.dateMs ? fmtTimeAgo(n.dateMs) : "—";
+    const src = n.src || "—";
+
+    return `<tr>
+      <td>${code || "—"}</td>
+      <td><a href="${n.link}" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none">${n.title}</a></td>
+      <td>${src}</td>
+      <td><span class="badge ${tag.cls}">${tag.txt}</span></td>
+      <td class="smallmuted">${when}</td>
+    </tr>`;
+  }).join("");
+
+  const safeRows = rows.replaceAll("<tr>\n      <td>—</td>", "<tr><td>—</td>");
+  tbody.innerHTML = safeRows || `<tr><td colspan="5" class="muted center">No ASX 200-matched items in the feed right now.</td></tr>`;
 }
 
 /** Market regime logic */
@@ -641,8 +676,10 @@ function buildTalkingPoints(m){
 
 function setFeedHealth(totalFailed){
   const el = document.getElementById("feedHealth");
+  if(!el) return;
   const dot = el.querySelector(".health-dot");
   const text = el.querySelector("span:last-child");
+  if(!dot || !text) return;
 
   if(totalFailed === 0){
     dot.className = "health-dot health-ok";
@@ -654,27 +691,6 @@ function setFeedHealth(totalFailed){
     dot.className = "health-dot health-bad";
     text.textContent = `Feeds: issues (${totalFailed})`;
   }
-}
-
-function renderNews(list, el){
-  if(!list || list.length === 0){
-    el.innerHTML = `<li><a href="#" onclick="return false;">
-      <span class="badge badge-mid">🟠 Med</span>
-      No items available.
-    </a></li>`;
-    return;
-  }
-
-  el.innerHTML = list.map(n => {
-    const tag = impactTag(n.title);
-    const ago = n.dateMs ? ` · <span class="smallmuted">${fmtTimeAgo(n.dateMs)}</span>` : "";
-    const srcBadge = n.src ? `<span class="badge badge-src">${n.src}</span>` : "";
-    return `<li><a href="${n.link}" target="_blank" rel="noopener">
-      <span class="badge ${tag.cls}">${tag.txt}</span>
-      ${srcBadge}
-      ${n.title}${ago}
-    </a></li>`;
-  }).join("");
 }
 
 async function refreshNews(){
@@ -692,15 +708,13 @@ async function refreshNews(){
   const leg     = groups[3];
   const macro   = groups[4];
 
-  // ASX 200 filter
   const asxFiltered = filterAsx200(asxRaw.items);
 
-  // Feed health indicator
   const totalFailed = adviser.failed + asxRaw.failed + us.failed + leg.failed + macro.failed;
   setFeedHealth(totalFailed);
 
   renderNews(adviser.items, document.getElementById("adviserNews"));
-  renderNews(asxFiltered.slice(0,8), document.getElementById("asxNews"));
+  renderAsxTable(asxFiltered.slice(0,8));
   renderNews(us.items, document.getElementById("usNews"));
   renderNews(leg.items, document.getElementById("legNews"));
   renderNews(macro.items, document.getElementById("macroNews"));
@@ -756,7 +770,6 @@ async function refreshAll(){
       let start2025 = firstCloseForYear(tStamps, tCloses, 2025);
       let end2025   = lastCloseForYear(tStamps, tCloses, 2025);
 
-      // ^TNX is 10x yield points on Yahoo; normalise to %
       if(a.y){
         if(isNum(cur)) cur = cur/10;
         if(isNum(prevClose)) prevClose = prevClose/10;
@@ -831,10 +844,12 @@ async function refreshAll(){
     </a></li>`;
 
     document.getElementById("adviserNews").innerHTML = fallback;
-    document.getElementById("asxNews").innerHTML = fallback;
     document.getElementById("usNews").innerHTML = fallback;
     document.getElementById("legNews").innerHTML = fallback;
     document.getElementById("macroNews").innerHTML = fallback;
+
+    const tb = document.querySelector("#asxNewsTable tbody");
+    if(tb) tb.innerHTML = `<tr><td colspan="5" class="muted center">News unavailable.</td></tr>`;
 
     setFeedHealth(5);
   } finally {
