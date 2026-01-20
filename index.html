@@ -331,44 +331,30 @@ const ASX200_TICKERS = new Set([
  */
 const FEEDS = {
   adviser: [
-    { url:"https://faaa.au/media-releases/feed/",        src:"FAAA" },
-    { url:"https://www.ifa.com.au/news/?format=feed&type=rss", src:"IFA" },
-    // InvestorDaily feed patterns vary; this is the most common Joomla-style RSS pattern:
-    { url:"https://www.investordaily.com.au/news/?format=feed&type=rss", src:"InvestorDaily" },
+    { url: "https://faaa.au/media-releases/feed/", src: "FAAA" },
+    { url: "https://www.ifa.com.au/news/?format=feed&type=rss", src: "IFA" },
+    { url: "https://www.investordaily.com.au/news/?format=feed&type=rss", src: "InvestorDaily" }
   ],
+
   asx200: [
-    const FEEDS = {
-  asx: [
-    "https://www.afr.com/rss/companies"   // AFR Companies (working, public RSS)
+    { url: "https://www.afr.com/rss/companies", src: "AFR" }
   ],
+
   us: [
-    "https://www.nasdaq.com/feed/rssoutbound?category=Earnings",
-    "https://www.sec.gov/Archives/edgar/usgaap.rss.xml"
+    { url: "https://www.nasdaq.com/feed/rssoutbound?category=Earnings", src: "Nasdaq" },
+    { url: "https://www.sec.gov/Archives/edgar/usgaap.rss.xml", src: "SEC EDGAR" }
   ],
+
   leg: [
-    "https://www.asic.gov.au/rss/news.xml",
-    "https://www.apra.gov.au/rss",
-    "https://treasury.gov.au/rss.xml"
+    { url: "https://www.asic.gov.au/rss/news.xml", src: "ASIC" },
+    { url: "https://www.apra.gov.au/rss", src: "APRA" },
+    { url: "https://treasury.gov.au/rss.xml", src: "Treasury" }
   ],
+
   macro: [
-    "https://www.rba.gov.au/rss/rss-cb.xml",
-    "https://www.abs.gov.au/rss.xml",
-    "https://www.afr.com/politics/rss"
-  ]
-};
-  us: [
-    { url:"https://www.nasdaq.com/feed/rssoutbound?category=Earnings", src:"Nasdaq" },
-    { url:"https://www.sec.gov/Archives/edgar/usgaap.rss.xml",         src:"SEC EDGAR" }
-  ],
-  leg: [
-    { url:"https://www.asic.gov.au/rss/news.xml", src:"ASIC" },
-    { url:"https://www.apra.gov.au/rss",          src:"APRA" },
-    { url:"https://treasury.gov.au/rss.xml",      src:"Treasury" }
-  ],
-  macro: [
-    { url:"https://www.rba.gov.au/rss/rss-cb.xml", src:"RBA" },
-    { url:"https://www.abs.gov.au/rss.xml",        src:"ABS" },
-    { url:"https://www.afr.com/politics/rss",      src:"AFR" }
+    { url: "https://www.rba.gov.au/rss/rss-cb.xml", src: "RBA" },
+    { url: "https://www.abs.gov.au/rss.xml", src: "ABS" },
+    { url: "https://www.afr.com/politics/rss", src: "AFR" }
   ]
 };
 
