@@ -302,22 +302,7 @@ hr.sep{
             </tr>
           </tbody>
         </table>
-      </section>
-<section class="card">
-  <h3>ASX News Hub</h3>
-
-  <table id="asxNews">
-    <thead>
-      <tr>
-        <th>Source</th>
-        <th>Headline</th>
-        <th>Impact</th>
-        <th>Time</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
-</section>
+     
       <!-- US COMPANY NEWS (RESTORED so JS doesn’t crash) -->
       <div class="card">
         <div class="card-header">
@@ -722,8 +707,8 @@ async function refreshNews(){
   const leg     = groups[3];
   const macro   = groups[4];
 
-  const asxFiltered = filterAsx200(asxRaw.items);
-
+  renderAsxTable(asxRaw.items.slice(0,8));
+  
   const totalFailed = adviser.failed + asxRaw.failed + us.failed + leg.failed + macro.failed;
   setFeedHealth(totalFailed);
 
