@@ -303,7 +303,21 @@ hr.sep{
           </tbody>
         </table>
       </section>
+<section class="card">
+  <h3>ASX News Hub</h3>
 
+  <table id="asxNews">
+    <thead>
+      <tr>
+        <th>Source</th>
+        <th>Headline</th>
+        <th>Impact</th>
+        <th>Time</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</section>
       <!-- US COMPANY NEWS (RESTORED so JS doesn’t crash) -->
       <div class="card">
         <div class="card-header">
@@ -861,6 +875,71 @@ async function refreshAll(){
 // load once on open
 refreshAll();
 </script>
+<script>
+const feeds = [
+  {
+    name: "FN Arena",
+    url: "https://fnarena.com/index.php/feed/"
+  },
+  {
+    name: "AFR Companies",
+    url: "https://www.afr.com/rss/companies"
+  }
+];
 
+function impactBadge(level) {
+  const colors = {
+    High: "#ff5c7a",
+    Medium: "#ffd166",
+    Low: "#2bd47d"
+  };
+  return `<span style="
+    padding:4px 8px;
+    border-radius:10px;
+    font-size:12px;
+    background:${colors[level]};
+    color:#000;
+  ">${level}</span>`;
+}
+
+function classifyImpact(title) {
+  if (/earnings|guidance|capital|halt|upgrade|downgrade|acquisition|sell-off|raise/i.test(title))
+    return "High";
+  if (/contract|dividend|strategy|regulatory/i.test(title))
+    return "Medium";
+  return "Low";
+}
+
+async function loadASXNews() {
+  let rows = "";
+
+  for (const feed of feeds) {
+    const api = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(feed.url)}`;
+    const res = await fetch(api);
+    const data = await res.json();
+
+    data.items.slice(0,5).forEach(item => {
+      const impact = classifyImpact(item.title);
+      rows += `
+        <tr>
+          <td>${feed.name}</td>
+          <td>
+            <a href="${item.link}" target="_blank">
+              ${item.title}
+            </a>
+          </td>
+          <td>${impactBadge(impact)}</td>
+          <td>${new Date(item.pubDate).toLocaleTimeString()}</td>
+        </tr>
+      `;
+    });
+  }
+
+  document.querySelector("#asxNews tbody").innerHTML = rows;
+}
+
+loadASXNews();
+setInterval(loadASXNews, 600000); // refresh every 10 mins
+</script>
 </body>
 </html>
