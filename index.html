@@ -605,31 +605,41 @@ function renderAsxTable(items){
   const tbody = document.querySelector("#asxNewsTable tbody");
   if(!tbody) return;
 
-  // Sanitize list
   items = (items || []).filter(i => i && i.title && i.link);
 
   if(items.length === 0){
-    tbody.innerHTML = `<tr><td colspan="5" class="muted center">No ASX 200-matched items in the feed right now.</td></tr>`;
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="5" class="muted center">
+          No ASX company news available.
+        </td>
+      </tr>`;
     return;
   }
 
-  const rows = items.map(n=>{
+  tbody.innerHTML = items.map(n=>{
     const code = extractAsxCode(n.title);
+    const isASX200 = code && ASX200_TICKERS.has(code);
     const tag = impactTag(n.title);
     const when = n.dateMs ? fmtTimeAgo(n.dateMs) : "—";
-    const src = n.src || "—";
-    return `<tr>
-      <td>${escapeHtml(code || "—")}</td>
-      <td><a href="${escapeHtml(n.link)}" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none">${escapeHtml(n.title)}</a></td>
-      <td>${escapeHtml(src)}</td>
-      <td><span class="badge ${tag.cls}">${tag.txt}</span></td>
-      <td class="smallmuted">${escapeHtml(when)}</td>
-    </tr>`;
+
+    return `
+      <tr>
+        <td>${isASX200 ? code : "ASX"}</td>
+        <td>
+          <a href="${escapeHtml(n.link)}" target="_blank" rel="noopener">
+            ${escapeHtml(n.title)}
+          </a>
+        </td>
+        <td>${escapeHtml(n.src || "AFR")}</td>
+        <td>
+          <span class="badge ${tag.cls}">${tag.txt}</span>
+          ${isASX200 ? `<span class="badge badge-low">ASX 200</span>` : ""}
+        </td>
+        <td class="smallmuted">${escapeHtml(when)}</td>
+      </tr>`;
   }).join("");
-
-  tbody.innerHTML = rows;
 }
-
 /* =========================
    Market regime logic
 ========================= */
@@ -764,8 +774,7 @@ async function refreshNews(){
   const leg     = groups[3];
   const macro   = groups[4];
 
-  const asxFiltered = filterAsx200(asxRaw.items);
-  renderAsxTable(asxFiltered.slice(0,8));
+  renderAsxTable(asxRaw.items.slice(0,10));
 
   const totalFailed = adviser.failed + asxRaw.failed + us.failed + leg.failed + macro.failed;
   setFeedHealth(totalFailed);
