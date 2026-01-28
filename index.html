@@ -806,7 +806,9 @@ async function refreshNews(){
   const leg     = groups[3];
   const macro   = groups[4];
 
-  renderAsxTable(asxRaw.items.slice(0,10));
+  const asxFiltered = filterAsx200(asxRaw.items);
+
+renderAsxTable(asxFiltered.slice(0,10));
 
   const totalFailed = adviser.failed + asxRaw.failed + us.failed + leg.failed + macro.failed;
   setFeedHealth(totalFailed);
