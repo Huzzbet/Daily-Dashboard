@@ -302,6 +302,42 @@ a{color:var(--accent)}
           </tbody>
         </table>
       </section>
+<!-- FN ARENA – BROKER SIGNALS -->
+<div class="card">
+  <div class="card-header">
+    <h2>FN Arena – Broker Signals</h2>
+    <span>Signal-only · Click-through</span>
+  </div>
+
+  <div class="smallmuted" style="margin-bottom:10px">
+    Structured broker actions (no headlines stored). Internal use only.
+  </div>
+
+  <table class="news-table" id="fnArenaTable">
+    <thead>
+      <tr>
+        <th>Company</th>
+        <th>Action</th>
+        <th>Broker</th>
+        <th>Sentiment</th>
+        <th>Impact</th>
+        <th>Source</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td colspan="6" class="muted center">
+          No broker signals logged.
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div style="margin-top:12px; display:flex; gap:10px">
+    <button class="btn" onclick="openFnArenaForm()">➕ Add Signal</button>
+    <button class="btn" onclick="clearFnArena()">🧹 Clear</button>
+  </div>
+</div>
 
       <!-- US COMPANY NEWS -->
       <div class="card">
