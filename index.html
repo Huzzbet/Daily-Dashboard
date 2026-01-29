@@ -156,6 +156,11 @@ hr.sep{
   border:1px solid rgba(110,231,255,.18);
 }
 
+/* Sentiment badges (for broker signals / inferred tone) */
+.badge-pos{ background:rgba(43,212,125,.18); color:#2bd47d; }
+.badge-neg{ background:rgba(255,92,122,.18); color:#ff5c7a; }
+.badge-neu{ background:rgba(255,209,102,.18); color:#ffd166; }
+
 .regime-dot{
   display:inline-block;
   width:14px;height:14px;
@@ -280,7 +285,7 @@ a{color:var(--accent)}
       <section class="card">
         <div class="card-header">
           <h3>ASX 200 Company News</h3>
-          <span class="muted">AFR • ASX Announcements (feed-based)</span>
+          <span class="muted">AFR • (feed-based)</span>
         </div>
 
         <table class="news-table" id="asxNewsTable">
@@ -302,38 +307,38 @@ a{color:var(--accent)}
           </tbody>
         </table>
       </section>
-<!-- FN ARENA – BROKER SIGNALS -->
-<div class="card">
-  <div class="card-header">
-    <h2>FN Arena – Broker Signals</h2>
-    <span>Broker actions · signal-only</span>
-  </div>
 
-  <div class="smallmuted" style="margin-bottom:10px">
-    High-level broker signals observed on FN Arena. Click-through only.
-  </div>
+      <!-- FN ARENA – BROKER SIGNALS -->
+      <div class="card">
+        <div class="card-header">
+          <h2>FN Arena – Broker Signals</h2>
+          <span>Broker actions · signal-only</span>
+        </div>
 
-  <table class="news-table" id="fnArenaTable">
-    <thead>
-      <tr>
-        <th>Company</th>
-        <th>Action</th>
-        <th>Broker</th>
-        <th>Sentiment</th>
-        <th>Impact</th>
-        <th>Source</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td colspan="6" class="muted center">
-          No FN Arena broker signals available.
-        </td>
-      </tr>
-    </tbody>
-  </table>
-</div>
+        <div class="smallmuted" style="margin-bottom:10px">
+          High-level broker signals inferred from FN Arena feed headlines. Treat as directional (signal-only).
+        </div>
 
+        <table class="news-table" id="fnArenaTable">
+          <thead>
+            <tr>
+              <th>Company</th>
+              <th>Action</th>
+              <th>Broker</th>
+              <th>Sentiment</th>
+              <th>Impact</th>
+              <th>Source</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td colspan="6" class="muted center">
+                Loading FN Arena signals…
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
       <!-- US COMPANY NEWS -->
       <div class="card">
@@ -418,6 +423,10 @@ const FEEDS = {
     { url: "https://www.rba.gov.au/rss/rss-cb.xml", src: "RBA" },
     { url: "https://www.abs.gov.au/rss.xml", src: "ABS" },
     { url: "https://www.afr.com/politics/rss", src: "AFR" }
+  ],
+  fnArena: [
+    /* NOTE: FN Arena feed reliability can vary. We treat outputs as signal-only. */
+    { url: "https://www.fnarena.com/index.php/feed/", src: "FN Arena" }
   ]
 };
 
@@ -479,6 +488,40 @@ function impactTag(title){
   if(IMPACT.mid.some(k=>t.includes(k)))  return { cls:"badge-mid",  txt:"🟠 Med" };
   return { cls:"badge-low", txt:"🟢 Low" };
 }
+
+/* Sentiment helpers (signal-only) */
+function sentimentTag(title){
+  const t = (title || "").toLowerCase();
+  if(t.includes("upgrade") || t.includes("raised to") || t.includes("lifted to") || t.includes("buy") || t.includes("overweight")){
+    return { cls:"badge-pos", txt:"Positive" };
+  }
+  if(t.includes("downgrade") || t.includes("lowered to") || t.includes("cut to") || t.includes("sell") || t.includes("underweight")){
+    return { cls:"badge-neg", txt:"Negative" };
+  }
+  return { cls:"badge-neu", txt:"Neutral" };
+}
+function parseBrokerAction(title){
+  const t = (title || "").toLowerCase();
+  if(t.includes("upgrade")) return "Upgrade";
+  if(t.includes("downgrade")) return "Downgrade";
+  if(t.includes("initiat")) return "Initiation";
+  if(t.includes("raised to") || t.includes("lifted to")) return "Raised to";
+  if(t.includes("lowered to") || t.includes("cut to")) return "Cut to";
+  if(t.includes("rating")) return "Rating";
+  return "Broker update";
+}
+function parseBrokerName(title){
+  /* Common patterns are inconsistent, so we keep this conservative. */
+  const s = title || "";
+  const m1 = s.match(/\bby\s+([A-Za-z&.\s]+)$/i);              // "... by Broker"
+  if(m1?.[1]) return m1[1].trim();
+
+  const m2 = s.match(/\b-\s*([A-Za-z&.\s]+)\s*$/);             // "... - Broker"
+  if(m2?.[1]) return m2[1].trim();
+
+  return "FN Arena";
+}
+
 function fmtTimeAgo(dateMs){
   if(!dateMs) return "";
   const delta = Date.now() - dateMs;
@@ -657,7 +700,7 @@ function renderAsxTable(items){
 
     return `
       <tr>
-        <td>${isASX200 ? code : "ASX"}</td>
+        <td>${isASX200 ? escapeHtml(code) : "ASX"}</td>
         <td>
           <a href="${escapeHtml(n.link)}" target="_blank" rel="noopener">
             ${escapeHtml(n.title)}
@@ -672,6 +715,47 @@ function renderAsxTable(items){
       </tr>`;
   }).join("");
 }
+
+/* FN Arena broker signals table (signal-only; inferred from headlines) */
+function renderFnArenaTable(items){
+  const tbody = document.querySelector("#fnArenaTable tbody");
+  if(!tbody) return;
+
+  items = (items || []).filter(i => i && i.title && i.link);
+
+  if(items.length === 0){
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="6" class="muted center">
+          No FN Arena broker signals available.
+        </td>
+      </tr>`;
+    return;
+  }
+
+  tbody.innerHTML = items.slice(0,10).map(n=>{
+    const code = extractAsxCode(n.title);
+    const action = parseBrokerAction(n.title);
+    const broker = parseBrokerName(n.title);
+    const sentiment = sentimentTag(n.title);
+    const impact = impactTag(n.title);
+
+    return `
+      <tr>
+        <td>${escapeHtml(code || "ASX")}</td>
+        <td>
+          <a href="${escapeHtml(n.link)}" target="_blank" rel="noopener">
+            ${escapeHtml(action)}
+          </a>
+        </td>
+        <td>${escapeHtml(broker)}</td>
+        <td><span class="badge ${sentiment.cls}">${escapeHtml(sentiment.txt)}</span></td>
+        <td><span class="badge ${impact.cls}">${escapeHtml(impact.txt)}</span></td>
+        <td>${escapeHtml(n.src || "FN Arena")}</td>
+      </tr>`;
+  }).join("");
+}
+
 /* =========================
    Market regime logic
 ========================= */
@@ -797,7 +881,8 @@ async function refreshNews(){
     fetchGroup(FEEDS.asx200),
     fetchGroup(FEEDS.us),
     fetchGroup(FEEDS.leg),
-    fetchGroup(FEEDS.macro)
+    fetchGroup(FEEDS.macro),
+    fetchGroup(FEEDS.fnArena)
   ]);
 
   const adviser = groups[0];
@@ -805,12 +890,16 @@ async function refreshNews(){
   const us      = groups[2];
   const leg     = groups[3];
   const macro   = groups[4];
+  const fnArena = groups[5];
 
   const asxFiltered = filterAsx200(asxRaw.items);
 
-renderAsxTable(asxFiltered.slice(0,10));
+  renderAsxTable(asxFiltered.slice(0,10));
+  renderFnArenaTable(fnArena.items);
 
-  const totalFailed = adviser.failed + asxRaw.failed + us.failed + leg.failed + macro.failed;
+  const totalFailed =
+    adviser.failed + asxRaw.failed + us.failed + leg.failed + macro.failed + fnArena.failed;
+
   setFeedHealth(totalFailed);
 
   renderNews(adviser.items, document.getElementById("adviserNews"));
@@ -885,8 +974,10 @@ async function refreshAll(){
       }
 
       const oneDayText = a.y ? safeBps(cur, prevClose) : safePct(cur, prevClose);
-      const oneDayDeltaPct = (!a.y && isNum(cur) && isNum(prevClose) && prevClose !== 0) ? ((cur-prevClose)/prevClose)*100 : null;
-      const oneDayDeltaBps = (a.y && isNum(cur) && isNum(prevClose)) ? (cur-prevClose)*100 : null;
+      const oneDayDeltaPct = (!a.y && isNum(cur) && isNum(prevClose) && prevClose !== 0)
+        ? ((cur-prevClose)/prevClose)*100 : null;
+      const oneDayDeltaBps = (a.y && isNum(cur) && isNum(prevClose))
+        ? (cur-prevClose)*100 : null;
 
       const ytdText = safePct(cur, ytdBase);
       const cyText  = safePct(end2025, start2025);
@@ -960,7 +1051,11 @@ async function refreshAll(){
     const tb = document.querySelector("#asxNewsTable tbody");
     if(tb) tb.innerHTML = `<tr><td colspan="5" class="muted center">News unavailable.</td></tr>`;
 
-    setFeedHealth(5);
+    const fnTb = document.querySelector("#fnArenaTable tbody");
+    if(fnTb) fnTb.innerHTML = `<tr><td colspan="6" class="muted center">News unavailable.</td></tr>`;
+
+    /* Reflect the likely number of groups that failed (markets+news). */
+    setFeedHealth(4);
   } finally {
     btn.disabled = false;
     btn.innerText = oldText;
