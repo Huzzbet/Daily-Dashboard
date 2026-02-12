@@ -637,24 +637,19 @@ async function fetchGroup(feedObjs){
 ========================= */
 function extractAsxCode(title){
 
-  // Look for ASX ticker patterns like:
-  // "Citi rates ABB as Buy"
-  // "BHP upgraded by UBS"
-  // "Macquarie downgrades CBA"
+  // Look for ticker inside brackets first: (CBA)
+  const bracketMatch = title.match(/\(([A-Z]{2,4})\)/);
+  if(bracketMatch) return bracketMatch[1];
 
-  const match = title.match(/\b([A-Z]{2,4})\b(?=.*(rates|upgrad|downgrad|initiates|target))/i);
+  // Look for standalone uppercase word that exists in ASX200 list
+  const words = title.split(" ");
 
-  if(match) return match[1];
+  for(const w of words){
+    const clean = w.replace(/[^A-Z]/g,"");
+    if(ASX200_TICKERS.has(clean)) return clean;
+  }
 
-  // Fallback: first clean uppercase word
-  const fallback = title.match(/\b[A-Z]{2,4}\b/);
-  return fallback ? fallback[0] : null;
-}
-function filterAsx200(items){
-  return items.filter(it=>{
-    const code = extractAsxCode(it.title);
-    return code && ASX200_TICKERS.has(code);
-  });
+  return null;
 }
 
 /* =========================
@@ -900,7 +895,11 @@ async function refreshNews(){
   const macro   = groups[4];
   const fnArena = groups[5];
 
-  const asxFiltered = filterAsx200(asxRaw.items);
+  function filterAsx200(items){
+  return items.filter(it=>{
+    const code = extractAsxCode(it.title);
+    return code !== null;
+  });
 
   renderAsxTable(asxFiltered.slice(0,10));
   renderFnArenaTable(fnArena.items);
