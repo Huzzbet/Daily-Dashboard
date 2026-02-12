@@ -636,11 +636,19 @@ async function fetchGroup(feedObjs){
    ASX 200 filtering
 ========================= */
 function extractAsxCode(title){
-  const t = (title || "").trim();
-  // Try patterns like "BHP - ..." or "BHP:" or "BHP ..."
-  const firstChunk = t.split(" - ")[0] || t.split(":")[0] || t.split(" ")[0] || "";
-  const code = firstChunk.replace(/[^A-Z0-9]/g,"").toUpperCase();
-  return code || null;
+
+  // Look for ASX ticker patterns like:
+  // "Citi rates ABB as Buy"
+  // "BHP upgraded by UBS"
+  // "Macquarie downgrades CBA"
+
+  const match = title.match(/\b([A-Z]{2,4})\b(?=.*(rates|upgrad|downgrad|initiates|target))/i);
+
+  if(match) return match[1];
+
+  // Fallback: first clean uppercase word
+  const fallback = title.match(/\b[A-Z]{2,4}\b/);
+  return fallback ? fallback[0] : null;
 }
 function filterAsx200(items){
   return items.filter(it=>{
