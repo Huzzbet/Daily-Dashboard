@@ -888,30 +888,31 @@ async function refreshNews(){
     fetchGroup(FEEDS.fnArena)
   ]);
 
-  const adviser = groups[0];
-  const asxRaw  = groups[1];
-  const us      = groups[2];
-  const leg     = groups[3];
-  const macro   = groups[4];
-  const fnArena = groups[5];
+  const adviser = groups[0] || {items:[],failed:1};
+  const asxRaw  = groups[1] || {items:[],failed:1};
+  const us      = groups[2] || {items:[],failed:1};
+  const leg     = groups[3] || {items:[],failed:1};
+  const macro   = groups[4] || {items:[],failed:1};
+  const fnArena = groups[5] || {items:[],failed:1};
 
-const asxFiltered = asxRaw.items.filter(it=>{
-  const code = extractAsxCode(it.title);
-  return code !== null;
-});
+  // SAFE filtering
+  const asxFiltered = (asxRaw.items || []).filter(it=>{
+    const code = extractAsxCode(it.title);
+    return code !== null;
+  });
 
-renderAsxTable(asxFiltered.slice(0,10));
-renderFnArenaTable(fnArena.items);
+  renderAsxTable(asxFiltered.slice(0,10));
+  renderFnArenaTable(fnArena.items || []);
 
   const totalFailed =
     adviser.failed + asxRaw.failed + us.failed + leg.failed + macro.failed + fnArena.failed;
 
   setFeedHealth(totalFailed);
 
-  renderNews(adviser.items, document.getElementById("adviserNews"));
-  renderNews(us.items, document.getElementById("usNews"));
-  renderNews(leg.items, document.getElementById("legNews"));
-  renderNews(macro.items, document.getElementById("macroNews"));
+  renderNews(adviser.items || [], document.getElementById("adviserNews"));
+  renderNews(us.items || [], document.getElementById("usNews"));
+  renderNews(leg.items || [], document.getElementById("legNews"));
+  renderNews(macro.items || [], document.getElementById("macroNews"));
 }
 
 /* =========================
