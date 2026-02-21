@@ -896,10 +896,7 @@ async function refreshNews(){
   const fnArena = groups[5] || {items:[],failed:1};
 
   // SAFE filtering
-  const asxFiltered = (asxRaw.items || []).filter(it=>{
-    const code = extractAsxCode(it.title);
-    return code !== null;
-  });
+const asxFiltered = asxRaw.items || [];
 
   renderAsxTable(asxFiltered.slice(0,10));
   renderFnArenaTable(fnArena.items || []);
