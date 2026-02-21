@@ -721,20 +721,35 @@ function renderFnArenaTable(items){
   const tbody = document.querySelector("#fnArenaTable tbody");
   if(!tbody) return;
 
-  items = (items || []).filter(i => i && i.title && i.link);
+  items = (items || [])
+    .filter(i => i && i.title && i.link)
+
+    // only broker signals
+    .filter(i=>{
+      const t = i.title.toLowerCase();
+      return (
+        t.includes("upgrade") ||
+        t.includes("downgrade") ||
+        t.includes("raised to") ||
+        t.includes("lowered to") ||
+        t.includes("cut to") ||
+        t.includes("rating") ||
+        t.includes("initiated")
+      );
+    });
 
   if(items.length === 0){
     tbody.innerHTML = `
     <tr>
       <td colspan="4" class="muted center">
-        No FN Arena broker signals available.
+        No broker signals detected today.
       </td>
     </tr>`;
     return;
   }
 
   tbody.innerHTML = items.slice(0,10).map(n=>{
-    const company = extractCompanyName(n.title);
+    const company = extractCompanyFromSignal(n.title);
     const action = parseBrokerAction(n.title);
     const sentiment = sentimentTag(n.title);
     const impact = impactTag(n.title);
@@ -763,7 +778,17 @@ function renderFnArenaTable(items){
     </tr>`;
   }).join("");
 }
+function extractCompanyFromSignal(title){
+  if(!title) return "ASX";
 
+  const match = title.match(/^([A-Za-z&.\s]+?)\s+(upgrade|downgrade|raised|cut|initiated|rating)/i);
+
+  if(match && match[1]){
+    return match[1].trim();
+  }
+
+  return "ASX";
+}
 /* =========================
    Market regime logic
 ========================= */
