@@ -335,7 +335,30 @@ a{color:var(--accent)}
       </section>
 
       <!-- FN ARENA – BROKER SIGNALS -->
-      <div class="card">
+     <div class="card">
+  <div class="card-header">
+    <h2>Broker Consensus — Top Picks</h2>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px">
+
+    <div>
+      <div class="smallmuted">🟢 Buys</div>
+      <ul class="news-list" id="topBuys"></ul>
+    </div>
+
+    <div>
+      <div class="smallmuted">🟠 Holds</div>
+      <ul class="news-list" id="topHolds"></ul>
+    </div>
+
+    <div>
+      <div class="smallmuted">🔴 Sells</div>
+      <ul class="news-list" id="topSells"></ul>
+    </div>
+
+      
+       <div class="card">
         <div class="card-header">
           <h2>FN Arena – Broker Signals</h2>
           <span>Broker actions · signal-only</span>
@@ -362,7 +385,22 @@ a{color:var(--accent)}
             </tr>
           </tbody>
         </table>
-      </div>
+      
+      <div class="card">
+  <div class="card-header">
+    <h2>Broker Consensus Loader</h2>
+    <span>Paste broker data</span>
+  </div>
+
+  <textarea id="brokerInput"
+    style="width:100%;height:140px;border-radius:12px;padding:12px;background:#081024;color:white;border:1px solid rgba(255,255,255,.1)">
+Paste broker table here...
+  </textarea>
+
+  <button class="btn" style="margin-top:10px" onclick="parseBrokerData()">
+    Load Broker Picks
+  </button>
+</div>
 
       <!-- US COMPANY NEWS -->
       <div class="card">
@@ -1120,6 +1158,63 @@ async function refreshAll(){
     btn.disabled = false;
     btn.innerText = oldText;
   }
+}function parseBrokerData(){
+
+  const text = document.getElementById("brokerInput").value;
+
+  const lines = text.split("\n").filter(x => x.trim());
+
+  const stocks = [];
+
+  for(let i=0;i<lines.length;i++){
+
+    const ticker = lines[i];
+    const name = lines[i+1];
+    const rating = lines[i+3];
+    const upsideLine = lines[i+7];
+
+    if(!ticker || !rating || !upsideLine) continue;
+
+    const upsideMatch = upsideLine.match(/[-+]?\d+(\.\d+)?/);
+
+    stocks.push({
+      ticker: ticker.trim(),
+      name: name?.trim(),
+      rating: rating.trim(),
+      upside: upsideMatch ? parseFloat(upsideMatch[0]) : 0
+    });
+  }
+
+  const buys = stocks
+    .filter(x => x.rating.includes("Buy"))
+    .sort((a,b)=>b.upside-a.upside)
+    .slice(0,5);
+
+  const holds = stocks
+    .filter(x => x.rating==="Hold")
+    .slice(0,5);
+
+  const sells = stocks
+    .filter(x => x.rating.includes("Sell"))
+    .sort((a,b)=>a.upside-b.upside)
+    .slice(0,5);
+
+  renderBrokerList(buys,"topBuys","🟢");
+  renderBrokerList(holds,"topHolds","🟠");
+  renderBrokerList(sells,"topSells","🔴");
+}
+
+function renderBrokerList(list,id,emoji){
+  const el = document.getElementById(id);
+
+  el.innerHTML = list.map(x=>`
+    <li>
+      <a href="#" onclick="return false">
+        ${emoji} <b>${x.ticker}</b> — ${x.name}
+        <span class="smallmuted">(${x.upside}% upside)</span>
+      </a>
+    </li>
+  `).join("");
 }
 
 /* Load once on open */
