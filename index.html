@@ -408,103 +408,7 @@ Paste broker table here...
         <ul class="news-list" id="macroNews"></ul>
       </div>
 
-/* =========================
-   Broker Picks Loader
-========================= */
 
-async function loadBrokerPicks(){
-
-  try{
-    const res = await fetch("./data/broker-picks.json");
-    const picks = await res.json();
-
-    renderBestPicks(picks);
-
-  }catch(err){
-    console.log("Broker data failed to load", err);
-  }
-}
-
-function renderBestPicks(data){
-
-  const top = data
-    .filter(x => x.rating.includes("Buy"))
-    .sort((a,b)=> b.upside - a.upside)
-    .slice(0,5);
-
-  const el = document.getElementById("topBuys");
-
-  if(!top.length){
-    el.innerHTML = "<li>No broker picks available</li>";
-    return;
-  }
-
-  el.innerHTML = top.map(x=>`
-    <li>
-      <a href="#" onclick="return false">
-        <span class="badge badge-pos">High Conviction</span>
-        <b>${x.ticker}</b> — ${x.name}
-        <span class="smallmuted">
-          ${x.upside}% upside · ${x.brokers} brokers
-        </span>
-      </a>
-    </li>
-  `).join("");
-}
-         
-  }catch(err){
-    console.log("Broker data failed to load", err)
-}
-
-function renderBestPicks(data){
-
-  const top = data
-    .filter(x => x.rating.includes("Buy"))
-    .sort((a,b)=> b.upside - a.upside)
-    .slice(0,5);
-
-  const el = document.getElementById("topBuys");
-
-  if(!top.length){
-    el.innerHTML = "<li>No broker picks available</li>";
-    return;
-  }
-
-  el.innerHTML = top.map(x=>`
-    <li>
-      <a href="#" onclick="return false">
-        <span class="badge badge-pos">High Conviction</span>
-        <b>${x.ticker}</b> — ${x.name}
-        <span class="smallmuted">
-          ${x.upside}% upside · ${x.brokers} brokers
-        </span>
-      </a>
-    </li>
-  `).join("");
-}
-    </div>
-  </div>
-
-</div>
-
-<script>
-/** Cloudflare Worker (Yahoo proxy + RSS proxy)
- * Must support:
- *   - ?symbol=...&range=...  (Yahoo chart JSON proxy)
- *   - ?url=...              (RSS/Atom proxy)
- */
-const PROXY = "https://wild-dream-69cc.seanhurren.workers.dev";
-
-/** Market symbols */
-const ASSETS = [
-  { name:"ASX 200",      symbol:"^AXJO", link:"https://finance.yahoo.com/quote/%5EAXJO" },
-  { name:"S&P 500",      symbol:"^GSPC", link:"https://finance.yahoo.com/quote/%5EGSPC" },
-  { name:"NASDAQ",       symbol:"^IXIC", link:"https://finance.yahoo.com/quote/%5EIXIC" },
-  { name:"AUD / USD",    symbol:"AUDUSD=X", link:"https://finance.yahoo.com/quote/AUDUSD%3DX" },
-  { name:"US 10Y Yield", symbol:"^TNX",  y:true, link:"https://finance.yahoo.com/quote/%5ETNX" },
-  { name:"Gold",         symbol:"GC=F", link:"https://finance.yahoo.com/quote/GC%3DF" },
-  { name:"VIX",          symbol:"^VIX", link:"https://finance.yahoo.com/quote/%5EVIX" }
-];
 
 /* =========================
    Broker Picks Data
@@ -1088,7 +992,72 @@ const asxFiltered = asxRaw.items || [];
   renderNews(leg.items || [], document.getElementById("legNews"));
   renderNews(macro.items || [], document.getElementById("macroNews"));
 }
+/* =========================
+   Broker Picks Loader
+========================= */
 
+async function loadBrokerPicks(){
+
+  try{
+    const res = await fetch("./data/broker-picks.json");
+    const picks = await res.json();
+
+    renderBestPicks(picks);
+
+  }catch(err){
+    console.log("Broker data failed to load", err);
+  }
+}
+
+function renderBestPicks(data){
+
+  const top = data
+    .filter(x => x.rating.includes("Buy"))
+    .sort((a,b)=> b.upside - a.upside)
+    .slice(0,5);
+
+  const el = document.getElementById("topBuys");
+
+  if(!top.length){
+    el.innerHTML = "<li>No broker picks available</li>";
+    return;
+  }
+
+  el.innerHTML = top.map(x=>`
+    <li>
+      <a href="#" onclick="return false">
+        <span class="badge badge-pos">High Conviction</span>
+        <b>${x.ticker}</b> — ${x.name}
+        <span class="smallmuted">
+          ${x.upside}% upside · ${x.brokers} brokers
+        </span>
+      </a>
+    </li>
+  `).join("");
+}
+    </div>
+  </div>
+
+</div>
+
+<script>
+/** Cloudflare Worker (Yahoo proxy + RSS proxy)
+ * Must support:
+ *   - ?symbol=...&range=...  (Yahoo chart JSON proxy)
+ *   - ?url=...              (RSS/Atom proxy)
+ */
+const PROXY = "https://wild-dream-69cc.seanhurren.workers.dev";
+
+/** Market symbols */
+const ASSETS = [
+  { name:"ASX 200",      symbol:"^AXJO", link:"https://finance.yahoo.com/quote/%5EAXJO" },
+  { name:"S&P 500",      symbol:"^GSPC", link:"https://finance.yahoo.com/quote/%5EGSPC" },
+  { name:"NASDAQ",       symbol:"^IXIC", link:"https://finance.yahoo.com/quote/%5EIXIC" },
+  { name:"AUD / USD",    symbol:"AUDUSD=X", link:"https://finance.yahoo.com/quote/AUDUSD%3DX" },
+  { name:"US 10Y Yield", symbol:"^TNX",  y:true, link:"https://finance.yahoo.com/quote/%5ETNX" },
+  { name:"Gold",         symbol:"GC=F", link:"https://finance.yahoo.com/quote/GC%3DF" },
+  { name:"VIX",          symbol:"^VIX", link:"https://finance.yahoo.com/quote/%5EVIX" }
+];
 /* =========================
    Refresh markets + regime
 ========================= */
