@@ -408,7 +408,7 @@ Paste broker table here...
         <ul class="news-list" id="macroNews"></ul>
       </div>
 
-
+<script>
 
 /* =========================
    Broker Picks Data
@@ -749,7 +749,17 @@ function renderAsxTable(items){
     const tag = impactTag(n.title);
     const when = n.dateMs ? fmtTimeAgo(n.dateMs) : "—";
 
-    return `
+  function extractAsxCode(title){
+  if(!title) return null;
+
+  const match = title.match(/\b[A-Z]{2,4}\b/);
+
+  if(match){
+    return match[0];
+  }
+
+  return null;
+}
       <tr>
         <td>${isASX200 ? escapeHtml(code) : "ASX"}</td>
         <td>
