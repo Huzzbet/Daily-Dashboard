@@ -366,6 +366,8 @@ a{color:var(--accent)}
         </table>
       
       <div class="card">
+        
+        
   <div class="card-header">
     <h2>Broker Consensus Loader</h2>
     <span>Paste broker data</span>
@@ -726,7 +728,11 @@ function renderNews(list, el){
     </li>`;
   }).join("");
 }
-
+function extractAsxCode(title){
+  if(!title) return null;
+  const match = title.match(/\b[A-Z]{2,4}\b/);
+  return match ? match[0] : null;
+}
 function renderAsxTable(items){
   const tbody = document.querySelector("#asxNewsTable tbody");
   if(!tbody) return;
@@ -748,17 +754,7 @@ function renderAsxTable(items){
     const isASX200 = code && ASX200_TICKERS.has(code);
     const tag = impactTag(n.title);
     const when = n.dateMs ? fmtTimeAgo(n.dateMs) : "—";
-
-  function extractAsxCode(title){
-  if(!title) return null;
-
-  const match = title.match(/\b[A-Z]{2,4}\b/);
-
-  if(match){
-    return match[0];
-  }
-
-  return null;
+  
 }
       <tr>
         <td>${isASX200 ? escapeHtml(code) : "ASX"}</td>
