@@ -366,7 +366,7 @@ a{color:var(--accent)}
         </table>
       
       <div class="card">
-        
+      </div> <!-- CLOSE FN Arena card -->  
         
   <div class="card-header">
     <h2>Broker Consensus Loader</h2>
@@ -754,8 +754,8 @@ function renderAsxTable(items){
     const isASX200 = code && ASX200_TICKERS.has(code);
     const tag = impactTag(n.title);
     const when = n.dateMs ? fmtTimeAgo(n.dateMs) : "—";
-  
-}
+
+    return `
       <tr>
         <td>${isASX200 ? escapeHtml(code) : "ASX"}</td>
         <td>
