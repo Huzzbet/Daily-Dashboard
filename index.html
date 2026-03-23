@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Internal Market & Advice Dashboard</title>
+<title>Internal Market &amp; Advice Dashboard</title>
 
 <style>
 :root{
@@ -23,6 +23,7 @@
 }
 
 *{box-sizing:border-box}
+
 body{
   margin:0;
   font-family:var(--font);
@@ -32,13 +33,31 @@ body{
   color:var(--text);
 }
 
-.container{max-width:1280px;margin:auto;padding:22px 18px 60px}
+.container{
+  max-width:1280px;
+  margin:auto;
+  padding:22px 18px 60px;
+}
 
 .topbar{
-  display:flex; align-items:flex-end; justify-content:space-between; gap:14px;
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:14px;
 }
-h1{margin:0;font-size:26px;font-weight:650; letter-spacing:.2px}
-.sub{margin-top:6px;color:var(--muted);font-size:14px}
+
+h1{
+  margin:0;
+  font-size:26px;
+  font-weight:650;
+  letter-spacing:.2px;
+}
+
+.sub{
+  margin-top:6px;
+  color:var(--muted);
+  font-size:14px;
+}
 
 .smallmuted{color:var(--muted);font-size:12px}
 .muted{color:var(--muted)}
@@ -57,10 +76,12 @@ h1{margin:0;font-size:26px;font-weight:650; letter-spacing:.2px}
   transition:.12s ease;
   white-space:nowrap;
 }
+
 .btn:active{
   transform:translateY(6px);
   box-shadow:0 3px 0 #2c9fb3, 0 6px 14px rgba(0,0,0,.6) inset;
 }
+
 .btn[disabled]{opacity:.65; cursor:not-allowed}
 
 .grid{
@@ -70,6 +91,7 @@ h1{margin:0;font-size:26px;font-weight:650; letter-spacing:.2px}
   gap:18px;
   align-items:start;
 }
+
 @media (max-width: 980px){
   .grid{grid-template-columns: 1fr;}
 }
@@ -81,7 +103,12 @@ h1{margin:0;font-size:26px;font-weight:650; letter-spacing:.2px}
   box-shadow:var(--shadow);
   padding:18px;
 }
-.stack{display:flex; flex-direction:column; gap:18px}
+
+.stack{
+  display:flex;
+  flex-direction:column;
+  gap:18px;
+}
 
 .card-header{
   display:flex;
@@ -90,17 +117,42 @@ h1{margin:0;font-size:26px;font-weight:650; letter-spacing:.2px}
   gap:12px;
   margin-bottom:10px;
 }
-.card-header h2{margin:0;font-size:16px;font-weight:700}
-.card-header h3{margin:0;font-size:16px;font-weight:700}
-.card-header span{font-size:12px;color:var(--muted)}
-.card-header .right{display:flex; align-items:center; gap:10px}
+
+.card-header h2{
+  margin:0;
+  font-size:16px;
+  font-weight:700;
+}
+
+.card-header h3{
+  margin:0;
+  font-size:16px;
+  font-weight:700;
+}
+
+.card-header span{
+  font-size:12px;
+  color:var(--muted);
+}
+
+.card-header .right{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
 
 hr.sep{
-  border:none; height:1px; background:rgba(255,255,255,.07);
+  border:none;
+  height:1px;
+  background:rgba(255,255,255,.07);
   margin:12px 0;
 }
 
-.market-table{width:100%;border-collapse:collapse}
+.market-table{
+  width:100%;
+  border-collapse:collapse;
+}
+
 .market-table th{
   text-align:left;
   font-size:11px;
@@ -108,18 +160,50 @@ hr.sep{
   letter-spacing:.12em;
   padding:12px 6px;
 }
-.market-table td{padding:14px 6px;font-size:15px}
-.market-table tr:not(:last-child){border-bottom:1px solid var(--border)}
-.market-table a{color:var(--accent); text-decoration:none}
-.market-table a:hover{text-decoration:underline}
+
+.market-table td{
+  padding:14px 6px;
+  font-size:15px;
+}
+
+.market-table tr:not(:last-child){
+  border-bottom:1px solid var(--border);
+}
+
+.market-table a{
+  color:var(--accent);
+  text-decoration:none;
+}
+
+.market-table a:hover{
+  text-decoration:underline;
+}
+
 .pos{color:var(--green)}
 .neg{color:var(--red)}
 
-.bullets{margin:12px 0 0 18px;padding:0}
-.bullets li{margin:10px 0;font-size:15px;line-height:1.45}
+.bullets{
+  margin:12px 0 0 18px;
+  padding:0;
+}
 
-.news-list{list-style:none;padding:0;margin:8px 0 0 0}
-.news-list li{margin:10px 0;line-height:1.45}
+.bullets li{
+  margin:10px 0;
+  font-size:15px;
+  line-height:1.45;
+}
+
+.news-list{
+  list-style:none;
+  padding:0;
+  margin:8px 0 0 0;
+}
+
+.news-list li{
+  margin:10px 0;
+  line-height:1.45;
+}
+
 .news-list a{
   display:block;
   padding:10px 10px;
@@ -129,6 +213,7 @@ hr.sep{
   border:1px solid rgba(255,255,255,.06);
   background:rgba(255,255,255,.02);
 }
+
 .news-list a:hover{
   color:var(--accent);
   text-decoration:none;
@@ -147,23 +232,26 @@ hr.sep{
   letter-spacing:.02em;
   gap:6px;
 }
+
 .badge-high{ background:rgba(255,92,122,.18); color:#ff5c7a; }
 .badge-mid{  background:rgba(255,209,102,.18); color:#ffd166; }
 .badge-low{  background:rgba(43,212,125,.18); color:#2bd47d; }
+
 .badge-src{
   background:rgba(110,231,255,.10);
   color:#aef3ff;
   border:1px solid rgba(110,231,255,.18);
 }
 
-/* Sentiment badges (for broker signals / inferred tone) */
+/* Sentiment badges */
 .badge-pos{ background:rgba(43,212,125,.18); color:#2bd47d; }
 .badge-neg{ background:rgba(255,92,122,.18); color:#ff5c7a; }
 .badge-neu{ background:rgba(255,209,102,.18); color:#ffd166; }
 
 .regime-dot{
   display:inline-block;
-  width:14px;height:14px;
+  width:14px;
+  height:14px;
   border-radius:50%;
   margin-right:10px;
   vertical-align:middle;
@@ -171,35 +259,50 @@ hr.sep{
 }
 
 .feed-health{
-  display:flex; align-items:center; gap:8px;
-  font-size:12px; color:var(--muted);
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-size:12px;
+  color:var(--muted);
 }
+
 .health-dot{
-  width:10px; height:10px; border-radius:50%;
+  width:10px;
+  height:10px;
+  border-radius:50%;
   box-shadow:0 0 0 3px rgba(255,255,255,.06);
 }
+
 .health-ok{background:var(--green)}
 .health-warn{background:var(--amber)}
 .health-bad{background:var(--red)}
 
-.news-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.9rem;
+.news-table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:.9rem;
 }
+
 .news-table th,
-.news-table td {
-  padding: 10px 12px;
-  border-bottom: 1px solid var(--border);
-  text-align: left;
+.news-table td{
+  padding:10px 12px;
+  border-bottom:1px solid var(--border);
+  text-align:left;
 }
-.news-table th {
-  color: var(--muted);
-  font-weight: 600;
+
+.news-table th{
+  color:var(--muted);
+  font-weight:600;
 }
-.center { text-align: center; }
+
+.center{text-align:center}
 
 a{color:var(--accent)}
+
+textarea{
+  font-family:var(--mono);
+  resize:vertical;
+}
 </style>
 </head>
 
@@ -226,10 +329,9 @@ a{color:var(--accent)}
 
   <div class="grid">
 
-    <!-- LEFT: CORE MARKET / CLIENT -->
+    <!-- LEFT -->
     <div class="stack">
 
-      <!-- MARKET REGIME -->
       <div class="card">
         <div class="card-header">
           <h2>Market Regime</h2>
@@ -239,7 +341,6 @@ a{color:var(--accent)}
         <ul class="bullets" id="regimeDrivers"></ul>
       </div>
 
-      <!-- CLIENT TALKING POINTS -->
       <div class="card">
         <div class="card-header">
           <h2>Client Talking Points</h2>
@@ -248,7 +349,6 @@ a{color:var(--accent)}
         <ul class="bullets" id="clientTalkingPoints"></ul>
       </div>
 
-      <!-- MARKET TABLE -->
       <div class="card">
         <div class="card-header">
           <h2>Market Performance Overview</h2>
@@ -257,7 +357,12 @@ a{color:var(--accent)}
         <table class="market-table">
           <thead>
             <tr>
-              <th>ASSET</th><th>TICKER</th><th>LEVEL</th><th>1-DAY</th><th>2026 YTD</th><th>2025 CY</th>
+              <th>ASSET</th>
+              <th>TICKER</th>
+              <th>LEVEL</th>
+              <th>1-DAY</th>
+              <th>2026 YTD</th>
+              <th>2025 CY</th>
             </tr>
           </thead>
           <tbody id="marketRows">
@@ -266,38 +371,81 @@ a{color:var(--accent)}
         </table>
       </div>
 
+      <div class="card">
+        <div class="card-header">
+          <h2>FN Arena – Broker Signals</h2>
+          <span>Broker actions · signal-only</span>
+        </div>
+
+        <div class="smallmuted" style="margin-bottom:10px">
+          High-level broker signals inferred from FN Arena feed headlines. Treat as directional (signal-only).
+        </div>
+
+        <table class="news-table" id="fnArenaTable">
+          <thead>
+            <tr>
+              <th>Company</th>
+              <th>Signal</th>
+              <th>Sentiment</th>
+              <th>Impact</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td colspan="4" class="muted center">
+                Loading FN Arena signals…
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h2>Broker Consensus Loader</h2>
+          <span>Paste broker data</span>
+        </div>
+
+        <textarea
+          id="brokerInput"
+          style="width:100%;height:140px;border-radius:12px;padding:12px;background:#081024;color:white;border:1px solid rgba(255,255,255,.1)"
+          placeholder="Paste broker table here..."
+        ></textarea>
+
+        <button class="btn" style="margin-top:10px" onclick="parseBrokerData()">
+          Load Broker Picks
+        </button>
+      </div>
+
     </div>
 
-    <!-- RIGHT: NEWS HUB -->
+    <!-- RIGHT -->
     <div class="stack">
 
-<!-- BROKER CONSENSUS TOP PICKS -->
-<div class="card">
-  <div class="card-header">
-    <h2>Broker Consensus — Top Picks</h2>
-    <span>Top 5 Buy · Hold · Sell</span>
-  </div>
+      <div class="card">
+        <div class="card-header">
+          <h2>Broker Consensus — Top Picks</h2>
+          <span>Top 5 Buy · Hold · Sell</span>
+        </div>
 
-  <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px">
+        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px">
+          <div>
+            <div class="badge badge-pos">Strong Buy</div>
+            <ul class="news-list" id="topBuys"></ul>
+          </div>
 
-    <div>
-      <div class="badge badge-pos">Strong Buy</div>
-      <ul class="news-list" id="topBuys"></ul>
-    </div>
+          <div>
+            <div class="smallmuted">🟠 Hold</div>
+            <ul class="news-list" id="topHolds"></ul>
+          </div>
 
-    <div>
-      <div class="smallmuted">🟠 Hold</div>
-      <ul class="news-list" id="topHolds"></ul>
-    </div>
+          <div>
+            <div class="smallmuted">🔴 Sell</div>
+            <ul class="news-list" id="topSells"></ul>
+          </div>
+        </div>
+      </div>
 
-    <div>
-      <div class="smallmuted">🔴 Sell</div>
-      <ul class="news-list" id="topSells"></ul>
-    </div>
-
-  </div>
-  </div>
-      <!-- ADVISER NEWS HUB -->
       <div class="card">
         <div class="card-header">
           <h2>Financial Advice – News Hub</h2>
@@ -307,7 +455,6 @@ a{color:var(--accent)}
         <ul class="news-list" id="adviserNews"></ul>
       </div>
 
-      <!-- ASX 200 NEWS -->
       <section class="card">
         <div class="card-header">
           <h3>ASX 200 Company News</h3>
@@ -334,56 +481,6 @@ a{color:var(--accent)}
         </table>
       </section>
 
-        </div>
-
-      
-       <div class="card">
-        <div class="card-header">
-          <h2>FN Arena – Broker Signals</h2>
-          <span>Broker actions · signal-only</span>
-        </div>
-
-        <div class="smallmuted" style="margin-bottom:10px">
-          High-level broker signals inferred from FN Arena feed headlines. Treat as directional (signal-only).
-        </div>
-
-        <table class="news-table" id="fnArenaTable">
-         <thead>
-<tr>
-<th>Company</th>
-<th>Signal</th>
-<th>Sentiment</th>
-<th>Impact</th>
-</tr>
-</thead>
-          <tbody>
-            <tr>
-              <td colspan="4" class="muted center">
-                Loading FN Arena signals…
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      
-      <div class="card">
-      </div> <!-- CLOSE FN Arena card -->  
-        
-  <div class="card-header">
-    <h2>Broker Consensus Loader</h2>
-    <span>Paste broker data</span>
-  </div>
-
-  <textarea id="brokerInput"
-    style="width:100%;height:140px;border-radius:12px;padding:12px;background:#081024;color:white;border:1px solid rgba(255,255,255,.1)">
-Paste broker table here...
-  </textarea>
-
-  <button class="btn" style="margin-top:10px" onclick="parseBrokerData()">
-    Load Broker Picks
-  </button>
-</div>
-
-      <!-- US COMPANY NEWS -->
       <div class="card">
         <div class="card-header">
           <h2>US Company News</h2>
@@ -392,7 +489,6 @@ Paste broker table here...
         <ul class="news-list" id="usNews"></ul>
       </div>
 
-      <!-- LEGISLATION -->
       <div class="card">
         <div class="card-header">
           <h2>Super &amp; Insurance – Legislative Updates</h2>
@@ -401,7 +497,6 @@ Paste broker table here...
         <ul class="news-list" id="legNews"></ul>
       </div>
 
-      <!-- MACRO -->
       <div class="card">
         <div class="card-header">
           <h2>Major Economic Headlines</h2>
@@ -410,10 +505,20 @@ Paste broker table here...
         <ul class="news-list" id="macroNews"></ul>
       </div>
 
+    </div>
+  </div>
+</div>
+
 <script>
+/** Cloudflare Worker (Yahoo proxy + RSS proxy)
+ * Must support:
+ *   - ?symbol=...&range=...  (Yahoo chart JSON proxy)
+ *   - ?url=...               (RSS/Atom proxy)
+ */
+const PROXY = "https://wild-dream-69cc.seanhurren.workers.dev";
 
 /* =========================
-   Broker Picks Data
+   Broker Picks Data (fallback)
 ========================= */
 const BROKER_PICKS = [
   {
@@ -440,9 +545,11 @@ const BROKER_PICKS = [
     brokers: 3,
     lastUpdate: "2026-02-20"
   }
-  ];
-  
-/** ASX 200 ticker set (approx major list) */
+];
+
+/* =========================
+   ASX 200 ticker set
+========================= */
 const ASX200_TICKERS = new Set([
   "BHP","CBA","NAB","WBC","ANZ","MQG","WES","WOW","CSL","TLS","GMG","ALL","RIO","FMG","COL","TCL","SCG","QBE","SUN",
   "RHC","IAG","CPU","S32","ORG","STO","WDS","APA","ALD","BXB","ASX","REA","XRO","SEK","RMD","FPH","COH","A2M",
@@ -451,7 +558,9 @@ const ASX200_TICKERS = new Set([
   "SUL","ALQ","BKW","AZJ","ORI","ORA","JLG","NEA","ZIP","WTC","BRG","PDN","APX","IFL","HUB","MFG","GQG","VEA"
 ]);
 
-/** Feeds */
+/* =========================
+   Feeds
+========================= */
 const FEEDS = {
   adviser: [
     { url: "https://faaa.au/media-releases/feed/", src: "FAAA" },
@@ -476,12 +585,26 @@ const FEEDS = {
     { url: "https://www.afr.com/politics/rss", src: "AFR" }
   ],
   fnArena: [
-    /* NOTE: FN Arena feed reliability can vary. We treat outputs as signal-only. */
     { url: "https://www.fnarena.com/index.php/feed/", src: "FN Arena" }
   ]
 };
 
-/** Impact tagging keywords */
+/* =========================
+   Market symbols
+========================= */
+const ASSETS = [
+  { name:"ASX 200",      symbol:"^AXJO", link:"https://finance.yahoo.com/quote/%5EAXJO" },
+  { name:"S&P 500",      symbol:"^GSPC", link:"https://finance.yahoo.com/quote/%5EGSPC" },
+  { name:"NASDAQ",       symbol:"^IXIC", link:"https://finance.yahoo.com/quote/%5EIXIC" },
+  { name:"AUD / USD",    symbol:"AUDUSD=X", link:"https://finance.yahoo.com/quote/AUDUSD%3DX" },
+  { name:"US 10Y Yield", symbol:"^TNX", y:true, link:"https://finance.yahoo.com/quote/%5ETNX" },
+  { name:"Gold",         symbol:"GC=F", link:"https://finance.yahoo.com/quote/GC%3DF" },
+  { name:"VIX",          symbol:"^VIX", link:"https://finance.yahoo.com/quote/%5EVIX" }
+];
+
+/* =========================
+   Impact tagging keywords
+========================= */
 const IMPACT = {
   high: [
     "rate decision","cash rate","monetary policy","statement on monetary policy",
@@ -503,54 +626,75 @@ const IMPACT = {
 /* =========================
    Helpers
 ========================= */
-function isNum(x){ return typeof x === "number" && Number.isFinite(x); }
+function isNum(x){
+  return typeof x === "number" && Number.isFinite(x);
+}
 
 function safePct(current, base){
   if(!isNum(current) || !isNum(base) || base === 0) return "—";
   return (((current - base) / base) * 100).toFixed(2) + "%";
 }
+
 function safeBps(current, base){
   if(!isNum(current) || !isNum(base)) return "—";
   return ((current - base) * 100).toFixed(0) + " bps";
 }
+
 function lastNonNull(closes){
-  for(let i=closes.length-1;i>=0;i--) if(isNum(closes[i])) return closes[i];
+  for(let i = closes.length - 1; i >= 0; i--){
+    if(isNum(closes[i])) return closes[i];
+  }
   return null;
 }
+
 function firstCloseForYear(timestamps, closes, year){
-  for(let i=0;i<timestamps.length;i++){
-    const y = new Date(timestamps[i]*1000).getFullYear();
+  for(let i = 0; i < timestamps.length; i++){
+    const y = new Date(timestamps[i] * 1000).getFullYear();
     const c = closes[i];
     if(y === year && isNum(c)) return c;
   }
   return null;
 }
+
 function lastCloseForYear(timestamps, closes, year){
-  for(let i=timestamps.length-1;i>=0;i--){
-    const y = new Date(timestamps[i]*1000).getFullYear();
+  for(let i = timestamps.length - 1; i >= 0; i--){
+    const y = new Date(timestamps[i] * 1000).getFullYear();
     const c = closes[i];
     if(y === year && isNum(c)) return c;
   }
   return null;
 }
+
 function impactTag(title){
   const t = (title || "").toLowerCase();
-  if(IMPACT.high.some(k=>t.includes(k))) return { cls:"badge-high", txt:"🔴 High" };
-  if(IMPACT.mid.some(k=>t.includes(k)))  return { cls:"badge-mid",  txt:"🟠 Med" };
+  if(IMPACT.high.some(k => t.includes(k))) return { cls:"badge-high", txt:"🔴 High" };
+  if(IMPACT.mid.some(k => t.includes(k)))  return { cls:"badge-mid",  txt:"🟠 Med" };
   return { cls:"badge-low", txt:"🟢 Low" };
 }
 
-/* Sentiment helpers (signal-only) */
 function sentimentTag(title){
   const t = (title || "").toLowerCase();
-  if(t.includes("upgrade") || t.includes("raised to") || t.includes("lifted to") || t.includes("buy") || t.includes("overweight")){
+  if(
+    t.includes("upgrade") ||
+    t.includes("raised to") ||
+    t.includes("lifted to") ||
+    t.includes("buy") ||
+    t.includes("overweight")
+  ){
     return { cls:"badge-pos", txt:"Positive" };
   }
-  if(t.includes("downgrade") || t.includes("lowered to") || t.includes("cut to") || t.includes("sell") || t.includes("underweight")){
+  if(
+    t.includes("downgrade") ||
+    t.includes("lowered to") ||
+    t.includes("cut to") ||
+    t.includes("sell") ||
+    t.includes("underweight")
+  ){
     return { cls:"badge-neg", txt:"Negative" };
   }
   return { cls:"badge-neu", txt:"Neutral" };
 }
+
 function parseBrokerAction(title){
   const t = (title || "").toLowerCase();
   if(t.includes("upgrade")) return "Upgrade";
@@ -561,34 +705,25 @@ function parseBrokerAction(title){
   if(t.includes("rating")) return "Rating";
   return "Broker update";
 }
-function parseBrokerName(title){
-  /* Common patterns are inconsistent, so we keep this conservative. */
-  const s = title || "";
-  const m1 = s.match(/\bby\s+([A-Za-z&.\s]+)$/i);              // "... by Broker"
-  if(m1?.[1]) return m1[1].trim();
-
-  const m2 = s.match(/\b-\s*([A-Za-z&.\s]+)\s*$/);             // "... - Broker"
-  if(m2?.[1]) return m2[1].trim();
-
-  return "FN Arena";
-}
 
 function fmtTimeAgo(dateMs){
   if(!dateMs) return "";
   const delta = Date.now() - dateMs;
-  const min = Math.floor(delta/60000);
+  const min = Math.floor(delta / 60000);
   if(min < 1) return "just now";
   if(min < 60) return `${min}m ago`;
-  const hr = Math.floor(min/60);
+  const hr = Math.floor(min / 60);
   if(hr < 24) return `${hr}h ago`;
-  const d = Math.floor(hr/24);
+  const d = Math.floor(hr / 24);
   return `${d}d ago`;
 }
+
 function parseMaybeDate(str){
   if(!str) return null;
   const t = Date.parse(str);
   return Number.isFinite(t) ? t : null;
 }
+
 function escapeHtml(s){
   return String(s ?? "")
     .replaceAll("&","&amp;")
@@ -605,11 +740,16 @@ async function yahooChart(symbol, range){
   const url = `${PROXY}?symbol=${encodeURIComponent(symbol)}&range=${encodeURIComponent(range)}`;
   const res = await fetch(url, { cache:"no-store" });
   const text = await res.text();
+
   let json;
-  try { json = JSON.parse(text); }
-  catch(e){ throw new Error("Proxy did not return JSON (Yahoo)"); }
+  try{
+    json = JSON.parse(text);
+  }catch(e){
+    throw new Error("Proxy did not return JSON (Yahoo)");
+  }
+
   const result = json?.chart?.result?.[0];
-  if(!result) throw new Error("Yahoo returned no result");
+  if(!result) throw new Error(`Yahoo returned no result for ${symbol}`);
   return result;
 }
 
@@ -621,31 +761,30 @@ async function fetchRSS(url){
   const xmlText = await res.text();
   const xml = new DOMParser().parseFromString(xmlText, "text/xml");
 
-  // Detect parsing errors
   const parserError = xml.querySelector("parsererror");
   if(parserError) throw new Error("RSS parse error");
 
-  // RSS <item>
-  let items = [...xml.querySelectorAll("item")].map(i=>{
+  let items = [...xml.querySelectorAll("item")].map(i => {
     const title = i.querySelector("title")?.textContent?.trim() || "";
     const link  = (i.querySelector("link")?.textContent || "").trim();
-    const pub   = i.querySelector("pubDate")?.textContent?.trim()
-               || i.querySelector("date")?.textContent?.trim()
-               || i.querySelector("dc\\:date")?.textContent?.trim()
-               || "";
-    const dtMs  = parseMaybeDate(pub);
+    const pub   =
+      i.querySelector("pubDate")?.textContent?.trim() ||
+      i.querySelector("date")?.textContent?.trim() ||
+      i.querySelector("dc\\:date")?.textContent?.trim() ||
+      "";
+    const dtMs = parseMaybeDate(pub);
     return { title, link, dateMs: dtMs };
   });
 
-  // Atom <entry>
   if(items.length === 0){
-    items = [...xml.querySelectorAll("entry")].map(e=>{
+    items = [...xml.querySelectorAll("entry")].map(e => {
       const title = e.querySelector("title")?.textContent?.trim() || "";
       const linkEl = e.querySelector('link[rel="alternate"]') || e.querySelector("link");
       const link = (linkEl?.getAttribute("href") || linkEl?.textContent || "").trim();
-      const upd = e.querySelector("updated")?.textContent?.trim()
-               || e.querySelector("published")?.textContent?.trim()
-               || "";
+      const upd =
+        e.querySelector("updated")?.textContent?.trim() ||
+        e.querySelector("published")?.textContent?.trim() ||
+        "";
       const dtMs = parseMaybeDate(upd);
       return { title, link, dateMs: dtMs };
     });
@@ -655,15 +794,16 @@ async function fetchRSS(url){
   return items.slice(0,10);
 }
 
-/** Merge + de-dup across multiple feeds with source label */
 async function fetchGroup(feedObjs){
-  const results = await Promise.allSettled(feedObjs.map(async f=>{
-    const list = await fetchRSS(f.url);
-    return list.map(x=>({ ...x, src: f.src }));
-  }));
+  const results = await Promise.allSettled(
+    feedObjs.map(async f => {
+      const list = await fetchRSS(f.url);
+      return list.map(x => ({ ...x, src: f.src }));
+    })
+  );
 
-  const ok = results.filter(r=>r.status==="fulfilled").map(r=>r.value).flat();
-  const failed = results.filter(r=>r.status==="rejected").length;
+  const ok = results.filter(r => r.status === "fulfilled").map(r => r.value).flat();
+  const failed = results.filter(r => r.status === "rejected").length;
 
   const seen = new Set();
   let merged = ok.filter(i => {
@@ -673,7 +813,7 @@ async function fetchGroup(feedObjs){
     return true;
   });
 
-  merged.sort((a,b)=>{
+  merged.sort((a,b) => {
     if(a.dateMs && b.dateMs) return b.dateMs - a.dateMs;
     if(a.dateMs && !b.dateMs) return -1;
     if(!a.dateMs && b.dateMs) return 1;
@@ -684,29 +824,30 @@ async function fetchGroup(feedObjs){
 }
 
 /* =========================
-   ASX 200 filtering
+   ASX helpers
 ========================= */
-function extractCompanyName(title){
+function extractAsxCode(title){
+  if(!title) return null;
+  const match = title.match(/\b[A-Z]{2,4}\b/);
+  return match ? match[0] : null;
+}
+
+function extractCompanyFromSignal(title){
   if(!title) return "ASX";
 
-  // remove common signal words
-  let name = title
-    .replace(/upgrade|downgrade|raised to|lowered to|cut to|initiated|rating/ig,"")
-    .replace(/\(.*?\)/g,"")
-    .trim();
+  const match = title.match(/^([A-Za-z&.\s]+?)\s+(upgrade|downgrade|raised|cut|initiated|rating)/i);
+  if(match && match[1]) return match[1].trim();
 
-  // take first 2 words (usually company)
-  const words = name.split(" ").slice(0,2).join(" ");
-
-  if(words.length > 2) return words;
-  return "ASX";
+  const ticker = extractAsxCode(title);
+  return ticker || "ASX";
 }
 
 /* =========================
-   Renderers (all clickable)
+   Renderers
 ========================= */
 function renderNews(list, el){
   if(!el) return;
+
   if(!list || list.length === 0){
     el.innerHTML = `<li><a href="#" onclick="return false;">
       <span class="badge badge-mid">🟠 Med</span>
@@ -728,11 +869,7 @@ function renderNews(list, el){
     </li>`;
   }).join("");
 }
-function extractAsxCode(title){
-  if(!title) return null;
-  const match = title.match(/\b[A-Z]{2,4}\b/);
-  return match ? match[0] : null;
-}
+
 function renderAsxTable(items){
   const tbody = document.querySelector("#asxNewsTable tbody");
   if(!tbody) return;
@@ -749,7 +886,7 @@ function renderAsxTable(items){
     return;
   }
 
-  tbody.innerHTML = items.map(n=>{
+  tbody.innerHTML = items.map(n => {
     const code = extractAsxCode(n.title);
     const isASX200 = code && ASX200_TICKERS.has(code);
     const tag = impactTag(n.title);
@@ -773,16 +910,13 @@ function renderAsxTable(items){
   }).join("");
 }
 
-/* FN Arena broker signals table (signal-only; inferred from headlines) */
 function renderFnArenaTable(items){
   const tbody = document.querySelector("#fnArenaTable tbody");
   if(!tbody) return;
 
   items = (items || [])
     .filter(i => i && i.title && i.link)
-
-    // only broker signals
-    .filter(i=>{
+    .filter(i => {
       const t = i.title.toLowerCase();
       return (
         t.includes("upgrade") ||
@@ -797,55 +931,42 @@ function renderFnArenaTable(items){
 
   if(items.length === 0){
     tbody.innerHTML = `
-    <tr>
-      <td colspan="4" class="muted center">
-        No broker signals detected today.
-      </td>
-    </tr>`;
+      <tr>
+        <td colspan="4" class="muted center">
+          No broker signals detected today.
+        </td>
+      </tr>`;
     return;
   }
 
-  tbody.innerHTML = items.slice(0,10).map(n=>{
+  tbody.innerHTML = items.slice(0,10).map(n => {
     const company = extractCompanyFromSignal(n.title);
     const action = parseBrokerAction(n.title);
     const sentiment = sentimentTag(n.title);
     const impact = impactTag(n.title);
 
     return `
-    <tr>
-      <td>${escapeHtml(company)}</td>
-
-      <td>
-        <a href="${escapeHtml(n.link)}" target="_blank">
-          ${escapeHtml(action)}
-        </a>
-      </td>
-
-      <td>
-        <span class="badge ${sentiment.cls}">
-          ${escapeHtml(sentiment.txt)}
-        </span>
-      </td>
-
-      <td>
-        <span class="badge ${impact.cls}">
-          ${escapeHtml(impact.txt)}
-        </span>
-      </td>
-    </tr>`;
+      <tr>
+        <td>${escapeHtml(company)}</td>
+        <td>
+          <a href="${escapeHtml(n.link)}" target="_blank" rel="noopener">
+            ${escapeHtml(action)}
+          </a>
+        </td>
+        <td>
+          <span class="badge ${sentiment.cls}">
+            ${escapeHtml(sentiment.txt)}
+          </span>
+        </td>
+        <td>
+          <span class="badge ${impact.cls}">
+            ${escapeHtml(impact.txt)}
+          </span>
+        </td>
+      </tr>`;
   }).join("");
 }
-function extractCompanyFromSignal(title){
-  if(!title) return "ASX";
 
-  const match = title.match(/^([A-Za-z&.\s]+?)\s+(upgrade|downgrade|raised|cut|initiated|rating)/i);
-
-  if(match && match[1]){
-    return match[1].trim();
-  }
-
-  return "ASX";
-}
 /* =========================
    Market regime logic
 ========================= */
@@ -854,41 +975,69 @@ function computeRegime(m){
   const drivers = [];
 
   if(isNum(m.vixLvl)){
-    if(m.vixLvl < 15){ score += 2; drivers.push(`Volatility low (VIX ${m.vixLvl.toFixed(1)}), supportive of risk assets.`); }
-    else if(m.vixLvl < 20){ drivers.push(`Volatility moderate (VIX ${m.vixLvl.toFixed(1)}), risk-neutral backdrop.`); }
-    else { score -= 2; drivers.push(`Volatility elevated (VIX ${m.vixLvl.toFixed(1)}), defensive tone.`); }
+    if(m.vixLvl < 15){
+      score += 2;
+      drivers.push(`Volatility low (VIX ${m.vixLvl.toFixed(1)}), supportive of risk assets.`);
+    }else if(m.vixLvl < 20){
+      drivers.push(`Volatility moderate (VIX ${m.vixLvl.toFixed(1)}), risk-neutral backdrop.`);
+    }else{
+      score -= 2;
+      drivers.push(`Volatility elevated (VIX ${m.vixLvl.toFixed(1)}), defensive tone.`);
+    }
   }else{
     drivers.push(`VIX unavailable (feed delay).`);
   }
 
   if(isNum(m.us10yChgBps)){
-    if(m.us10yChgBps <= -5){ score += 1; drivers.push(`US 10Y yields eased (${m.us10yChgBps.toFixed(0)} bps), supportive for growth.`); }
-    else if(m.us10yChgBps >= 5){ score -= 1; drivers.push(`US 10Y yields rose (${m.us10yChgBps.toFixed(0)} bps), tightening conditions.`); }
-    else { drivers.push(`US 10Y yields stable (${m.us10yChgBps.toFixed(0)} bps).`); }
+    if(m.us10yChgBps <= -5){
+      score += 1;
+      drivers.push(`US 10Y yields eased (${m.us10yChgBps.toFixed(0)} bps), supportive for growth.`);
+    }else if(m.us10yChgBps >= 5){
+      score -= 1;
+      drivers.push(`US 10Y yields rose (${m.us10yChgBps.toFixed(0)} bps), tightening conditions.`);
+    }else{
+      drivers.push(`US 10Y yields stable (${m.us10yChgBps.toFixed(0)} bps).`);
+    }
   }else{
     drivers.push(`US 10Y change unavailable (feed delay).`);
   }
 
   const usBreadth =
-    (isNum(m.spChgPct)?(m.spChgPct>0?1:(m.spChgPct<0?-1:0)):0) +
-    (isNum(m.ndxChgPct)?(m.ndxChgPct>0?1:(m.ndxChgPct<0?-1:0)):0);
+    (isNum(m.spChgPct) ? (m.spChgPct > 0 ? 1 : (m.spChgPct < 0 ? -1 : 0)) : 0) +
+    (isNum(m.ndxChgPct) ? (m.ndxChgPct > 0 ? 1 : (m.ndxChgPct < 0 ? -1 : 0)) : 0);
 
-  if(usBreadth >= 2){ score += 1; drivers.push(`US equities broadly higher (S&P & NASDAQ up), indicating risk appetite.`); }
-  else if(usBreadth <= -2){ score -= 1; drivers.push(`US equities broadly lower (S&P & NASDAQ down), risk appetite softer.`); }
-  else { drivers.push(`US equities mixed, suggesting selective risk-taking.`); }
+  if(usBreadth >= 2){
+    score += 1;
+    drivers.push(`US equities broadly higher (S&P & NASDAQ up), indicating risk appetite.`);
+  }else if(usBreadth <= -2){
+    score -= 1;
+    drivers.push(`US equities broadly lower (S&P & NASDAQ down), risk appetite softer.`);
+  }else{
+    drivers.push(`US equities mixed, suggesting selective risk-taking.`);
+  }
 
   if(isNum(m.audChgPct)){
-    if(m.audChgPct >= 0.25){ score += 1; drivers.push(`AUD stronger (${m.audChgPct.toFixed(2)}%), consistent with risk-on / commodity support.`); }
-    else if(m.audChgPct <= -0.25){ score -= 1; drivers.push(`AUD softer (${m.audChgPct.toFixed(2)}%), consistent with risk caution / USD bid.`); }
-    else { drivers.push(`AUD broadly steady (${m.audChgPct.toFixed(2)}%).`); }
+    if(m.audChgPct >= 0.25){
+      score += 1;
+      drivers.push(`AUD stronger (${m.audChgPct.toFixed(2)}%), consistent with risk-on / commodity support.`);
+    }else if(m.audChgPct <= -0.25){
+      score -= 1;
+      drivers.push(`AUD softer (${m.audChgPct.toFixed(2)}%), consistent with risk caution / USD bid.`);
+    }else{
+      drivers.push(`AUD broadly steady (${m.audChgPct.toFixed(2)}%).`);
+    }
   }else{
     drivers.push(`AUD/USD unavailable (feed delay).`);
   }
 
   if(isNum(m.asxChgPct)){
-    if(m.asxChgPct > 0 && usBreadth > 0) drivers.push(`Australia and US moving in the same direction (risk signal confirmed).`);
-    else if(m.asxChgPct < 0 && usBreadth < 0) drivers.push(`Australia and US both softer (risk-off confirmation).`);
-    else drivers.push(`Australia diverging from the US, which can reflect local sector rotation.`);
+    if(m.asxChgPct > 0 && usBreadth > 0){
+      drivers.push(`Australia and US moving in the same direction (risk signal confirmed).`);
+    }else if(m.asxChgPct < 0 && usBreadth < 0){
+      drivers.push(`Australia and US both softer (risk-off confirmation).`);
+    }else{
+      drivers.push(`Australia diverging from the US, which can reflect local sector rotation.`);
+    }
 
     if(m.asxChgPct > 0) score += 0.5;
     if(m.asxChgPct < 0) score -= 0.5;
@@ -898,8 +1047,14 @@ function computeRegime(m){
 
   let label = "Neutral";
   let color = "#ffd166";
-  if(score >= 3){ label = "Risk-On"; color = "#2bd47d"; }
-  if(score <= -2){ label = "Risk-Off"; color = "#ff5c7a"; }
+  if(score >= 3){
+    label = "Risk-On";
+    color = "#2bd47d";
+  }
+  if(score <= -2){
+    label = "Risk-Off";
+    color = "#ff5c7a";
+  }
 
   return { score, label, color, drivers };
 }
@@ -908,25 +1063,37 @@ function buildTalkingPoints(m){
   const bullets = [];
 
   if(isNum(m.us10yChgBps) && isNum(m.vixLvl)){
-    if(m.us10yChgBps <= -5 && m.vixLvl < 18) bullets.push(`US conditions look easier at the margin: yields down and volatility contained, supportive for equities.`);
-    else if(m.us10yChgBps >= 5 && m.vixLvl >= 18) bullets.push(`US conditions are tightening at the margin: yields up and volatility higher, favouring quality/defensive tilts.`);
-    else bullets.push(`US signals are mixed: yields/volatility not sending a strong one-way message today.`);
-  } else {
+    if(m.us10yChgBps <= -5 && m.vixLvl < 18){
+      bullets.push(`US conditions look easier at the margin: yields down and volatility contained, supportive for equities.`);
+    }else if(m.us10yChgBps >= 5 && m.vixLvl >= 18){
+      bullets.push(`US conditions are tightening at the margin: yields up and volatility higher, favouring quality/defensive tilts.`);
+    }else{
+      bullets.push(`US signals are mixed: yields/volatility not sending a strong one-way message today.`);
+    }
+  }else{
     bullets.push(`Some US signals are delayed (yields/volatility). Treat today’s read as provisional until feeds catch up.`);
   }
 
   if(isNum(m.asxChgPct) && isNum(m.audChgPct)){
-    if(m.asxChgPct > 0 && m.audChgPct >= 0) bullets.push(`Australia is tracking a constructive tone: ASX higher with a steady-to-firmer AUD.`);
-    else if(m.asxChgPct < 0 && m.audChgPct < 0) bullets.push(`Australia is softer: weaker ASX and AUD can reflect a more cautious global risk tone.`);
-    else bullets.push(`Australia is mixed: index direction and FX aren’t fully aligned, consistent with rotation rather than a broad risk shift.`);
-  } else {
+    if(m.asxChgPct > 0 && m.audChgPct >= 0){
+      bullets.push(`Australia is tracking a constructive tone: ASX higher with a steady-to-firmer AUD.`);
+    }else if(m.asxChgPct < 0 && m.audChgPct < 0){
+      bullets.push(`Australia is softer: weaker ASX and AUD can reflect a more cautious global risk tone.`);
+    }else{
+      bullets.push(`Australia is mixed: index direction and FX aren’t fully aligned, consistent with rotation rather than a broad risk shift.`);
+    }
+  }else{
     bullets.push(`Local read is incomplete (ASX/AUD delayed). Use overnight US tone + key local movers as the primary narrative.`);
   }
 
   if(isNum(m.vixLvl)){
-    if(m.vixLvl < 15) bullets.push(`Low volatility tends to reward disciplined rebalancing and trend-following exposure (avoid over-trading noise).`);
-    else if(m.vixLvl > 20) bullets.push(`Higher volatility environment: emphasise diversification, liquidity, and staggered entry points.`);
-    else bullets.push(`Moderate volatility: keep core exposures, be selective with adds around key levels.`);
+    if(m.vixLvl < 15){
+      bullets.push(`Low volatility tends to reward disciplined rebalancing and trend-following exposure (avoid over-trading noise).`);
+    }else if(m.vixLvl > 20){
+      bullets.push(`Higher volatility environment: emphasise diversification, liquidity, and staggered entry points.`);
+    }else{
+      bullets.push(`Moderate volatility: keep core exposures, be selective with adds around key levels.`);
+    }
   }
 
   if(isNum(m.us10yLvl) && isNum(m.us10yChgBps)){
@@ -946,6 +1113,7 @@ function buildTalkingPoints(m){
 function setFeedHealth(totalFailed){
   const el = document.getElementById("feedHealth");
   if(!el) return;
+
   const dot = el.querySelector(".health-dot");
   const text = el.querySelector("span:last-child");
   if(!dot || !text) return;
@@ -963,7 +1131,7 @@ function setFeedHealth(totalFailed){
 }
 
 /* =========================
-   Refresh news (all clickable)
+   Refresh news
 ========================= */
 async function refreshNews(){
   const groups = await Promise.all([
@@ -982,8 +1150,7 @@ async function refreshNews(){
   const macro   = groups[4] || {items:[],failed:1};
   const fnArena = groups[5] || {items:[],failed:1};
 
-  // SAFE filtering
-const asxFiltered = asxRaw.items || [];
+  const asxFiltered = asxRaw.items || [];
 
   renderAsxTable(asxFiltered.slice(0,10));
   renderFnArenaTable(fnArena.items || []);
@@ -998,106 +1165,172 @@ const asxFiltered = asxRaw.items || [];
   renderNews(leg.items || [], document.getElementById("legNews"));
   renderNews(macro.items || [], document.getElementById("macroNews"));
 }
+
 /* =========================
    Broker Picks Loader
 ========================= */
-
 async function loadBrokerPicks(){
-
   try{
-    const res = await fetch("./data/broker-picks.json");
+    const res = await fetch("./data/broker-picks.json", { cache:"no-store" });
+    if(!res.ok) throw new Error("broker-picks.json not found");
     const picks = await res.json();
-
     renderBestPicks(picks);
-
   }catch(err){
-    console.log("Broker data failed to load", err);
+    console.log("Broker data failed to load, using fallback", err);
+    renderBestPicks(BROKER_PICKS);
   }
 }
 
 function renderBestPicks(data){
-
-  const top = data
-    .filter(x => x.rating.includes("Buy"))
-    .sort((a,b)=> b.upside - a.upside)
+  const topBuysData = (data || [])
+    .filter(x => (x.rating || "").toLowerCase().includes("buy"))
+    .sort((a,b) => (b.upside || 0) - (a.upside || 0))
     .slice(0,5);
 
-  const el = document.getElementById("topBuys");
+  const topHoldsData = (data || [])
+    .filter(x => (x.rating || "").toLowerCase() === "hold")
+    .sort((a,b) => (b.upside || 0) - (a.upside || 0))
+    .slice(0,5);
 
-  if(!top.length){
-    el.innerHTML = "<li>No broker picks available</li>";
+  const topSellsData = (data || [])
+    .filter(x => (x.rating || "").toLowerCase().includes("sell"))
+    .sort((a,b) => (a.upside || 0) - (b.upside || 0))
+    .slice(0,5);
+
+  renderBrokerList(topBuysData, "topBuys", "🟢", "High Conviction");
+  renderBrokerList(topHoldsData, "topHolds", "🟠", "Hold");
+  renderBrokerList(topSellsData, "topSells", "🔴", "Sell");
+}
+
+function renderBrokerList(list, id, emoji, label){
+  const el = document.getElementById(id);
+  if(!el) return;
+
+  if(!list || !list.length){
+    el.innerHTML = `<li><a href="#" onclick="return false">${emoji} No items available</a></li>`;
     return;
   }
 
-  el.innerHTML = top.map(x=>`
+  el.innerHTML = list.map(x => `
     <li>
       <a href="#" onclick="return false">
-        <span class="badge badge-pos">High Conviction</span>
-        <b>${x.ticker}</b> — ${x.name}
+        <span class="badge ${label === 'Sell' ? 'badge-neg' : (label === 'Hold' ? 'badge-neu' : 'badge-pos')}">${escapeHtml(label)}</span>
+        <b>${escapeHtml(x.ticker || "—")}</b> — ${escapeHtml(x.name || "Unknown")}
         <span class="smallmuted">
-          ${x.upside}% upside · ${x.brokers} brokers
+          ${escapeHtml(String(x.upside ?? "—"))}% upside${x.brokers ? ` · ${escapeHtml(String(x.brokers))} brokers` : ""}
         </span>
       </a>
     </li>
   `).join("");
 }
-    </div>
-  </div>
 
-</div>
+/* =========================
+   Broker text parser
+========================= */
+function parseBrokerData(){
+  const input = document.getElementById("brokerInput");
+  if(!input) return;
 
-<script>
-/** Cloudflare Worker (Yahoo proxy + RSS proxy)
- * Must support:
- *   - ?symbol=...&range=...  (Yahoo chart JSON proxy)
- *   - ?url=...              (RSS/Atom proxy)
- */
-const PROXY = "https://wild-dream-69cc.seanhurren.workers.dev";
+  const text = input.value || "";
+  const lines = text.split("\n").map(x => x.trim()).filter(Boolean);
 
-/** Market symbols */
-const ASSETS = [
-  { name:"ASX 200",      symbol:"^AXJO", link:"https://finance.yahoo.com/quote/%5EAXJO" },
-  { name:"S&P 500",      symbol:"^GSPC", link:"https://finance.yahoo.com/quote/%5EGSPC" },
-  { name:"NASDAQ",       symbol:"^IXIC", link:"https://finance.yahoo.com/quote/%5EIXIC" },
-  { name:"AUD / USD",    symbol:"AUDUSD=X", link:"https://finance.yahoo.com/quote/AUDUSD%3DX" },
-  { name:"US 10Y Yield", symbol:"^TNX",  y:true, link:"https://finance.yahoo.com/quote/%5ETNX" },
-  { name:"Gold",         symbol:"GC=F", link:"https://finance.yahoo.com/quote/GC%3DF" },
-  { name:"VIX",          symbol:"^VIX", link:"https://finance.yahoo.com/quote/%5EVIX" }
-];
+  if(!lines.length){
+    renderBrokerList([], "topBuys", "🟢", "High Conviction");
+    renderBrokerList([], "topHolds", "🟠", "Hold");
+    renderBrokerList([], "topSells", "🔴", "Sell");
+    return;
+  }
+
+  const stocks = [];
+
+  for(let i = 0; i < lines.length; i++){
+    const ticker = lines[i];
+    const name = lines[i + 1];
+    const rating = lines[i + 3];
+    const upsideLine = lines[i + 7];
+
+    if(!ticker || !rating || !upsideLine) continue;
+
+    const upsideMatch = upsideLine.match(/[-+]?\d+(\.\d+)?/);
+
+    stocks.push({
+      ticker: ticker.trim(),
+      name: name?.trim() || "",
+      rating: rating.trim(),
+      upside: upsideMatch ? parseFloat(upsideMatch[0]) : 0
+    });
+  }
+
+  const buys = stocks
+    .filter(x => (x.rating || "").includes("Buy"))
+    .sort((a,b) => (b.upside || 0) - (a.upside || 0))
+    .slice(0,5);
+
+  const holds = stocks
+    .filter(x => (x.rating || "") === "Hold")
+    .sort((a,b) => (b.upside || 0) - (a.upside || 0))
+    .slice(0,5);
+
+  const sells = stocks
+    .filter(x => (x.rating || "").includes("Sell"))
+    .sort((a,b) => (a.upside || 0) - (b.upside || 0))
+    .slice(0,5);
+
+  renderBrokerList(buys, "topBuys", "🟢", "High Conviction");
+  renderBrokerList(holds, "topHolds", "🟠", "Hold");
+  renderBrokerList(sells, "topSells", "🔴", "Sell");
+}
+
 /* =========================
    Refresh markets + regime
 ========================= */
 async function refreshAll(){
   const btn = document.getElementById("refreshBtn");
-  btn.disabled = true;
-  const oldText = btn.innerText;
-  btn.innerText = "Refreshing…";
+  if(btn){
+    btn.disabled = true;
+  }
+  const oldText = btn ? btn.innerText : "Refresh";
+  if(btn){
+    btn.innerText = "Refreshing…";
+  }
 
-  document.getElementById("marketRows").innerHTML =
-    `<tr><td colspan="6" class="smallmuted">Loading live market data…</td></tr>`;
+  const marketRowsEl = document.getElementById("marketRows");
+  if(marketRowsEl){
+    marketRowsEl.innerHTML = `<tr><td colspan="6" class="smallmuted">Loading live market data…</td></tr>`;
+  }
 
   try{
     const metrics = {
       vixLvl:null,
-      spChgPct:null, ndxChgPct:null, asxChgPct:null,
+      spChgPct:null,
+      ndxChgPct:null,
+      asxChgPct:null,
       audChgPct:null,
-      us10yLvl:null, us10yChgBps:null
+      us10yLvl:null,
+      us10yChgBps:null
     };
+
+    const assetResults = await Promise.all(
+      ASSETS.map(async a => {
+        const [d1, ytd, twoY] = await Promise.all([
+          yahooChart(a.symbol, "1d"),
+          yahooChart(a.symbol, "ytd"),
+          yahooChart(a.symbol, "2y")
+        ]);
+        return { a, d1, ytd, twoY };
+      })
+    );
 
     let rows = "";
 
-    for(const a of ASSETS){
-      // 1d for current, prev close
-      const d1 = await yahooChart(a.symbol, "1d");
+    for(const result of assetResults){
+      const { a, d1, ytd, twoY } = result;
+
       const dMeta = d1.meta || {};
       const dCloses = d1?.indicators?.quote?.[0]?.close || [];
 
-      // ytd for base
-      const ytd = await yahooChart(a.symbol, "ytd");
       const yMeta = ytd.meta || {};
 
-      // 2y for 2025 CY base & end
-      const twoY = await yahooChart(a.symbol, "2y");
       const tStamps = twoY.timestamp || [];
       const tCloses = twoY?.indicators?.quote?.[0]?.close || [];
 
@@ -1109,8 +1342,11 @@ async function refreshAll(){
 
       if(!isNum(prevClose) && dCloses.length >= 2){
         let prior = null;
-        for(let i=dCloses.length-2;i>=0;i--){
-          if(isNum(dCloses[i])) { prior = dCloses[i]; break; }
+        for(let i = dCloses.length - 2; i >= 0; i--){
+          if(isNum(dCloses[i])){
+            prior = dCloses[i];
+            break;
+          }
         }
         prevClose = isNum(prior) ? prior : lastNonNull(dCloses);
       }
@@ -1118,31 +1354,42 @@ async function refreshAll(){
       let ytdBase = isNum(yMeta.chartPreviousClose) ? yMeta.chartPreviousClose : null;
 
       let start2025 = firstCloseForYear(tStamps, tCloses, 2025);
-      let end2025   = lastCloseForYear(tStamps, tCloses, 2025);
+      let end2025 = lastCloseForYear(tStamps, tCloses, 2025);
 
-      // Yahoo yields often in tenths (TNX). Convert to percent.
       if(a.y){
-        if(isNum(cur)) cur = cur/10;
-        if(isNum(prevClose)) prevClose = prevClose/10;
-        if(isNum(ytdBase)) ytdBase = ytdBase/10;
-        if(isNum(start2025)) start2025 = start2025/10;
-        if(isNum(end2025)) end2025 = end2025/10;
+        if(isNum(cur)) cur = cur / 10;
+        if(isNum(prevClose)) prevClose = prevClose / 10;
+        if(isNum(ytdBase)) ytdBase = ytdBase / 10;
+        if(isNum(start2025)) start2025 = start2025 / 10;
+        if(isNum(end2025)) end2025 = end2025 / 10;
       }
 
       const oneDayText = a.y ? safeBps(cur, prevClose) : safePct(cur, prevClose);
       const oneDayDeltaPct = (!a.y && isNum(cur) && isNum(prevClose) && prevClose !== 0)
-        ? ((cur-prevClose)/prevClose)*100 : null;
+        ? ((cur - prevClose) / prevClose) * 100
+        : null;
       const oneDayDeltaBps = (a.y && isNum(cur) && isNum(prevClose))
-        ? (cur-prevClose)*100 : null;
+        ? (cur - prevClose) * 100
+        : null;
 
       const ytdText = safePct(cur, ytdBase);
-      const cyText  = safePct(end2025, start2025);
+      const cyText = safePct(end2025, start2025);
 
-      const oneDayClass = (oneDayText==="—") ? "" : ((a.y ? (oneDayDeltaBps>=0) : (oneDayDeltaPct>=0)) ? "pos":"neg");
-      const ytdClass = (ytdText==="—") ? "" : ((isNum(cur) && isNum(ytdBase) && cur>=ytdBase) ? "pos":"neg");
-      const cyClass  = (cyText==="—") ? "" : ((isNum(end2025) && isNum(start2025) && end2025>=start2025) ? "pos":"neg");
+      const oneDayClass = (oneDayText === "—")
+        ? ""
+        : ((a.y ? (oneDayDeltaBps >= 0) : (oneDayDeltaPct >= 0)) ? "pos" : "neg");
 
-      const levelText = isNum(cur) ? (a.y ? cur.toFixed(2)+"%" : cur.toFixed(2)) : "—";
+      const ytdClass = (ytdText === "—")
+        ? ""
+        : ((isNum(cur) && isNum(ytdBase) && cur >= ytdBase) ? "pos" : "neg");
+
+      const cyClass = (cyText === "—")
+        ? ""
+        : ((isNum(end2025) && isNum(start2025) && end2025 >= start2025) ? "pos" : "neg");
+
+      const levelText = isNum(cur)
+        ? (a.y ? cur.toFixed(2) + "%" : cur.toFixed(2))
+        : "—";
 
       rows += `<tr>
         <td>${escapeHtml(a.name)}</td>
@@ -1153,46 +1400,83 @@ async function refreshAll(){
         <td class="${cyClass}">${escapeHtml(cyText)}</td>
       </tr>`;
 
-      // metrics for regime
       if(a.symbol === "^VIX"){ metrics.vixLvl = cur; }
       if(a.symbol === "^GSPC"){ metrics.spChgPct = oneDayDeltaPct; }
       if(a.symbol === "^IXIC"){ metrics.ndxChgPct = oneDayDeltaPct; }
       if(a.symbol === "^AXJO"){ metrics.asxChgPct = oneDayDeltaPct; }
       if(a.symbol === "AUDUSD=X"){ metrics.audChgPct = oneDayDeltaPct; }
-      if(a.symbol === "^TNX"){ metrics.us10yLvl = cur; metrics.us10yChgBps = oneDayDeltaBps; }
+      if(a.symbol === "^TNX"){
+        metrics.us10yLvl = cur;
+        metrics.us10yChgBps = oneDayDeltaBps;
+      }
     }
 
-    document.getElementById("marketRows").innerHTML = rows;
+    if(marketRowsEl){
+      marketRowsEl.innerHTML = rows;
+    }
 
     const reg = computeRegime(metrics);
-    document.getElementById("regimeLabel").innerHTML = `
-      <span class="regime-dot" style="background:${reg.color}"></span>
-      <b style="color:${reg.color}">${escapeHtml(reg.label)}</b>
-      <span class="smallmuted"> · Score ${escapeHtml(reg.score.toFixed(1))}</span>
-    `;
-    document.getElementById("regimeDrivers").innerHTML =
-      reg.drivers.slice(0,6).map(d=>`<li>${escapeHtml(d)}</li>`).join("");
+
+    const regimeLabel = document.getElementById("regimeLabel");
+    if(regimeLabel){
+      regimeLabel.innerHTML = `
+        <span class="regime-dot" style="background:${reg.color}"></span>
+        <b style="color:${reg.color}">${escapeHtml(reg.label)}</b>
+        <span class="smallmuted"> · Score ${escapeHtml(reg.score.toFixed(1))}</span>
+      `;
+    }
+
+    const regimeDrivers = document.getElementById("regimeDrivers");
+    if(regimeDrivers){
+      regimeDrivers.innerHTML = reg.drivers.slice(0,6).map(d => `<li>${escapeHtml(d)}</li>`).join("");
+    }
 
     const tps = buildTalkingPoints(metrics);
-    document.getElementById("clientTalkingPoints").innerHTML =
-      tps.map(t=>`<li>${escapeHtml(t)}</li>`).join("");
+    const clientTalkingPoints = document.getElementById("clientTalkingPoints");
+    if(clientTalkingPoints){
+      clientTalkingPoints.innerHTML = tps.map(t => `<li>${escapeHtml(t)}</li>`).join("");
+    }
 
     await refreshNews();
 
     const now = new Date();
-    document.getElementById("lastUpdated").textContent =
-      `Last updated: ${now.toLocaleString("en-AU", { weekday:"short", year:"numeric", month:"short", day:"2-digit", hour:"2-digit", minute:"2-digit" })}`;
+    const lastUpdated = document.getElementById("lastUpdated");
+    if(lastUpdated){
+      lastUpdated.textContent =
+        `Last updated: ${now.toLocaleString("en-AU", {
+          weekday:"short",
+          year:"numeric",
+          month:"short",
+          day:"2-digit",
+          hour:"2-digit",
+          minute:"2-digit"
+        })}`;
+    }
 
-  } catch(err){
+  }catch(err){
     const msg = String(err?.message || err);
-    document.getElementById("marketRows").innerHTML =
-      `<tr><td colspan="6" class="neg">Error loading data: ${escapeHtml(msg)}</td></tr>`;
-    document.getElementById("regimeLabel").innerHTML =
-      `<span class="regime-dot" style="background:#ff5c7a"></span><b style="color:#ff5c7a">Error</b>`;
-    document.getElementById("regimeDrivers").innerHTML =
-      `<li>${escapeHtml(msg)}</li>`;
-    document.getElementById("clientTalkingPoints").innerHTML =
-      `<li>Unable to generate talking points until market data loads.</li>`;
+
+    if(marketRowsEl){
+      marketRowsEl.innerHTML =
+        `<tr><td colspan="6" class="neg">Error loading data: ${escapeHtml(msg)}</td></tr>`;
+    }
+
+    const regimeLabel = document.getElementById("regimeLabel");
+    if(regimeLabel){
+      regimeLabel.innerHTML =
+        `<span class="regime-dot" style="background:#ff5c7a"></span><b style="color:#ff5c7a">Error</b>`;
+    }
+
+    const regimeDrivers = document.getElementById("regimeDrivers");
+    if(regimeDrivers){
+      regimeDrivers.innerHTML = `<li>${escapeHtml(msg)}</li>`;
+    }
+
+    const clientTalkingPoints = document.getElementById("clientTalkingPoints");
+    if(clientTalkingPoints){
+      clientTalkingPoints.innerHTML =
+        `<li>Unable to generate talking points until market data loads.</li>`;
+    }
 
     const fallback = `<li><a href="#" onclick="return false;">
       <span class="badge badge-mid">🟠 Med</span>News unavailable.
@@ -1205,77 +1489,27 @@ async function refreshAll(){
     }
 
     const tb = document.querySelector("#asxNewsTable tbody");
-    if(tb) tb.innerHTML = `<tr><td colspan="5" class="muted center">News unavailable.</td></tr>`;
+    if(tb){
+      tb.innerHTML = `<tr><td colspan="5" class="muted center">News unavailable.</td></tr>`;
+    }
 
     const fnTb = document.querySelector("#fnArenaTable tbody");
-    if(fnTb) fnTb.innerHTML = `<tr><td colspan="6" class="muted center">News unavailable.</td></tr>`;
+    if(fnTb){
+      fnTb.innerHTML = `<tr><td colspan="4" class="muted center">News unavailable.</td></tr>`;
+    }
 
-    /* Reflect the likely number of groups that failed (markets+news). */
     setFeedHealth(4);
-  } finally {
-    btn.disabled = false;
-    btn.innerText = oldText;
+  }finally{
+    if(btn){
+      btn.disabled = false;
+      btn.innerText = oldText;
+    }
   }
-}function parseBrokerData(){
-
-  const text = document.getElementById("brokerInput").value;
-
-  const lines = text.split("\n").filter(x => x.trim());
-
-  const stocks = [];
-
-  for(let i=0;i<lines.length;i++){
-
-    const ticker = lines[i];
-    const name = lines[i+1];
-    const rating = lines[i+3];
-    const upsideLine = lines[i+7];
-
-    if(!ticker || !rating || !upsideLine) continue;
-
-    const upsideMatch = upsideLine.match(/[-+]?\d+(\.\d+)?/);
-
-    stocks.push({
-      ticker: ticker.trim(),
-      name: name?.trim(),
-      rating: rating.trim(),
-      upside: upsideMatch ? parseFloat(upsideMatch[0]) : 0
-    });
-  }
-
-  const buys = stocks
-    .filter(x => x.rating.includes("Buy"))
-    .sort((a,b)=>b.upside-a.upside)
-    .slice(0,5);
-
-  const holds = stocks
-    .filter(x => x.rating==="Hold")
-    .slice(0,5);
-
-  const sells = stocks
-    .filter(x => x.rating.includes("Sell"))
-    .sort((a,b)=>a.upside-b.upside)
-    .slice(0,5);
-
-  renderBrokerList(buys,"topBuys","🟢");
-  renderBrokerList(holds,"topHolds","🟠");
-  renderBrokerList(sells,"topSells","🔴");
 }
 
-function renderBrokerList(list,id,emoji){
-  const el = document.getElementById(id);
-
-  el.innerHTML = list.map(x=>`
-    <li>
-      <a href="#" onclick="return false">
-        ${emoji} <b>${x.ticker}</b> — ${x.name}
-        <span class="smallmuted">(${x.upside}% upside)</span>
-      </a>
-    </li>
-  `).join("");
-}
-
-/* Load once on open */
+/* =========================
+   Load on open
+========================= */
 refreshAll();
 loadBrokerPicks();
 </script>
