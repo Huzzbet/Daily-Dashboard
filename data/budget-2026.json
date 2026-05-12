@@ -1,0 +1,123 @@
+{
+  "title": "Australian Federal Budget 2026 — Key Takeaways (12 May 2026)",
+  "asAt": "2026-05-12",
+  "sources": [
+    {"name": "User summary (internal)", "url": ""}
+  ],
+  "bigPicture": {
+    "theme": "Significant tax reform + cost-of-living support + fiscal repair",
+    "focusAreas": [
+      "Housing affordability",
+      "Tax fairness",
+      "Healthcare",
+      "Economic resilience amid global uncertainty (oil shock/inflation pressures)"
+    ],
+    "budgetPosition": "Deficit (~$31.5bn), improved vs prior forecasts"
+  },
+  "personalTaxAndCostOfLiving": {
+    "measures": [
+      "$250 annual tax offset for ~13 million workers (from 2027–28)",
+      "$1,000 instant tax deduction (no receipts required) continues",
+      "Ongoing staged income tax cuts continue from prior reforms"
+    ],
+    "planningLens": [
+      "Benefits are modest and delayed (from 2027–28)",
+      "Skewed toward earned income; many retirees largely miss out"
+    ]
+  },
+  "propertyAndInvestmentTax": {
+    "headline": "Major structural change impacting property/trust strategies",
+    "negativeGearing": [
+      "Limited to new residential properties only from 1 July 2027",
+      "Existing properties grandfathered"
+    ],
+    "capitalGainsTax": [
+      "50% CGT discount removed",
+      "Replaced with inflation indexation and minimum 30% tax rate on gains (individuals/trusts)"
+    ],
+    "trustTax": [
+      "Proposed 30% minimum tax on discretionary trusts (from 2028)"
+    ],
+    "planningLens": [
+      "Reduces attractiveness of leveraged property investing",
+      "Less favourable for high-turnover / realised capital strategies",
+      "Trust planning + income splitting materially impacted",
+      "Shifts incentives toward new housing supply"
+    ]
+  },
+  "smallBusinessAndInvestment": {
+    "measures": [
+      "$20,000 instant asset write-off made permanent",
+      "Additional support: R&D incentives; start-up and VC measures",
+      "Reduced regulatory burden flagged (~$10bn/year impact)"
+    ],
+    "planningLens": [
+      "Positive for SME clients and business owners",
+      "Encourages capital investment and reinvestment strategies"
+    ]
+  },
+  "healthAgedCareSocial": {
+    "health": [
+      "Cheaper medicines + expanded access",
+      "Significant hospital funding increases"
+    ],
+    "agedCare": [
+      "Additional funding + incentives to expand capacity (e.g., new beds)"
+    ],
+    "ndis": [
+      "Tightened eligibility → fewer participants; cost savings expected"
+    ],
+    "planningLens": [
+      "Government attempting to reduce long-term spending pressure",
+      "Important for clients relying on aged care / disability support planning"
+    ]
+  },
+  "housingAffordability": {
+    "measures": [
+      "Infrastructure funding to support ~65,000 new homes",
+      "Policies aimed at ~75,000 additional homeowners over time",
+      "Tax changes designed to reduce investor advantage and improve owner-occupier access"
+    ],
+    "planningLens": [
+      "Structural tilt toward first-home buyers",
+      "Preference for new builds over established property"
+    ]
+  },
+  "energyInfrastructureDefence": {
+    "measures": [
+      "Gas reservation (20%) for domestic supply",
+      "$53bn defence uplift",
+      "$8.6bn roads & rail projects"
+    ],
+    "context": "Driven by energy security concerns and geopolitical risks"
+  },
+  "economicOutlook": {
+    "inflation": "~5% in near term",
+    "growth": "~1.75% next year",
+    "trajectory": "Deficit improving; long path back to surplus (mid‑2030s)"
+  },
+  "winnersLosers": {
+    "winners": [
+      "Wage earners (modest tax relief)",
+      "Small business",
+      "First-home buyers / new housing supply"
+    ],
+    "losers": [
+      "Property investors (existing strategy less favourable going forward)",
+      "High-net-worth investors using CGT concessions",
+      "Trust structures (longer term)"
+    ]
+  },
+  "adviserLens": {
+    "keyMessages": [
+      "Implications are structural, not immediate",
+      "Many measures commence from 2027 onwards; existing assets largely grandfathered"
+    ],
+    "actionIdeas": [
+      "Review trust distribution strategies and long-term viability",
+      "Re-assess property strategy: cashflow/new-build focus vs tax-driven negative gearing",
+      "Reprice after-tax returns for realised capital gains strategies",
+      "Client comms: explain timing/grandfathering to avoid overreaction"
+    ]
+  }
+}
