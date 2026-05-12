@@ -1,0 +1,342 @@
+[
+  {
+    "ticker": "ZIP",
+    "name": "Zip Co",
+    "price": 2.46,
+    "rating": "Strong Buy",
+    "brokers": 6,
+    "target": 3.76,
+    "upside": 52.85,
+    "lastUpdate": "2026-04-20"
+  },
+  {
+    "ticker": "XRO",
+    "name": "Xero",
+    "price": 80.13,
+    "rating": "Strong Buy",
+    "brokers": 3,
+    "target": 123.22,
+    "upside": 53.77,
+    "lastUpdate": "2026-05-03"
+  },
+  {
+    "ticker": "WTC",
+    "name": "Wisetech Global",
+    "price": 39.8,
+    "rating": "Strong Buy",
+    "brokers": 6,
+    "target": 80.35,
+    "upside": 101.88,
+    "lastUpdate": "2026-05-06"
+  },
+  {
+    "ticker": "WOW",
+    "name": "Woolworths Group",
+    "price": 32.93,
+    "rating": "Hold",
+    "brokers": 8,
+    "target": 34.91,
+    "upside": 6.0,
+    "lastUpdate": "2026-05-01"
+  },
+  {
+    "ticker": "WOR",
+    "name": "Worley",
+    "price": 11.97,
+    "rating": "Buy",
+    "brokers": 5,
+    "target": 13.87,
+    "upside": 15.91,
+    "lastUpdate": "2026-04-22"
+  },
+  {
+    "ticker": "WJL",
+    "name": "Webjet Group",
+    "price": 0.52,
+    "rating": "Buy",
+    "brokers": 3,
+    "target": 0.74,
+    "upside": 43.69,
+    "lastUpdate": "2026-04-28"
+  },
+  {
+    "ticker": "WHC",
+    "name": "Whitehaven Coal",
+    "price": 7.68,
+    "rating": "Buy",
+    "brokers": 11,
+    "target": 8.74,
+    "upside": 13.81,
+    "lastUpdate": "2026-05-08"
+  },
+  {
+    "ticker": "WGX",
+    "name": "Westgold Resources",
+    "price": 5.67,
+    "rating": "Strong Buy",
+    "brokers": 5,
+    "target": 8.91,
+    "upside": 57.14,
+    "lastUpdate": "2026-04-30"
+  },
+  {
+    "ticker": "WES",
+    "name": "Wesfarmers",
+    "price": 71.3,
+    "rating": "Hold",
+    "brokers": 8,
+    "target": 80.49,
+    "upside": 12.89,
+    "lastUpdate": "2026-05-03"
+  },
+  {
+    "ticker": "WEB",
+    "name": "WEB Travel Group",
+    "price": 2.59,
+    "rating": "Buy",
+    "brokers": 3,
+    "target": 4.77,
+    "upside": 84.04,
+    "lastUpdate": "2026-05-08"
+  },
+  {
+    "ticker": "WDS",
+    "name": "Woodside Energy Group",
+    "price": 30.74,
+    "rating": "Hold",
+    "brokers": 10,
+    "target": 32.66,
+    "upside": 6.23,
+    "lastUpdate": "2026-04-30"
+  },
+  {
+    "ticker": "WC8",
+    "name": "Wildcat Resources",
+    "price": 0.65,
+    "rating": "Strong Buy",
+    "brokers": 3,
+    "target": 0.87,
+    "upside": 34.37,
+    "lastUpdate": "2026-04-16"
+  },
+  {
+    "ticker": "WBC",
+    "name": "Westpac Banking Corporation",
+    "price": 36.61,
+    "rating": "Strong Sell",
+    "brokers": 8,
+    "target": 34.09,
+    "upside": -6.88,
+    "lastUpdate": "2026-05-10"
+  },
+  {
+    "ticker": "WAF",
+    "name": "West African Resources",
+    "price": 3.25,
+    "rating": "Strong Buy",
+    "brokers": 4,
+    "target": 5.89,
+    "upside": 81.15,
+    "lastUpdate": "2026-04-24"
+  },
+  {
+    "ticker": "VNT",
+    "name": "Ventia Services Group",
+    "price": 5.87,
+    "rating": "Strong Buy",
+    "brokers": 7,
+    "target": 6.23,
+    "upside": 6.21,
+    "lastUpdate": "2026-05-05"
+  },
+  {
+    "ticker": "VGN",
+    "name": "Virgin Australia Holdings",
+    "price": 2.42,
+    "rating": "Strong Buy",
+    "brokers": 7,
+    "target": 3.72,
+    "upside": 53.54,
+    "lastUpdate": "2026-04-16"
+  },
+  {
+    "ticker": "VEA",
+    "name": "Viva Energy Group",
+    "price": 2.19,
+    "rating": "Buy",
+    "brokers": 8,
+    "target": 2.69,
+    "upside": 23.06,
+    "lastUpdate": "2026-05-04"
+  },
+  {
+    "ticker": "VCX",
+    "name": "Vicinity Centres",
+    "price": 2.44,
+    "rating": "Hold",
+    "brokers": 6,
+    "target": 2.48,
+    "upside": 1.43,
+    "lastUpdate": "2026-05-11"
+  },
+  {
+    "ticker": "VAU",
+    "name": "Vault Minerals",
+    "price": 4.75,
+    "rating": "Strong Buy",
+    "brokers": 7,
+    "target": 6.97,
+    "upside": 46.77,
+    "lastUpdate": "2026-04-23"
+  },
+  {
+    "ticker": "UNI",
+    "name": "Universal Store Holdings",
+    "price": 6.54,
+    "rating": "Strong Buy",
+    "brokers": 8,
+    "target": 9.81,
+    "upside": 50.0,
+    "lastUpdate": "2026-05-07"
+  },
+  {
+    "ticker": "TYR",
+    "name": "Tyro Payments",
+    "price": 0.69,
+    "rating": "Hold",
+    "brokers": 4,
+    "target": 1.13,
+    "upside": 63.77,
+    "lastUpdate": "2026-04-29"
+  },
+  {
+    "ticker": "TWE",
+    "name": "Treasury Wine Estates",
+    "price": 4.22,
+    "rating": "Hold",
+    "brokers": 7,
+    "target": 4.88,
+    "upside": 15.61,
+    "lastUpdate": "2026-04-23"
+  },
+  {
+    "ticker": "TPW",
+    "name": "Temple & Webster Group",
+    "price": 5.32,
+    "rating": "Strong Buy",
+    "brokers": 3,
+    "target": 13.55,
+    "upside": 154.7,
+    "lastUpdate": "2026-03-10"
+  },
+  {
+    "ticker": "TPG",
+    "name": "TPG Telecom",
+    "price": 4.08,
+    "rating": "Buy",
+    "brokers": 6,
+    "target": 4.05,
+    "upside": -0.74,
+    "lastUpdate": "2026-04-17"
+  },
+  {
+    "ticker": "TNE",
+    "name": "Technology One",
+    "price": 27.85,
+    "rating": "Buy",
+    "brokers": 6,
+    "target": 32.87,
+    "upside": 18.01,
+    "lastUpdate": "2026-04-29"
+  },
+  {
+    "ticker": "TLX",
+    "name": "Telix Pharmaceuticals",
+    "price": 14.43,
+    "rating": "Strong Buy",
+    "brokers": 8,
+    "target": 23.28,
+    "upside": 61.3,
+    "lastUpdate": "2026-05-04"
+  },
+  {
+    "ticker": "TLS",
+    "name": "Telstra Group",
+    "price": 5.26,
+    "rating": "Buy",
+    "brokers": 9,
+    "target": 5.3,
+    "upside": 0.84,
+    "lastUpdate": "2026-04-01"
+  },
+  {
+    "ticker": "TLC",
+    "name": "The Lottery Corporation",
+    "price": 5.18,
+    "rating": "Buy",
+    "brokers": 9,
+    "target": 5.84,
+    "upside": 12.68,
+    "lastUpdate": "2026-05-06"
+  },
+  {
+    "ticker": "TCL",
+    "name": "Transurban Group",
+    "price": 14.55,
+    "rating": "Hold",
+    "brokers": 10,
+    "target": 13.74,
+    "upside": -5.58,
+    "lastUpdate": "2026-05-05"
+  },
+  {
+    "ticker": "TAH",
+    "name": "Tabcorp Holdings",
+    "price": 0.73,
+    "rating": "Hold",
+    "brokers": 3,
+    "target": 0.98,
+    "upside": 34.71,
+    "lastUpdate": "2026-05-08"
+  },
+  {
+    "ticker": "SYL",
+    "name": "Symal Group",
+    "price": 2.65,
+    "rating": "Strong Buy",
+    "brokers": 3,
+    "target": 3.27,
+    "upside": 23.27,
+    "lastUpdate": "2026-04-21"
+  },
+  {
+    "ticker": "SUN",
+    "name": "Suncorp Group",
+    "price": 16.63,
+    "rating": "Buy",
+    "brokers": 9,
+    "target": 19.12,
+    "upside": 14.99,
+    "lastUpdate": "2026-05-08"
+  },
+  {
+    "ticker": "SUL",
+    "name": "Super Retail Group",
+    "price": 11.21,
+    "rating": "Buy",
+    "brokers": 7,
+    "target": 15.59,
+    "upside": 39.1,
+    "lastUpdate": "2026-05-07"
+  },
+  {
+    "ticker": "STO",
+    "name": "Santos",
+    "price": 7.56,
+    "rating": "Strong Buy",
+    "brokers": 10,
+    "target": 8.53,
+    "upside": 12.83,
+    "lastUpdate": "2026-05-01"
+  }
+]
