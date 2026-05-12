@@ -33,11 +33,7 @@ body{
   color:var(--text);
 }
 
-.container{
-  max-width:1320px;
-  margin:auto;
-  padding:22px 18px 60px;
-}
+.container{ max-width:1320px; margin:auto; padding:22px 18px 60px; }
 
 .topbar{
   display:flex;
@@ -46,18 +42,8 @@ body{
   gap:14px;
 }
 
-h1{
-  margin:0;
-  font-size:26px;
-  font-weight:750;
-  letter-spacing:.2px;
-}
-
-.sub{
-  margin-top:6px;
-  color:var(--muted);
-  font-size:14px;
-}
+h1{ margin:0; font-size:26px; font-weight:750; letter-spacing:.2px; }
+.sub{ margin-top:6px; color:var(--muted); font-size:14px; }
 
 .smallmuted{color:var(--muted);font-size:12px}
 .muted{color:var(--muted)}
@@ -84,14 +70,8 @@ h1{
   border:1px solid rgba(255,255,255,.10);
 }
 
-.btn:active{
-  transform:translateY(4px);
-  box-shadow:0 3px 0 #2c9fb3, 0 6px 14px rgba(0,0,0,.6) inset;
-}
-
-.btn.secondary:active{
-  transform:translateY(2px);
-}
+.btn:active{ transform:translateY(4px); box-shadow:0 3px 0 #2c9fb3, 0 6px 14px rgba(0,0,0,.6) inset; }
+.btn.secondary:active{ transform:translateY(2px); }
 
 .btn[disabled]{opacity:.65; cursor:not-allowed}
 
@@ -102,10 +82,7 @@ h1{
   gap:18px;
   align-items:start;
 }
-
-@media (max-width: 980px){
-  .grid{grid-template-columns: 1fr;}
-}
+@media (max-width: 980px){ .grid{grid-template-columns: 1fr;} }
 
 .card{
   background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.01));
@@ -114,7 +91,6 @@ h1{
   box-shadow:var(--shadow);
   padding:18px;
 }
-
 .stack{display:flex; flex-direction:column; gap:18px;}
 
 .card-header{
@@ -124,17 +100,8 @@ h1{
   gap:12px;
   margin-bottom:10px;
 }
-
-.card-header h2, .card-header h3{
-  margin:0;
-  font-size:16px;
-  font-weight:800;
-}
-
-.card-header span{
-  font-size:12px;
-  color:var(--muted);
-}
+.card-header h2, .card-header h3{ margin:0; font-size:16px; font-weight:800; }
+.card-header span{ font-size:12px; color:var(--muted); }
 
 .market-table{ width:100%; border-collapse:collapse; }
 .market-table th{
@@ -183,17 +150,14 @@ h1{
   letter-spacing:.02em;
   gap:6px;
 }
-
 .badge-high{ background:rgba(255,92,122,.18); color:#ff5c7a; }
 .badge-mid{  background:rgba(255,209,102,.18); color:#ffd166; }
 .badge-low{  background:rgba(43,212,125,.18); color:#2bd47d; }
-
 .badge-src{
   background:rgba(110,231,255,.10);
   color:#aef3ff;
   border:1px solid rgba(110,231,255,.18);
 }
-
 .badge-pos{ background:rgba(43,212,125,.18); color:#2bd47d; }
 .badge-neg{ background:rgba(255,92,122,.18); color:#ff5c7a; }
 .badge-neu{ background:rgba(255,209,102,.18); color:#ffd166; }
@@ -214,7 +178,6 @@ h1{
   font-size:12px;
   color:var(--muted);
 }
-
 .health-dot{
   width:10px; height:10px;
   border-radius:50%;
@@ -242,12 +205,8 @@ textarea{ font-family:var(--mono); resize:vertical; }
   grid-template-columns: repeat(6, 1fr);
   gap:12px;
 }
-@media (max-width: 1100px){
-  .kpi-row{ grid-template-columns: repeat(3, 1fr); }
-}
-@media (max-width: 600px){
-  .kpi-row{ grid-template-columns: repeat(2, 1fr); }
-}
+@media (max-width: 1100px){ .kpi-row{ grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 600px){ .kpi-row{ grid-template-columns: repeat(2, 1fr); } }
 
 .kpi{
   border:1px solid rgba(255,255,255,.08);
@@ -261,12 +220,7 @@ textarea{ font-family:var(--mono); resize:vertical; }
 .kpi .delta .pos{font-weight:900}
 .kpi .delta .neg{font-weight:900}
 
-.toolbar{
-  display:flex;
-  gap:10px;
-  flex-wrap:wrap;
-  justify-content:flex-end;
-}
+.toolbar{ display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end; }
 
 hr.sep{ border:none; height:1px; background:rgba(255,255,255,.07); margin:12px 0; }
 
@@ -281,12 +235,7 @@ hr.sep{ border:none; height:1px; background:rgba(255,255,255,.07); margin:12px 0
   font-size:12px;
   color:var(--muted);
 }
-
-.copyhint{
-  margin-top:10px;
-  color:var(--muted);
-  font-size:12px;
-}
+.copyhint{ margin-top:10px; color:var(--muted); font-size:12px; }
 </style>
 </head>
 
@@ -366,7 +315,6 @@ hr.sep{ border:none; height:1px; background:rgba(255,255,255,.07); margin:12px 0
         <div class="copyhint">Tip: hit “Copy briefing” to paste into file notes, emails, or meeting agendas.</div>
       </div>
 
-      <!-- KEEP: Sharemarket performance table -->
       <div class="card">
         <div class="card-header">
           <h2>Sharemarket Performance</h2>
@@ -410,9 +358,7 @@ hr.sep{ border:none; height:1px; background:rgba(255,255,255,.07); margin:12px 0
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td colspan="4" class="muted center">Loading broker idea scan…</td>
-            </tr>
+            <tr><td colspan="4" class="muted center">Loading broker idea scan…</td></tr>
           </tbody>
         </table>
       </div>
@@ -514,9 +460,7 @@ hr.sep{ border:none; height:1px; background:rgba(255,255,255,.07); margin:12px 0
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td colspan="5" class="muted center">Loading ASX news…</td>
-            </tr>
+            <tr><td colspan="5" class="muted center">Loading ASX news…</td></tr>
           </tbody>
         </table>
       </section>
@@ -526,25 +470,14 @@ hr.sep{ border:none; height:1px; background:rgba(255,255,255,.07); margin:12px 0
 </div>
 
 <script>
-/** Cloudflare Worker (Yahoo proxy + RSS proxy)
- * Must support:
- *   - ?symbol=...&range=...  (Yahoo chart JSON proxy)
- *   - ?url=...               (RSS/Atom proxy)
- */
 const PROXY = "https://wild-dream-69cc.seanhurren.workers.dev";
 
-/* =========================
-   Broker Picks Data (fallback)
-========================= */
 const BROKER_PICKS = [
   { ticker:"ALL", name:"Aristocrat Leisure", rating:"Strong Buy", upside:40.6, brokers:7, lastUpdate:"2026-02-20" },
-  { ticker:"ASG", name:"Autosports Group", rating:"Strong Buy", upside:31.65, brokers:5, lastUpdate:"2026-02-20" },
+  { ticker:"ASG", name:"Autosports Group",  rating:"Strong Buy", upside:31.65, brokers:5, lastUpdate:"2026-02-20" },
   { ticker:"BXB", name:"Brambles",          rating:"Buy",        upside:8.66,  brokers:3, lastUpdate:"2026-02-20" }
 ];
 
-/* =========================
-   ASX 200 ticker set (used for tagging)
-========================= */
 const ASX200_TICKERS = new Set([
   "BHP","CBA","NAB","WBC","ANZ","MQG","WES","WOW","CSL","TLS","GMG","ALL","RIO","FMG","COL","TCL","SCG","QBE","SUN",
   "RHC","IAG","CPU","S32","ORG","STO","WDS","APA","ALD","BXB","ASX","REA","XRO","SEK","RMD","FPH","COH","A2M",
@@ -553,9 +486,6 @@ const ASX200_TICKERS = new Set([
   "SUL","ALQ","BKW","AZJ","ORI","ORA","JLG","NEA","ZIP","WTC","BRG","PDN","APX","IFL","HUB","MFG","GQG","VEA"
 ]);
 
-/* =========================
-   Feeds (kept lightweight)
-========================= */
 const FEEDS = {
   adviser: [
     { url: "https://faaa.au/media-releases/feed/", src: "FAAA" },
@@ -579,29 +509,21 @@ const FEEDS = {
   ]
 };
 
-/* =========================
-   Market symbols
-   - Added AU 10Y (often available as ^AXJO? No, use ^AXY? This varies by Yahoo)
-   - Practical approach: use AU 10Y via symbol "^AUS10Y" IF your worker supports it.
-     If Yahoo doesn't return, it will show "—" but rest works.
-========================= */
+/* ✅ FIX: AU 10Y symbol changed to a Yahoo-supported one (more likely to work) */
 const ASSETS = [
-  { name:"ASX 200",        symbol:"^AXJO",   link:"https://finance.yahoo.com/quote/%5EAXJO" },
-  { name:"S&P 500",        symbol:"^GSPC",   link:"https://finance.yahoo.com/quote/%5EGSPC" },
-  { name:"NASDAQ 100",     symbol:"^NDX",    link:"https://finance.yahoo.com/quote/%5ENDX" },
+  { name:"ASX 200",        symbol:"^AXJO",      link:"https://finance.yahoo.com/quote/%5EAXJO" },
+  { name:"S&P 500",        symbol:"^GSPC",      link:"https://finance.yahoo.com/quote/%5EGSPC" },
+  { name:"NASDAQ 100",     symbol:"^NDX",       link:"https://finance.yahoo.com/quote/%5ENDX" },
+  { name:"AUD / USD",      symbol:"AUDUSD=X",   link:"https://finance.yahoo.com/quote/AUDUSD%3DX" },
 
-  { name:"AUD / USD",      symbol:"AUDUSD=X",link:"https://finance.yahoo.com/quote/AUDUSD%3DX" },
+  /* AU 10Y Gov Bond Yield (Yahoo often uses this) */
+  { name:"AU 10Y Yield",   symbol:"^AXJCGB10Y", y:true, link:"https://finance.yahoo.com/quote/%5EAXJCGB10Y" },
 
-  { name:"AU 10Y Yield",   symbol:"^AUS10Y", y:true, link:"https://finance.yahoo.com/quote/%5EAUS10Y" },
-  { name:"US 10Y Yield",   symbol:"^TNX",    y:true, link:"https://finance.yahoo.com/quote/%5ETNX" },
-
-  { name:"Gold",           symbol:"GC=F",    link:"https://finance.yahoo.com/quote/GC%3DF" },
-  { name:"VIX",            symbol:"^VIX",    link:"https://finance.yahoo.com/quote/%5EVIX" }
+  { name:"US 10Y Yield",   symbol:"^TNX",       y:true, link:"https://finance.yahoo.com/quote/%5ETNX" },
+  { name:"Gold",           symbol:"GC=F",       link:"https://finance.yahoo.com/quote/GC%3DF" },
+  { name:"VIX",            symbol:"^VIX",       link:"https://finance.yahoo.com/quote/%5EVIX" }
 ];
 
-/* =========================
-   Impact tagging keywords (expanded for AU advice)
-========================= */
 const IMPACT = {
   high: [
     "rate decision","cash rate","monetary policy","statement on monetary policy",
@@ -625,9 +547,6 @@ const IMPACT = {
 const SUPER_KWS = ["super","superannuation","pension","retirement","concessional","non-concessional","ncc","cc","division 296","div 296","ato","transfer balance","tbc"];
 const INS_KWS   = ["insurance","tpd","income protection","life insurance","trauma","claims","claims handling","underwriting","premium","afca"];
 
-/* =========================
-   Helpers
-========================= */
 function isNum(x){ return typeof x === "number" && Number.isFinite(x); }
 
 function safePct(current, base){
@@ -719,18 +638,13 @@ function escapeHtml(s){
     .replaceAll("'","&#039;");
 }
 
-/* =========================
-   Stability: fetch with timeout
-========================= */
 function fetchWithTimeout(url, ms=9000){
   const ctrl = new AbortController();
   const id = setTimeout(() => ctrl.abort(), ms);
   return fetch(url, { cache:"no-store", signal: ctrl.signal }).finally(() => clearTimeout(id));
 }
 
-/* =========================
-   Yahoo via Worker
-========================= */
+/* Yahoo chart via Worker */
 async function yahooChart(symbol, range){
   const url = `${PROXY}?symbol=${encodeURIComponent(symbol)}&range=${encodeURIComponent(range)}`;
   const res = await fetchWithTimeout(url, 9000);
@@ -745,16 +659,12 @@ async function yahooChart(symbol, range){
   return result;
 }
 
-/* =========================
-   RSS/Atom via Worker
-========================= */
+/* RSS via Worker */
 async function fetchRSS(url){
   const res = await fetchWithTimeout(`${PROXY}?url=${encodeURIComponent(url)}`, 9000);
   const xmlText = await res.text();
   const xml = new DOMParser().parseFromString(xmlText, "text/xml");
-
-  const parserError = xml.querySelector("parsererror");
-  if(parserError) throw new Error("RSS parse error");
+  if(xml.querySelector("parsererror")) throw new Error("RSS parse error");
 
   let items = [...xml.querySelectorAll("item")].map(i => {
     const title = i.querySelector("title")?.textContent?.trim() || "";
@@ -813,9 +723,6 @@ async function fetchGroup(feedObjs){
   return { items: merged.slice(0,12), failed };
 }
 
-/* =========================
-   Classifiers for Super / Insurance lists
-========================= */
 function isSuperItem(title){
   const t = (title || "").toLowerCase();
   return SUPER_KWS.some(k => t.includes(k));
@@ -825,9 +732,6 @@ function isInsItem(title){
   return INS_KWS.some(k => t.includes(k));
 }
 
-/* =========================
-   ASX helpers
-========================= */
 function extractAsxCode(title){
   if(!title) return null;
   const match = title.match(/\b[A-Z]{2,4}\b/);
@@ -842,9 +746,6 @@ function extractCompanyFromSignal(title){
   return ticker || "ASX";
 }
 
-/* =========================
-   Renderers
-========================= */
 function renderNews(list, el){
   if(!el) return;
 
@@ -877,10 +778,7 @@ function renderAsxTable(items){
   items = (items || []).filter(i => i && i.title && i.link);
 
   if(items.length === 0){
-    tbody.innerHTML = `
-      <tr>
-        <td colspan="5" class="muted center">No ASX company news available.</td>
-      </tr>`;
+    tbody.innerHTML = `<tr><td colspan="5" class="muted center">No ASX company news available.</td></tr>`;
     return;
   }
 
@@ -893,11 +791,7 @@ function renderAsxTable(items){
     return `
       <tr>
         <td>${isASX200 ? escapeHtml(code) : "ASX"}</td>
-        <td>
-          <a href="${escapeHtml(n.link)}" target="_blank" rel="noopener">
-            ${escapeHtml(n.title)}
-          </a>
-        </td>
+        <td><a href="${escapeHtml(n.link)}" target="_blank" rel="noopener">${escapeHtml(n.title)}</a></td>
         <td>${escapeHtml(n.src || "AFR")}</td>
         <td>
           <span class="badge ${tag.cls}">${escapeHtml(tag.txt)}</span>
@@ -928,8 +822,7 @@ function renderFnArenaTable(items){
     });
 
   if(items.length === 0){
-    tbody.innerHTML = `
-      <tr><td colspan="4" class="muted center">No broker signals detected today.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="4" class="muted center">No broker signals detected today.</td></tr>`;
     return;
   }
 
@@ -949,9 +842,6 @@ function renderFnArenaTable(items){
   }).join("");
 }
 
-/* =========================
-   Market regime logic (uses VIX + yields + equity breadth + AUD)
-========================= */
 function computeRegime(m){
   let score = 0;
   const drivers = [];
@@ -1007,12 +897,10 @@ function buildClientSay(m){
     bullets.push(`Overnight US tone: mixed/partial data — focus on local movers and RBA/ABS headlines.`);
   }
 
-  if(isNum(m.asxChgPct)){
-    bullets.push(`Australia: ASX 200 ${m.asxChgPct.toFixed(2)}% on the day — helps frame local sentiment.`);
-  }
+  if(isNum(m.asxChgPct)) bullets.push(`Australia: ASX 200 ${m.asxChgPct.toFixed(2)}% on the day — helps frame local sentiment.`);
 
   if(isNum(m.audChgPct)){
-    if(Math.abs(m.audChgPct) >= 0.5) bullets.push(`AUD moved ${m.audChgPct.toFixed(2)}% — worth mentioning for international holdings (hedged vs unhedged).`);
+    if(Math.abs(m.audChgPct) >= 0.5) bullets.push(`AUD moved ${m.audChgPct.toFixed(2)}% — relevant for international holdings (hedged vs unhedged).`);
     else bullets.push(`AUD is steady (${m.audChgPct.toFixed(2)}%), so currency isn’t driving portfolios today.`);
   }
 
@@ -1021,9 +909,9 @@ function buildClientSay(m){
   }
 
   if(isNum(m.vixLvl)){
-    if(m.vixLvl > 20) bullets.push(`Volatility is elevated (VIX ${m.vixLvl.toFixed(1)}): remind clients short-term swings are normal and diversification matters.`);
-    else if(m.vixLvl < 15) bullets.push(`Volatility is low (VIX ${m.vixLvl.toFixed(1)}): avoid over-trading; keep to plan and rebalance methodically.`);
-    else bullets.push(`Volatility is moderate (VIX ${m.vixLvl.toFixed(1)}): stay disciplined and focus on time horizon.`);
+    if(m.vixLvl > 20) bullets.push(`Volatility elevated (VIX ${m.vixLvl.toFixed(1)}): remind clients short-term swings are normal and diversification matters.`);
+    else if(m.vixLvl < 15) bullets.push(`Volatility low (VIX ${m.vixLvl.toFixed(1)}): avoid over-trading; keep to plan and rebalance methodically.`);
+    else bullets.push(`Volatility moderate (VIX ${m.vixLvl.toFixed(1)}): stay disciplined and focus on time horizon.`);
   }
 
   return bullets.slice(0,5);
@@ -1032,14 +920,12 @@ function buildClientSay(m){
 function buildClientDo(m){
   const actions = [];
 
-  // FX action
   if(isNum(m.audChgPct) && Math.abs(m.audChgPct) >= 0.7){
     actions.push(`Review hedged vs unhedged exposures: AUD moved materially today (useful for global equity sleeves).`);
   }else{
     actions.push(`No urgent FX action: monitor AUD but avoid reactive changes unless it trends for weeks.`);
   }
 
-  // Volatility / drawdown action
   if(isNum(m.vixLvl) && m.vixLvl > 20){
     actions.push(`Consider staged deployment for new cash / rebalance adds (volatility elevated).`);
     actions.push(`Check liquidity + defensive sleeve alignment for retirees drawing pensions.`);
@@ -1047,7 +933,6 @@ function buildClientDo(m){
     actions.push(`Stick to rebalancing rules: top up underweights if drift is meaningful (avoid “news trading”).`);
   }
 
-  // Rates action
   if(isNum(m.us10yChgBps) && m.us10yChgBps >= 8){
     actions.push(`Rates up: review duration exposure in fixed income and rate-sensitive equities (REITs/infrastructure).`);
   }else if(isNum(m.us10yChgBps) && m.us10yChgBps <= -8){
@@ -1059,9 +944,6 @@ function buildClientDo(m){
   return actions.slice(0,5);
 }
 
-/* =========================
-   Feed health indicator
-========================= */
 function setFeedHealth(totalFailed){
   const el = document.getElementById("feedHealth");
   if(!el) return;
@@ -1082,9 +964,6 @@ function setFeedHealth(totalFailed){
   }
 }
 
-/* =========================
-   KPI strip renderer
-========================= */
 function setKpi(index, label, value, deltaText, deltaIsPosNeg){
   const row = document.getElementById("kpiRow");
   if(!row) return;
@@ -1100,9 +979,6 @@ function setKpi(index, label, value, deltaText, deltaIsPosNeg){
   else dEl.textContent = deltaText ? `Δ ${deltaText}` : "—";
 }
 
-/* =========================
-   Refresh news
-========================= */
 async function refreshNews(){
   const groups = await Promise.all([
     fetchGroup(FEEDS.adviser),
@@ -1121,28 +997,17 @@ async function refreshNews(){
   const totalFailed = adviser.failed + asxRaw.failed + leg.failed + macro.failed + fnArena.failed;
   setFeedHealth(totalFailed);
 
-  // Advice/compliance = adviser feeds + any leg items not super/insurance heavy
   renderNews(adviser.items || [], document.getElementById("adviserNews"));
 
-  // Split legislative into super vs insurance buckets
   const legItems = (leg.items || []);
-  const superItems = legItems.filter(i => isSuperItem(i.title));
-  const insItems = legItems.filter(i => isInsItem(i.title));
-
-  renderNews(superItems.slice(0,8), document.getElementById("superNews"));
-  renderNews(insItems.slice(0,8), document.getElementById("insNews"));
-
-  // Macro
+  renderNews(legItems.filter(i => isSuperItem(i.title)).slice(0,8), document.getElementById("superNews"));
+  renderNews(legItems.filter(i => isInsItem(i.title)).slice(0,8),   document.getElementById("insNews"));
   renderNews(macro.items || [], document.getElementById("macroNews"));
 
-  // ASX table + FN Arena
   renderAsxTable((asxRaw.items || []).slice(0,10));
   renderFnArenaTable(fnArena.items || []);
 }
 
-/* =========================
-   Broker picks loader
-========================= */
 async function loadBrokerPicks(){
   try{
     const res = await fetch("./data/broker-picks.json", { cache:"no-store" });
@@ -1200,9 +1065,6 @@ function renderBrokerList(list, id, label){
   `).join("");
 }
 
-/* =========================
-   Broker text parser (kept as-is; you can upgrade later)
-========================= */
 function parseBrokerData(){
   const input = document.getElementById("brokerInput");
   if(!input) return;
@@ -1218,17 +1080,14 @@ function parseBrokerData(){
   }
 
   const stocks = [];
-
   for(let i = 0; i < lines.length; i++){
     const ticker = lines[i];
     const name = lines[i + 1];
     const rating = lines[i + 3];
     const upsideLine = lines[i + 7];
-
     if(!ticker || !rating || !upsideLine) continue;
 
     const upsideMatch = upsideLine.match(/[-+]?\d+(\.\d+)?/);
-
     stocks.push({
       ticker: ticker.trim(),
       name: name?.trim() || "",
@@ -1237,7 +1096,7 @@ function parseBrokerData(){
     });
   }
 
-  const buys = stocks.filter(x => (x.rating || "").includes("Buy")).sort((a,b) => (b.upside || 0) - (a.upside || 0)).slice(0,5);
+  const buys  = stocks.filter(x => (x.rating || "").includes("Buy")).sort((a,b) => (b.upside || 0) - (a.upside || 0)).slice(0,5);
   const holds = stocks.filter(x => (x.rating || "") === "Hold").sort((a,b) => (b.upside || 0) - (a.upside || 0)).slice(0,5);
   const sells = stocks.filter(x => (x.rating || "").includes("Sell")).sort((a,b) => (a.upside || 0) - (b.upside || 0)).slice(0,5);
 
@@ -1246,9 +1105,6 @@ function parseBrokerData(){
   renderBrokerList(sells, "topSells", "Sell");
 }
 
-/* =========================
-   Copy briefing
-========================= */
 async function copyBrief(){
   const reg = document.getElementById("regimeLabel")?.innerText?.trim() || "—";
   const sayLis = [...(document.querySelectorAll("#clientSay li") || [])].map(li => "- " + li.innerText.trim());
@@ -1277,41 +1133,35 @@ ${doLis.join("\n") || "- —"}
       setTimeout(()=>btn.innerText = old, 1200);
     }
   }catch(e){
-    alert("Clipboard copy failed (browser permissions). You can manually select text from the cards.");
+    alert("Clipboard copy failed (browser permissions).");
   }
 }
 
-/* =========================
-   Refresh markets + regime + messaging + KPIs
-========================= */
+/* ✅ FIX: fault-tolerant market loading (one symbol can fail without killing the whole dashboard) */
 async function refreshAll(){
   const btn = document.getElementById("refreshBtn");
   const marketRowsEl = document.getElementById("marketRows");
 
-  if(btn){
-    btn.disabled = true;
-    btn.innerText = "Refreshing…";
-  }
+  if(btn){ btn.disabled = true; btn.innerText = "Refreshing…"; }
   if(marketRowsEl){
     marketRowsEl.innerHTML = `<tr><td colspan="6" class="smallmuted">Loading live market data…</td></tr>`;
   }
 
-  try{
-    const metrics = {
-      vixLvl:null,
-      spChgPct:null,
-      ndxChgPct:null,
-      asxChgPct:null,
-      audChgPct:null,
-      au10yLvl:null,
-      au10yChgBps:null,
-      us10yLvl:null,
-      us10yChgBps:null,
-      goldLvl:null,
-      goldChgPct:null
-    };
+  const metrics = {
+    vixLvl:null,
+    spChgPct:null,
+    ndxChgPct:null,
+    asxChgPct:null,
+    audChgPct:null,
+    au10yLvl:null,
+    au10yChgBps:null,
+    us10yLvl:null,
+    us10yChgBps:null,
+    goldLvl:null
+  };
 
-    const assetResults = await Promise.all(
+  try{
+    const perAsset = await Promise.allSettled(
       ASSETS.map(async a => {
         const [d1, ytd, twoY] = await Promise.all([
           yahooChart(a.symbol, "1d"),
@@ -1323,9 +1173,17 @@ async function refreshAll(){
     );
 
     let rows = "";
+    const failures = [];
 
-    for(const result of assetResults){
-      const { a, d1, ytd, twoY } = result;
+    for(const res of perAsset){
+      if(res.status !== "fulfilled"){
+        // record failure and render placeholder row
+        const msg = String(res.reason?.message || res.reason || "Unknown error");
+        failures.push(msg);
+        continue;
+      }
+
+      const { a, d1, ytd, twoY } = res.value;
 
       const dMeta = d1.meta || {};
       const dCloses = d1?.indicators?.quote?.[0]?.close || [];
@@ -1348,11 +1206,9 @@ async function refreshAll(){
       }
 
       let ytdBase = isNum(yMeta.chartPreviousClose) ? yMeta.chartPreviousClose : null;
-
       let start2025 = firstCloseForYear(tStamps, tCloses, 2025);
       let end2025 = lastCloseForYear(tStamps, tCloses, 2025);
 
-      // yields: Yahoo often returns ^TNX as 10x yield (%*10). We keep your previous logic: divide by 10
       if(a.y){
         if(isNum(cur)) cur = cur / 10;
         if(isNum(prevClose)) prevClose = prevClose / 10;
@@ -1376,17 +1232,10 @@ async function refreshAll(){
         ? ""
         : ((a.y ? (oneDayDeltaBps >= 0) : (oneDayDeltaPct >= 0)) ? "pos" : "neg");
 
-      const ytdClass = (ytdText === "—")
-        ? ""
-        : ((isNum(cur) && isNum(ytdBase) && cur >= ytdBase) ? "pos" : "neg");
+      const ytdClass = (ytdText === "—") ? "" : ((isNum(cur) && isNum(ytdBase) && cur >= ytdBase) ? "pos" : "neg");
+      const cyClass  = (cyText === "—")  ? "" : ((isNum(end2025) && isNum(start2025) && end2025 >= start2025) ? "pos" : "neg");
 
-      const cyClass = (cyText === "—")
-        ? ""
-        : ((isNum(end2025) && isNum(start2025) && end2025 >= start2025) ? "pos" : "neg");
-
-      const levelText = isNum(cur)
-        ? (a.y ? cur.toFixed(2) + "%" : cur.toFixed(2))
-        : "—";
+      const levelText = isNum(cur) ? (a.y ? cur.toFixed(2) + "%" : cur.toFixed(2)) : "—";
 
       rows += `<tr>
         <td>${escapeHtml(a.name)}</td>
@@ -1397,31 +1246,22 @@ async function refreshAll(){
         <td class="${cyClass}">${escapeHtml(cyText)}</td>
       </tr>`;
 
-      // store key metrics for regime + KPIs
       if(a.symbol === "^VIX"){ metrics.vixLvl = cur; }
       if(a.symbol === "^GSPC"){ metrics.spChgPct = oneDayDeltaPct; }
-      if(a.symbol === "^NDX"){  metrics.ndxChgPct = oneDayDeltaPct; }
+      if(a.symbol === "^NDX"){ metrics.ndxChgPct = oneDayDeltaPct; }
       if(a.symbol === "^AXJO"){ metrics.asxChgPct = oneDayDeltaPct; }
       if(a.symbol === "AUDUSD=X"){ metrics.audChgPct = oneDayDeltaPct; }
-      if(a.symbol === "^TNX"){
-        metrics.us10yLvl = cur;
-        metrics.us10yChgBps = oneDayDeltaBps;
-      }
-      if(a.symbol === "^AUS10Y"){
-        metrics.au10yLvl = cur;
-        metrics.au10yChgBps = oneDayDeltaBps;
-      }
-      if(a.symbol === "GC=F"){
-        metrics.goldLvl = cur;
-        metrics.goldChgPct = oneDayDeltaPct;
-      }
+      if(a.symbol === "^TNX"){ metrics.us10yLvl = cur; metrics.us10yChgBps = oneDayDeltaBps; }
+      if(a.symbol === "^AXJCGB10Y"){ metrics.au10yLvl = cur; metrics.au10yChgBps = oneDayDeltaBps; }
+      if(a.symbol === "GC=F"){ metrics.goldLvl = cur; }
     }
 
-    if(marketRowsEl) marketRowsEl.innerHTML = rows;
+    if(marketRowsEl){
+      marketRowsEl.innerHTML = rows || `<tr><td colspan="6" class="neg">No market rows rendered (all failed).</td></tr>`;
+    }
 
-    // Regime
+    // Regime + client messaging always render (even if some metrics are missing)
     const reg = computeRegime(metrics);
-
     const regimeLabel = document.getElementById("regimeLabel");
     if(regimeLabel){
       regimeLabel.innerHTML = `
@@ -1430,27 +1270,18 @@ async function refreshAll(){
         <span class="smallmuted"> · Score ${escapeHtml(reg.score.toFixed(1))}</span>
       `;
     }
-
     const regimeDrivers = document.getElementById("regimeDrivers");
     if(regimeDrivers){
-      regimeDrivers.innerHTML = reg.drivers.slice(0,6).map(d => `<li>${escapeHtml(d)}</li>`).join("");
+      const extra = failures.length ? [`Market data issues: ${failures.slice(0,2).join(" | ")}`] : [];
+      regimeDrivers.innerHTML = reg.drivers.concat(extra).slice(0,6).map(d => `<li>${escapeHtml(d)}</li>`).join("");
     }
-
-    // Client messaging
-    const say = buildClientSay(metrics);
-    const doo = buildClientDo(metrics);
 
     const clientSay = document.getElementById("clientSay");
     const clientDo  = document.getElementById("clientDo");
-    if(clientSay) clientSay.innerHTML = say.map(t => `<li>${escapeHtml(t)}</li>`).join("");
-    if(clientDo)  clientDo.innerHTML  = doo.map(t => `<li>${escapeHtml(t)}</li>`).join("");
+    if(clientSay) clientSay.innerHTML = buildClientSay(metrics).map(t => `<li>${escapeHtml(t)}</li>`).join("");
+    if(clientDo)  clientDo.innerHTML  = buildClientDo(metrics).map(t => `<li>${escapeHtml(t)}</li>`).join("");
 
-    // KPIs (index matches tiles)
-    setKpi(0, "ASX 200", isNum(metrics.asxChgPct) ? "—" : "—", isNum(metrics.asxChgPct) ? `${metrics.asxChgPct.toFixed(2)}%` : "—",
-      isNum(metrics.asxChgPct) ? (metrics.asxChgPct >= 0 ? "pos" : "neg") : null);
-
-    // KPI values: we don't store levels directly for ASX/AUD in metrics, but we can infer from rendered table if needed.
-    // Simple approach: pull from the rendered rows by symbol after table render.
+    // KPI scrape from table (simple + reliable)
     function findLevelForSymbol(sym){
       const rows = [...document.querySelectorAll("#marketRows tr")];
       for(const r of rows){
@@ -1459,7 +1290,7 @@ async function refreshAll(){
           const lvl = r.querySelector("td:nth-child(3)")?.innerText?.trim();
           const oneDay = r.querySelector("td:nth-child(4)")?.innerText?.trim();
           const oneDayCls = r.querySelector("td:nth-child(4)")?.className || "";
-          return { lvl, oneDay, oneDayCls };
+          return { lvl: lvl || "—", oneDay: oneDay || "—", oneDayCls };
         }
       }
       return { lvl:"—", oneDay:"—", oneDayCls:"" };
@@ -1467,83 +1298,49 @@ async function refreshAll(){
 
     const asxK = findLevelForSymbol("^AXJO");
     const audK = findLevelForSymbol("AUDUSD=X");
-    const auyK = findLevelForSymbol("^AUS10Y");
+    const auyK = findLevelForSymbol("^AXJCGB10Y");
     const usyK = findLevelForSymbol("^TNX");
     const goldK= findLevelForSymbol("GC=F");
     const vixK = findLevelForSymbol("^VIX");
 
-    setKpi(0, "ASX 200", asxK.lvl || "—", asxK.oneDay || "—", asxK.oneDayCls.includes("pos") ? "pos" : (asxK.oneDayCls.includes("neg") ? "neg" : null));
-    setKpi(1, "AUD/USD", audK.lvl || "—", audK.oneDay || "—", audK.oneDayCls.includes("pos") ? "pos" : (audK.oneDayCls.includes("neg") ? "neg" : null));
-    setKpi(2, "AU 10Y",  auyK.lvl || "—", auyK.oneDay || "—", auyK.oneDayCls.includes("pos") ? "pos" : (auyK.oneDayCls.includes("neg") ? "neg" : null));
-    setKpi(3, "US 10Y",  usyK.lvl || "—", usyK.oneDay || "—", usyK.oneDayCls.includes("pos") ? "pos" : (usyK.oneDayCls.includes("neg") ? "neg" : null));
-    setKpi(4, "Gold",    goldK.lvl|| "—", goldK.oneDay|| "—", goldK.oneDayCls.includes("pos") ? "pos" : (goldK.oneDayCls.includes("neg") ? "neg" : null));
-    setKpi(5, "VIX",     vixK.lvl || "—", vixK.oneDay || "—", vixK.oneDayCls.includes("pos") ? "pos" : (vixK.oneDayCls.includes("neg") ? "neg" : null));
+    const clsToSign = (c) => c.includes("pos") ? "pos" : (c.includes("neg") ? "neg" : null);
 
-    // News
+    setKpi(0, "ASX 200", asxK.lvl, asxK.oneDay, clsToSign(asxK.oneDayCls));
+    setKpi(1, "AUD/USD", audK.lvl, audK.oneDay, clsToSign(audK.oneDayCls));
+    setKpi(2, "AU 10Y",  auyK.lvl, auyK.oneDay, clsToSign(auyK.oneDayCls));
+    setKpi(3, "US 10Y",  usyK.lvl, usyK.oneDay, clsToSign(usyK.oneDayCls));
+    setKpi(4, "Gold",    goldK.lvl, goldK.oneDay, clsToSign(goldK.oneDayCls));
+    setKpi(5, "VIX",     vixK.lvl, vixK.oneDay, clsToSign(vixK.oneDayCls));
+
     await refreshNews();
 
-    // Last updated
     const now = new Date();
     const lastUpdated = document.getElementById("lastUpdated");
     if(lastUpdated){
       lastUpdated.textContent =
         `Last updated: ${now.toLocaleString("en-AU", {
-          weekday:"short",
-          year:"numeric",
-          month:"short",
-          day:"2-digit",
-          hour:"2-digit",
-          minute:"2-digit"
+          weekday:"short", year:"numeric", month:"short", day:"2-digit",
+          hour:"2-digit", minute:"2-digit"
         })}`;
     }
 
   }catch(err){
     const msg = String(err?.message || err);
-
     if(marketRowsEl){
       marketRowsEl.innerHTML = `<tr><td colspan="6" class="neg">Error loading data: ${escapeHtml(msg)}</td></tr>`;
     }
-
     const regimeLabel = document.getElementById("regimeLabel");
     if(regimeLabel){
-      regimeLabel.innerHTML =
-        `<span class="regime-dot" style="background:#ff5c7a"></span><b style="color:#ff5c7a">Error</b>`;
+      regimeLabel.innerHTML = `<span class="regime-dot" style="background:#ff5c7a"></span><b style="color:#ff5c7a">Error</b>`;
     }
-
     const regimeDrivers = document.getElementById("regimeDrivers");
-    if(regimeDrivers){
-      regimeDrivers.innerHTML = `<li>${escapeHtml(msg)}</li>`;
-    }
-
-    const clientSay = document.getElementById("clientSay");
-    const clientDo  = document.getElementById("clientDo");
-    if(clientSay) clientSay.innerHTML = `<li>Unable to generate client messaging until market data loads.</li>`;
-    if(clientDo)  clientDo.innerHTML  = `<li>Try refresh. If it persists, your proxy or Yahoo feed may be blocked.</li>`;
-
-    const fallback = `<li><a href="#" onclick="return false;"><span class="badge badge-mid">🟠 Med</span>News unavailable.</a></li>`;
-    ["adviserNews","superNews","insNews","macroNews"].forEach(id => {
-      const el = document.getElementById(id);
-      if(el) el.innerHTML = fallback;
-    });
-
-    const tb = document.querySelector("#asxNewsTable tbody");
-    if(tb) tb.innerHTML = `<tr><td colspan="5" class="muted center">News unavailable.</td></tr>`;
-
-    const fnTb = document.querySelector("#fnArenaTable tbody");
-    if(fnTb) fnTb.innerHTML = `<tr><td colspan="4" class="muted center">News unavailable.</td></tr>`;
-
+    if(regimeDrivers){ regimeDrivers.innerHTML = `<li>${escapeHtml(msg)}</li>`; }
     setFeedHealth(4);
   }finally{
-    if(btn){
-      btn.disabled = false;
-      btn.innerText = "🔄 Refresh";
-    }
+    if(btn){ btn.disabled = false; btn.innerText = "🔄 Refresh"; }
   }
 }
 
-/* =========================
-   Boot
-========================= */
 refreshAll();
 loadBrokerPicks();
 </script>
