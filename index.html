@@ -591,11 +591,12 @@ const FEEDS = {
 
 /* =========================
    Market symbols
+   UPDATE: use NASDAQ 100 (^NDX) so variable name matches reality
 ========================= */
 const ASSETS = [
   { name:"ASX 200",      symbol:"^AXJO", link:"https://finance.yahoo.com/quote/%5EAXJO" },
   { name:"S&P 500",      symbol:"^GSPC", link:"https://finance.yahoo.com/quote/%5EGSPC" },
-  { name:"NASDAQ",       symbol:"^IXIC", link:"https://finance.yahoo.com/quote/%5EIXIC" },
+  { name:"NASDAQ 100",   symbol:"^NDX",  link:"https://finance.yahoo.com/quote/%5ENDX" },
   { name:"AUD / USD",    symbol:"AUDUSD=X", link:"https://finance.yahoo.com/quote/AUDUSD%3DX" },
   { name:"US 10Y Yield", symbol:"^TNX", y:true, link:"https://finance.yahoo.com/quote/%5ETNX" },
   { name:"Gold",         symbol:"GC=F", link:"https://finance.yahoo.com/quote/GC%3DF" },
@@ -734,11 +735,21 @@ function escapeHtml(s){
 }
 
 /* =========================
+   NEW: fetch with timeout (stability)
+========================= */
+function fetchWithTimeout(url, ms=9000){
+  const ctrl = new AbortController();
+  const id = setTimeout(() => ctrl.abort(), ms);
+  return fetch(url, { cache:"no-store", signal: ctrl.signal })
+    .finally(() => clearTimeout(id));
+}
+
+/* =========================
    Yahoo via Worker
 ========================= */
 async function yahooChart(symbol, range){
   const url = `${PROXY}?symbol=${encodeURIComponent(symbol)}&range=${encodeURIComponent(range)}`;
-  const res = await fetch(url, { cache:"no-store" });
+  const res = await fetchWithTimeout(url, 9000);
   const text = await res.text();
 
   let json;
@@ -757,7 +768,7 @@ async function yahooChart(symbol, range){
    RSS/Atom via Worker
 ========================= */
 async function fetchRSS(url){
-  const res = await fetch(`${PROXY}?url=${encodeURIComponent(url)}`, { cache:"no-store" });
+  const res = await fetchWithTimeout(`${PROXY}?url=${encodeURIComponent(url)}`, 9000);
   const xmlText = await res.text();
   const xml = new DOMParser().parseFromString(xmlText, "text/xml");
 
@@ -902,7 +913,7 @@ function renderAsxTable(items){
         </td>
         <td>${escapeHtml(n.src || "AFR")}</td>
         <td>
-          <span class="badge ${tag.cls}">${tag.txt}</span>
+          <span class="badge ${tag.cls}">${escapeHtml(tag.txt)}</span>
           ${isASX200 ? `<span class="badge badge-low">ASX 200</span>` : ""}
         </td>
         <td class="smallmuted">${escapeHtml(when)}</td>
@@ -1008,10 +1019,10 @@ function computeRegime(m){
 
   if(usBreadth >= 2){
     score += 1;
-    drivers.push(`US equities broadly higher (S&P & NASDAQ up), indicating risk appetite.`);
+    drivers.push(`US equities broadly higher (S&P & NASDAQ 100 up), indicating risk appetite.`);
   }else if(usBreadth <= -2){
     score -= 1;
-    drivers.push(`US equities broadly lower (S&P & NASDAQ down), risk appetite softer.`);
+    drivers.push(`US equities broadly lower (S&P & NASDAQ 100 down), risk appetite softer.`);
   }else{
     drivers.push(`US equities mixed, suggesting selective risk-taking.`);
   }
@@ -1101,7 +1112,7 @@ function buildTalkingPoints(m){
   }
 
   if(isNum(m.spChgPct) && isNum(m.ndxChgPct)){
-    bullets.push(`Overnight US: S&P ${m.spChgPct.toFixed(2)}%, NASDAQ ${m.ndxChgPct.toFixed(2)}% — helps frame the day’s risk tone for clients.`);
+    bullets.push(`Overnight US: S&P ${m.spChgPct.toFixed(2)}%, NASDAQ 100 ${m.ndxChgPct.toFixed(2)}% — helps frame the day’s risk tone for clients.`);
   }
 
   return bullets.slice(0,6);
@@ -1225,7 +1236,7 @@ function renderBrokerList(list, id, emoji, label){
 }
 
 /* =========================
-   Broker text parser
+   Broker text parser (unchanged)
 ========================= */
 function parseBrokerData(){
   const input = document.getElementById("brokerInput");
@@ -1402,7 +1413,7 @@ async function refreshAll(){
 
       if(a.symbol === "^VIX"){ metrics.vixLvl = cur; }
       if(a.symbol === "^GSPC"){ metrics.spChgPct = oneDayDeltaPct; }
-      if(a.symbol === "^IXIC"){ metrics.ndxChgPct = oneDayDeltaPct; }
+      if(a.symbol === "^NDX"){  metrics.ndxChgPct = oneDayDeltaPct; } /* UPDATE */
       if(a.symbol === "^AXJO"){ metrics.asxChgPct = oneDayDeltaPct; }
       if(a.symbol === "AUDUSD=X"){ metrics.audChgPct = oneDayDeltaPct; }
       if(a.symbol === "^TNX"){
