@@ -267,6 +267,7 @@ hr.sep{ border:none; height:1px; background:rgba(255,255,255,.07); margin:12px 0
       </div>
       <div style="margin-top:10px; display:flex; gap:10px; flex-wrap:wrap">
         <span class="pill">🧾 Focus: Clients · Super · Compliance</span>
+        <span class="pill">🏠 Melbourne: cash rate · housing · deposits</span>
         <span class="pill">⚠️ Signal-only: feeds & keyword tags</span>
       </div>
     </div>
@@ -380,28 +381,65 @@ hr.sep{ border:none; height:1px; background:rgba(255,255,255,.07); margin:12px 0
         </table>
       </div>
 
-      <div class="card">
-        <div class="card-header">
-          <h2>Broker consensus loader</h2>
-          <span>Paste broker table (manual)</span>
-        </div>
-
-        <textarea
-          id="brokerInput"
-          style="width:100%;height:140px;border-radius:12px;padding:12px;background:#081024;color:white;border:1px solid rgba(255,255,255,.1)"
-          placeholder="Paste broker table here (CSV, tab, or plain text)..."
-        ></textarea>
-
-        <button class="btn" style="margin-top:10px" onclick="parseBrokerData()">Load Broker Picks</button>
-        <div class="smallmuted" style="margin-top:8px">
-          Tip: works best with columns like <span class="mono">Ticker, Name, Rating, Upside</span>.
-        </div>
-      </div>
+      <!-- ✅ removed: Broker consensus loader -->
 
     </div>
 
     <!-- RIGHT -->
     <div class="stack">
+
+      <!-- ✅ NEW: RBA snapshot -->
+      <div class="card">
+        <div class="card-header">
+          <h2>RBA snapshot</h2>
+          <span>Cash rate + last decision</span>
+        </div>
+        <div id="rbaCard" class="smallmuted">Loading RBA…</div>
+      </div>
+
+      <!-- ✅ NEW: Property snapshot -->
+      <div class="card">
+        <div class="card-header">
+          <h2>Residential property (Melbourne/VIC)</h2>
+          <span>Prices · momentum</span>
+        </div>
+        <div id="propertyCard" class="smallmuted">Loading property…</div>
+      </div>
+
+      <!-- ✅ NEW: Term deposits -->
+      <div class="card">
+        <div class="card-header">
+          <h2>Term deposits — 3 months</h2>
+          <span>Client cash options</span>
+        </div>
+        <table class="news-table">
+          <thead>
+            <tr><th>Bank</th><th>3-month rate</th><th>Notes</th></tr>
+          </thead>
+          <tbody id="tdTable">
+            <tr><td colspan="3" class="muted center">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- ✅ NEW: Budget summary (manual paste) -->
+      <div class="card">
+        <div class="card-header">
+          <h2>Federal Budget — proposed changes</h2>
+          <span>Paste + copy into client comms</span>
+        </div>
+
+        <textarea
+          id="budgetInput"
+          style="width:100%;height:120px;border-radius:12px;padding:12px;background:#081024;color:white;border:1px solid rgba(255,255,255,.1)"
+          placeholder="Paste dot points here (one per line)..."
+        ></textarea>
+
+        <button class="btn" style="margin-top:10px" onclick="renderBudget()">Load Budget Summary</button>
+
+        <div class="smallmuted" style="margin-top:10px">Rendered summary</div>
+        <ul class="bullets" id="budgetBullets"></ul>
+      </div>
 
       <div class="card">
         <div class="card-header">
@@ -466,7 +504,7 @@ hr.sep{ border:none; height:1px; background:rgba(255,255,255,.07); margin:12px 0
       <section class="card">
         <div class="card-header">
           <h3>ASX company headlines (feed)</h3>
-          <span class="muted">AFR • (feed-based)</span>
+          <span class="muted">Market & regulator feeds</span>
         </div>
 
         <table class="news-table" id="asxNewsTable">
@@ -499,6 +537,17 @@ const PROXY = "https://wild-dream-69cc.seanhurren.workers.dev";
 const RSS_CACHE_MS = 5 * 60 * 1000; // 5 minutes
 const RSS_CACHE_KEY = (u) => `rssCache::${u}`;
 
+/* Term deposit rates (3 months) — robust approach:
+   - Keep Big 4 manual (pages are inconsistent to scrape reliably)
+   - Optionally include an extra “anchor” bank that publishes a clean rate table.
+*/
+const TD_3M_MANUAL = [
+  { bank:"CBA", rate:"—", notes:"Set manually (public page inconsistent to parse)" },
+  { bank:"ANZ", rate:"—", notes:"Set manually" },
+  { bank:"NAB", rate:"—", notes:"Set manually" },
+  { bank:"Westpac", rate:"—", notes:"Set manually" }
+];
+
 const BROKER_PICKS = [
   { ticker:"ALL", name:"Aristocrat Leisure", rating:"Strong Buy", upside:40.6, brokers:7, lastUpdate:"2026-02-20" },
   { ticker:"ASG", name:"Autosports Group",  rating:"Strong Buy", upside:31.65, brokers:5, lastUpdate:"2026-02-20" },
@@ -513,14 +562,20 @@ const ASX200_TICKERS = new Set([
   "SUL","ALQ","BKW","AZJ","ORI","ORA","JLG","NEA","ZIP","WTC","BRG","PDN","APX","IFL","HUB","MFG","GQG","VEA"
 ]);
 
+/* ✅ Revised feeds:
+   - Keep adviser feeds
+   - Add RBA + ABS (more reliable and relevant)
+   - AFR companies often blocks; you can re-add if it works in your environment.
+*/
 const FEEDS = {
   adviser: [
     { url: "https://faaa.au/media-releases/feed/", src: "FAAA" },
     { url: "https://www.ifa.com.au/news/?format=feed&type=rss", src: "IFA" },
     { url: "https://www.investordaily.com.au/news/?format=feed&type=rss", src: "InvestorDaily" }
   ],
-  asx200: [
-    { url: "https://www.afr.com/rss/companies", src: "AFR" }
+  marketsAu: [
+    { url: "https://www.rba.gov.au/rss/rss-mr.xml", src: "RBA" },
+    { url: "https://www.abs.gov.au/rss.xml", src: "ABS" }
   ],
   leg: [
     { url: "https://www.asic.gov.au/rss/news.xml", src: "ASIC" },
@@ -694,7 +749,7 @@ async function yahooChart(symbol, range){
   return result;
 }
 
-/* RSS via Worker + cache */
+/* RSS via Worker + cache (improved for Atom/RSS) */
 async function fetchRSS(url){
   // try cache
   try{
@@ -712,6 +767,7 @@ async function fetchRSS(url){
   const xml = new DOMParser().parseFromString(xmlText, "text/xml");
   if(xml.querySelector("parsererror")) throw new Error("RSS parse error");
 
+  // RSS items
   let items = [...xml.querySelectorAll("item")].map(i => {
     const title = i.querySelector("title")?.textContent?.trim() || "";
     const link  = (i.querySelector("link")?.textContent || "").trim();
@@ -723,6 +779,7 @@ async function fetchRSS(url){
     return { title, link, dateMs: parseMaybeDate(pub) };
   });
 
+  // Atom entries fallback
   if(items.length === 0){
     items = [...xml.querySelectorAll("entry")].map(e => {
       const title = e.querySelector("title")?.textContent?.trim() || "";
@@ -792,7 +849,6 @@ function extractAsxCode(title){
     if(TICKER_STOP.has(m)) continue;
     if(ASX200_TICKERS.has(m)) return m;
   }
-  // fallback: first plausible token that isn’t stopword
   for(const m of matches){
     if(TICKER_STOP.has(m)) continue;
     return m;
@@ -841,7 +897,7 @@ function renderAsxTable(items){
   items = (items || []).filter(i => i && i.title && i.link);
 
   if(items.length === 0){
-    tbody.innerHTML = `<tr><td colspan="5" class="muted center">No ASX company news available.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="5" class="muted center">No company / markets items available.</td></tr>`;
     return;
   }
 
@@ -854,9 +910,9 @@ function renderAsxTable(items){
 
     return `
       <tr>
-        <td>${isASX200 ? escapeHtml(code) : (code ? escapeHtml(code) : "ASX")}</td>
+        <td>${isASX200 ? escapeHtml(code) : (code ? escapeHtml(code) : "AU")}</td>
         <td><a href="${escapeHtml(href)}" target="_blank" rel="noopener">${escapeHtml(n.title)}</a></td>
-        <td>${escapeHtml(n.src || "AFR")}</td>
+        <td>${escapeHtml(n.src || "Feed")}</td>
         <td>
           <span class="badge ${tag.cls}">${escapeHtml(tag.txt)}</span>
           ${isASX200 ? `<span class="badge badge-low">ASX 200</span>` : ""}
@@ -1044,22 +1100,124 @@ function setKpi(index, label, value, deltaText, deltaIsPosNeg){
   else dEl.textContent = deltaText ? `Δ ${deltaText}` : "—";
 }
 
+/* -----------------------------
+   NEW: Budget + RBA + Property + TD
+------------------------------ */
+function renderBudget(){
+  const raw = (document.getElementById("budgetInput")?.value || "").trim();
+  const el = document.getElementById("budgetBullets");
+  if(!el) return;
+
+  if(!raw){
+    el.innerHTML = `<li>No budget notes loaded.</li>`;
+    return;
+  }
+  const lines = raw.split("\n").map(s => s.trim()).filter(Boolean);
+  el.innerHTML = lines.slice(0,12).map(x => `<li>${escapeHtml(x)}</li>`).join("");
+}
+
+async function loadRbaSnapshot(){
+  const el = document.getElementById("rbaCard");
+  if(!el) return;
+
+  try{
+    const url = `${PROXY}?url=${encodeURIComponent("https://www.rba.gov.au/cash-rate-target-overview.html")}`;
+    const res = await fetchWithTimeout(url, 9000);
+    const html = await res.text();
+
+    const rateMatch = html.match(/Cash rate target[^0-9]*([0-9]+\.[0-9]+)\s*%/i);
+    const effMatch  = html.match(/Effective date[^0-9]*([0-9]{1,2}\s+\w+\s+20[0-9]{2})/i);
+    const nextMatch = html.match(/Next update[^0-9]*([0-9]{1,2}\.\d{2}\s*(am|pm)[^,]*,\s*[0-9]{1,2}\s+\w+\s+20[0-9]{2})/i);
+
+    const rate = rateMatch ? rateMatch[1] + "%" : "—";
+    const eff  = effMatch ? effMatch[1] : "—";
+    const next = nextMatch ? nextMatch[1] : "—";
+
+    el.innerHTML = `
+      <div class="kpi" style="margin-top:6px">
+        <div class="label">Cash rate target</div>
+        <div class="value">${escapeHtml(rate)}</div>
+        <div class="delta">Effective: ${escapeHtml(eff)} · Next: ${escapeHtml(next)}</div>
+      </div>
+      <div class="smallmuted" style="margin-top:10px">
+        Source: RBA (official cash rate page).
+      </div>
+    `;
+  }catch(e){
+    el.innerHTML = `<span class="neg">RBA snapshot unavailable (feed issue).</span>`;
+  }
+}
+
+async function loadTdRates(){
+  const tbody = document.getElementById("tdTable");
+  if(!tbody) return;
+
+  // optional "anchor" scrape from a clean rate table (best-effort)
+  let anchor = null;
+  try{
+    const url = `${PROXY}?url=${encodeURIComponent("https://www.bankaust.com.au/banking/term-deposits")}`;
+    const res = await fetchWithTimeout(url, 9000);
+    const html = await res.text();
+    const m = html.match(/3 months[^0-9]*([0-9]+\.[0-9]+)%\s*p\.a\./i);
+    if(m) anchor = { bank:"Bank Australia", rate:`${m[1]}% p.a.`, notes:"Published table rate (interest at maturity)" };
+  }catch(e){}
+
+  const rows = [...TD_3M_MANUAL];
+  if(anchor) rows.push(anchor);
+
+  tbody.innerHTML = rows.map(r => `
+    <tr>
+      <td><b>${escapeHtml(r.bank)}</b></td>
+      <td>${escapeHtml(r.rate)}</td>
+      <td class="smallmuted">${escapeHtml(r.notes)}</td>
+    </tr>
+  `).join("");
+}
+
+async function loadPropertyCard(){
+  const el = document.getElementById("propertyCard");
+  if(!el) return;
+
+  try{
+    const url = `${PROXY}?url=${encodeURIComponent("https://www.abs.gov.au/statistics/economy/price-indexes-and-inflation/total-value-dwellings/dec-quarter-2025")}`;
+    const res = await fetchWithTimeout(url, 9000);
+    const html = await res.text();
+
+    const total = html.match(/rose by\s*\$([0-9,.]+)\s*billion/i);
+    const value = html.match(/to\s*\$([0-9,.]+)\s*billion/i);
+    const mean  = html.match(/mean price[^$]*\$\s*([0-9,.]+)/i);
+
+    el.innerHTML = `
+      <ul class="bullets">
+        <li>ABS (Dec Qtr 2025): total dwelling value ${value ? "$"+value[1]+"b" : "—"} (${total ? "+$"+total[1]+"b QoQ" : "—"}).</li>
+        <li>National mean dwelling price: ${mean ? "$"+mean[1] : "—"}.</li>
+        <li class="smallmuted">Next step: wire a Melbourne index feed (PropTrack/CoreLogic) for a true Melbourne read.</li>
+      </ul>
+    `;
+  }catch(e){
+    el.innerHTML = `<span class="neg">Property snapshot unavailable (feed issue).</span>`;
+  }
+}
+
+/* -----------------------------
+   NEWS
+------------------------------ */
 async function refreshNews(){
   const groups = await Promise.all([
     fetchGroup(FEEDS.adviser),
-    fetchGroup(FEEDS.asx200),
+    fetchGroup(FEEDS.marketsAu),
     fetchGroup(FEEDS.leg),
     fetchGroup(FEEDS.macro),
     fetchGroup(FEEDS.fnArena)
   ]);
 
-  const adviser = groups[0] || {items:[],failed:1};
-  const asxRaw  = groups[1] || {items:[],failed:1};
-  const leg     = groups[2] || {items:[],failed:1};
-  const macro   = groups[3] || {items:[],failed:1};
-  const fnArena = groups[4] || {items:[],failed:1};
+  const adviser  = groups[0] || {items:[],failed:1};
+  const markets  = groups[1] || {items:[],failed:1};
+  const leg      = groups[2] || {items:[],failed:1};
+  const macro    = groups[3] || {items:[],failed:1};
+  const fnArena  = groups[4] || {items:[],failed:1};
 
-  const totalFailed = adviser.failed + asxRaw.failed + leg.failed + macro.failed + fnArena.failed;
+  const totalFailed = adviser.failed + markets.failed + leg.failed + macro.failed + fnArena.failed;
   setFeedHealth(totalFailed);
 
   renderNews(adviser.items || [], document.getElementById("adviserNews"));
@@ -1069,10 +1227,15 @@ async function refreshNews(){
   renderNews(legItems.filter(i => isInsItem(i.title)).slice(0,8),   document.getElementById("insNews"));
   renderNews(macro.items || [], document.getElementById("macroNews"));
 
-  renderAsxTable((asxRaw.items || []).slice(0,10));
+  // Use marketsAu items in the "ASX company headlines" table as a reliable feed table
+  renderAsxTable((markets.items || []).slice(0,10));
+
   renderFnArenaTable(fnArena.items || []);
 }
 
+/* -----------------------------
+   BROKER QUICK LIST (unchanged)
+------------------------------ */
 async function loadBrokerPicks(){
   try{
     const res = await fetch("./data/broker-picks.json", { cache:"no-store" });
@@ -1130,80 +1293,12 @@ function renderBrokerList(list, id, label){
   `).join("");
 }
 
-/* ✅ more robust paste parsing:
-   - supports CSV, TSV, or free-text
-   - looks for ticker (2-4 caps), rating keywords, upside number
-*/
-function parseBrokerData(){
-  const input = document.getElementById("brokerInput");
-  if(!input) return;
-
-  const raw = (input.value || "").trim();
-  if(!raw){
-    renderBrokerList([], "topBuys", "Buy");
-    renderBrokerList([], "topHolds", "Hold");
-    renderBrokerList([], "topSells", "Sell");
-    return;
-  }
-
-  const lines = raw.split("\n").map(l => l.trim()).filter(Boolean);
-  const stocks = [];
-
-  for(const line of lines){
-    const parts = line.split("\t").length > 1 ? line.split("\t") : line.split(","); // TSV first, else CSV
-    const joined = parts.length > 1 ? parts.map(p => p.trim()) : [line];
-
-    // ticker: first 2-4 caps token
-    const ticker = (joined.join(" ").match(/\b[A-Z]{2,4}\b/) || [null])[0];
-    if(!ticker || TICKER_STOP.has(ticker)) continue;
-
-    const ratingMatch = joined.join(" ").match(/\b(Strong Buy|Buy|Hold|Sell|Strong Sell)\b/i);
-    const rating = ratingMatch ? ratingMatch[0] : "";
-
-    const upsideMatch = joined.join(" ").match(/([-+]?\d+(\.\d+)?)\s*%?\s*(upside)?/i);
-    const upside = upsideMatch ? parseFloat(upsideMatch[1]) : 0;
-
-    // name: try second column, else empty
-    const name = (parts.length >= 2 ? parts[1].trim() : "");
-
-    if(!rating && !upsideMatch) continue;
-
-    stocks.push({ ticker, name, rating, upside });
-  }
-
-  // fallback to your old fixed format if parsing found nothing
-  if(stocks.length === 0){
-    const legacy = lines;
-    for(let i = 0; i < legacy.length; i++){
-      const ticker = legacy[i];
-      const name = legacy[i + 1];
-      const rating = legacy[i + 3];
-      const upsideLine = legacy[i + 7];
-      if(!ticker || !rating || !upsideLine) continue;
-
-      const upsideMatch = upsideLine.match(/[-+]?\d+(\.\d+)?/);
-      stocks.push({
-        ticker: ticker.trim(),
-        name: name?.trim() || "",
-        rating: rating.trim(),
-        upside: upsideMatch ? parseFloat(upsideMatch[0]) : 0
-      });
-    }
-  }
-
-  const buys  = stocks.filter(x => (x.rating || "").toLowerCase().includes("buy")).sort((a,b) => (b.upside||0)-(a.upside||0)).slice(0,5);
-  const holds = stocks.filter(x => (x.rating || "").toLowerCase() === "hold").sort((a,b) => (b.upside||0)-(a.upside||0)).slice(0,5);
-  const sells = stocks.filter(x => (x.rating || "").toLowerCase().includes("sell")).sort((a,b) => (a.upside||0)-(b.upside||0)).slice(0,5);
-
-  renderBrokerList(buys, "topBuys", "Buy");
-  renderBrokerList(holds, "topHolds", "Hold");
-  renderBrokerList(sells, "topSells", "Sell");
-}
-
+/* -----------------------------
+   COPY BRIEF (updated to include Budget)
+------------------------------ */
 async function copyBrief(){
   const reg = document.getElementById("regimeLabel")?.innerText?.trim() || "—";
 
-  // include KPI strip if loaded
   const kpis = [...document.querySelectorAll("#kpiRow .kpi")].map(k => {
     const l = k.querySelector(".label")?.innerText?.trim() || "";
     const v = k.querySelector(".value")?.innerText?.trim() || "";
@@ -1213,9 +1308,10 @@ async function copyBrief(){
 
   const sayLis = [...(document.querySelectorAll("#clientSay li") || [])].map(li => "- " + li.innerText.trim());
   const doLis  = [...(document.querySelectorAll("#clientDo li") || [])].map(li => "- " + li.innerText.trim());
+  const budgetLis = [...(document.querySelectorAll("#budgetBullets li") || [])].map(li => "- " + li.innerText.trim());
 
   const text =
-`ADVISER DAILY BRIEF
+`ADVISER DAILY BRIEF (MELBOURNE)
 ${new Date().toLocaleString("en-AU")}
 
 KPIs:
@@ -1229,6 +1325,9 @@ ${sayLis.join("\n") || "- —"}
 
 What to do:
 ${doLis.join("\n") || "- —"}
+
+Federal Budget (proposed changes):
+${budgetLis.join("\n") || "- —"}
 `;
 
   try{
@@ -1244,7 +1343,9 @@ ${doLis.join("\n") || "- —"}
   }
 }
 
-/* Market loader (your fault-tolerant approach retained) */
+/* -----------------------------
+   MARKET LOADER (your fault-tolerant approach retained)
+------------------------------ */
 async function refreshAll(){
   const btn = document.getElementById("refreshBtn");
   const marketRowsEl = document.getElementById("marketRows");
@@ -1416,6 +1517,12 @@ async function refreshAll(){
     setKpi(5, "VIX",     vixK.lvl, vixK.oneDay, clsToSign(vixK.oneDayCls));
 
     await refreshNews();
+
+    // NEW loaders
+    await loadRbaSnapshot();
+    await loadTdRates();
+    await loadPropertyCard();
+    renderBudget();
 
     const now = new Date();
     const lastUpdated = document.getElementById("lastUpdated");
