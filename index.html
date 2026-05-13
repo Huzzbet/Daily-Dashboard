@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Adviser Daily Brief — AU Markets & Advice Dashboard</title>
 
+<meta name="color-scheme" content="dark"/>
+<meta name="theme-color" content="#0b1220"/>
+
 <style>
 :root{
   --bg:#0b1220;
@@ -20,9 +23,11 @@
   --radius:22px;
   --font:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
   --mono: ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
+  --focus: 0 0 0 3px rgba(110,231,255,.35);
 }
 
 *{box-sizing:border-box}
+html,body{height:100%}
 
 body{
   margin:0;
@@ -62,18 +67,28 @@ h1{ margin:0; font-size:26px; font-weight:750; letter-spacing:.2px; }
   transition:.12s ease;
   white-space:nowrap;
 }
-
 .btn.secondary{
   background:linear-gradient(180deg,rgba(255,255,255,.12),rgba(255,255,255,.06));
   color:var(--text);
   box-shadow:none;
   border:1px solid rgba(255,255,255,.10);
 }
-
 .btn:active{ transform:translateY(4px); box-shadow:0 3px 0 #2c9fb3, 0 6px 14px rgba(0,0,0,.6) inset; }
 .btn.secondary:active{ transform:translateY(2px); }
-
 .btn[disabled]{opacity:.65; cursor:not-allowed}
+
+/* ✅ Accessible focus */
+.btn:focus-visible,
+a:focus-visible,
+textarea:focus-visible{
+  outline:none;
+  box-shadow: var(--focus);
+}
+
+/* ✅ Reduced motion */
+@media (prefers-reduced-motion: reduce){
+  *{transition:none !important; scroll-behavior:auto !important}
+}
 
 .grid{
   margin-top:16px;
@@ -235,6 +250,7 @@ hr.sep{ border:none; height:1px; background:rgba(255,255,255,.07); margin:12px 0
   font-size:12px;
   color:var(--muted);
 }
+
 .copyhint{ margin-top:10px; color:var(--muted); font-size:12px; }
 </style>
 </head>
@@ -261,7 +277,8 @@ hr.sep{ border:none; height:1px; background:rgba(255,255,255,.07); margin:12px 0
         <button class="btn" id="refreshBtn" onclick="refreshAll()">🔄 Refresh</button>
       </div>
 
-      <div class="feed-health" id="feedHealth">
+      <!-- ✅ aria-live for status -->
+      <div class="feed-health" id="feedHealth" aria-live="polite">
         <span class="health-dot health-warn"></span>
         <span>Feeds: —</span>
       </div>
@@ -372,10 +389,13 @@ hr.sep{ border:none; height:1px; background:rgba(255,255,255,.07); margin:12px 0
         <textarea
           id="brokerInput"
           style="width:100%;height:140px;border-radius:12px;padding:12px;background:#081024;color:white;border:1px solid rgba(255,255,255,.1)"
-          placeholder="Paste broker table here..."
+          placeholder="Paste broker table here (CSV, tab, or plain text)..."
         ></textarea>
 
         <button class="btn" style="margin-top:10px" onclick="parseBrokerData()">Load Broker Picks</button>
+        <div class="smallmuted" style="margin-top:8px">
+          Tip: works best with columns like <span class="mono">Ticker, Name, Rating, Upside</span>.
+        </div>
       </div>
 
     </div>
@@ -470,7 +490,14 @@ hr.sep{ border:none; height:1px; background:rgba(255,255,255,.07); margin:12px 0
 </div>
 
 <script>
+/* -----------------------------
+   CONFIG
+------------------------------ */
 const PROXY = "https://wild-dream-69cc.seanhurren.workers.dev";
+
+/* RSS cache to reduce latency & rate limits */
+const RSS_CACHE_MS = 5 * 60 * 1000; // 5 minutes
+const RSS_CACHE_KEY = (u) => `rssCache::${u}`;
 
 const BROKER_PICKS = [
   { ticker:"ALL", name:"Aristocrat Leisure", rating:"Strong Buy", upside:40.6, brokers:7, lastUpdate:"2026-02-20" },
@@ -509,16 +536,12 @@ const FEEDS = {
   ]
 };
 
-/* ✅ FIX: AU 10Y symbol changed to a Yahoo-supported one (more likely to work) */
 const ASSETS = [
   { name:"ASX 200",        symbol:"^AXJO",      link:"https://finance.yahoo.com/quote/%5EAXJO" },
   { name:"S&P 500",        symbol:"^GSPC",      link:"https://finance.yahoo.com/quote/%5EGSPC" },
   { name:"NASDAQ 100",     symbol:"^NDX",       link:"https://finance.yahoo.com/quote/%5ENDX" },
   { name:"AUD / USD",      symbol:"AUDUSD=X",   link:"https://finance.yahoo.com/quote/AUDUSD%3DX" },
-
-  /* AU 10Y Gov Bond Yield (Yahoo often uses this) */
   { name:"AU 10Y Yield",   symbol:"^AXJCGB10Y", y:true, link:"https://finance.yahoo.com/quote/%5EAXJCGB10Y" },
-
   { name:"US 10Y Yield",   symbol:"^TNX",       y:true, link:"https://finance.yahoo.com/quote/%5ETNX" },
   { name:"Gold",           symbol:"GC=F",       link:"https://finance.yahoo.com/quote/GC%3DF" },
   { name:"VIX",            symbol:"^VIX",       link:"https://finance.yahoo.com/quote/%5EVIX" }
@@ -546,6 +569,9 @@ const IMPACT = {
 
 const SUPER_KWS = ["super","superannuation","pension","retirement","concessional","non-concessional","ncc","cc","division 296","div 296","ato","transfer balance","tbc"];
 const INS_KWS   = ["insurance","tpd","income protection","life insurance","trauma","claims","claims handling","underwriting","premium","afca"];
+
+/* filter out common false “tickers” */
+const TICKER_STOP = new Set(["US","CEO","CPI","GDP","RBA","ABS","ASIC","APRA","ATO","ETF","SMSF","AFR","IFA","FAAA","AUS","USD","AUD","UK","EU"]);
 
 function isNum(x){ return typeof x === "number" && Number.isFinite(x); }
 
@@ -638,6 +664,15 @@ function escapeHtml(s){
     .replaceAll("'","&#039;");
 }
 
+/* ✅ blocks javascript: etc from feeds */
+function safeUrl(href){
+  try{
+    const u = new URL(href, location.href);
+    if(u.protocol === "http:" || u.protocol === "https:") return u.toString();
+  }catch(e){}
+  return "#";
+}
+
 function fetchWithTimeout(url, ms=9000){
   const ctrl = new AbortController();
   const id = setTimeout(() => ctrl.abort(), ms);
@@ -659,8 +694,19 @@ async function yahooChart(symbol, range){
   return result;
 }
 
-/* RSS via Worker */
+/* RSS via Worker + cache */
 async function fetchRSS(url){
+  // try cache
+  try{
+    const cached = sessionStorage.getItem(RSS_CACHE_KEY(url));
+    if(cached){
+      const obj = JSON.parse(cached);
+      if(obj?.ts && (Date.now() - obj.ts) < RSS_CACHE_MS && Array.isArray(obj.items)){
+        return obj.items;
+      }
+    }
+  }catch(e){}
+
   const res = await fetchWithTimeout(`${PROXY}?url=${encodeURIComponent(url)}`, 9000);
   const xmlText = await res.text();
   const xml = new DOMParser().parseFromString(xmlText, "text/xml");
@@ -691,6 +737,12 @@ async function fetchRSS(url){
   }
 
   items = items.filter(x => x.title && x.link);
+
+  // cache
+  try{
+    sessionStorage.setItem(RSS_CACHE_KEY(url), JSON.stringify({ ts: Date.now(), items: items.slice(0,10) }));
+  }catch(e){}
+
   return items.slice(0,10);
 }
 
@@ -732,10 +784,20 @@ function isInsItem(title){
   return INS_KWS.some(k => t.includes(k));
 }
 
+/* ✅ better ticker extraction (reduces false positives) */
 function extractAsxCode(title){
   if(!title) return null;
-  const match = title.match(/\b[A-Z]{2,4}\b/);
-  return match ? match[0] : null;
+  const matches = title.match(/\b[A-Z]{2,4}\b/g) || [];
+  for(const m of matches){
+    if(TICKER_STOP.has(m)) continue;
+    if(ASX200_TICKERS.has(m)) return m;
+  }
+  // fallback: first plausible token that isn’t stopword
+  for(const m of matches){
+    if(TICKER_STOP.has(m)) continue;
+    return m;
+  }
+  return null;
 }
 
 function extractCompanyFromSignal(title){
@@ -761,8 +823,9 @@ function renderNews(list, el){
     const tag = impactTag(n.title);
     const ago = n.dateMs ? ` · <span class="smallmuted">${fmtTimeAgo(n.dateMs)}</span>` : "";
     const srcBadge = n.src ? `<span class="badge badge-src">${escapeHtml(n.src)}</span>` : "";
+    const href = safeUrl(n.link);
     return `<li>
-      <a href="${escapeHtml(n.link)}" target="_blank" rel="noopener">
+      <a href="${escapeHtml(href)}" target="_blank" rel="noopener">
         <span class="badge ${tag.cls}">${tag.txt}</span>
         ${srcBadge}
         ${escapeHtml(n.title)}${ago}
@@ -787,11 +850,12 @@ function renderAsxTable(items){
     const isASX200 = code && ASX200_TICKERS.has(code);
     const tag = impactTag(n.title);
     const when = n.dateMs ? fmtTimeAgo(n.dateMs) : "—";
+    const href = safeUrl(n.link);
 
     return `
       <tr>
-        <td>${isASX200 ? escapeHtml(code) : "ASX"}</td>
-        <td><a href="${escapeHtml(n.link)}" target="_blank" rel="noopener">${escapeHtml(n.title)}</a></td>
+        <td>${isASX200 ? escapeHtml(code) : (code ? escapeHtml(code) : "ASX")}</td>
+        <td><a href="${escapeHtml(href)}" target="_blank" rel="noopener">${escapeHtml(n.title)}</a></td>
         <td>${escapeHtml(n.src || "AFR")}</td>
         <td>
           <span class="badge ${tag.cls}">${escapeHtml(tag.txt)}</span>
@@ -831,11 +895,12 @@ function renderFnArenaTable(items){
     const action = parseBrokerAction(n.title);
     const sentiment = sentimentTag(n.title);
     const impact = impactTag(n.title);
+    const href = safeUrl(n.link);
 
     return `
       <tr>
         <td>${escapeHtml(company)}</td>
-        <td><a href="${escapeHtml(n.link)}" target="_blank" rel="noopener">${escapeHtml(action)}</a></td>
+        <td><a href="${escapeHtml(href)}" target="_blank" rel="noopener">${escapeHtml(action)}</a></td>
         <td><span class="badge ${sentiment.cls}">${escapeHtml(sentiment.txt)}</span></td>
         <td><span class="badge ${impact.cls}">${escapeHtml(impact.txt)}</span></td>
       </tr>`;
@@ -1065,40 +1130,70 @@ function renderBrokerList(list, id, label){
   `).join("");
 }
 
+/* ✅ more robust paste parsing:
+   - supports CSV, TSV, or free-text
+   - looks for ticker (2-4 caps), rating keywords, upside number
+*/
 function parseBrokerData(){
   const input = document.getElementById("brokerInput");
   if(!input) return;
 
-  const text = input.value || "";
-  const lines = text.split("\n").map(x => x.trim()).filter(Boolean);
-
-  if(!lines.length){
+  const raw = (input.value || "").trim();
+  if(!raw){
     renderBrokerList([], "topBuys", "Buy");
     renderBrokerList([], "topHolds", "Hold");
     renderBrokerList([], "topSells", "Sell");
     return;
   }
 
+  const lines = raw.split("\n").map(l => l.trim()).filter(Boolean);
   const stocks = [];
-  for(let i = 0; i < lines.length; i++){
-    const ticker = lines[i];
-    const name = lines[i + 1];
-    const rating = lines[i + 3];
-    const upsideLine = lines[i + 7];
-    if(!ticker || !rating || !upsideLine) continue;
 
-    const upsideMatch = upsideLine.match(/[-+]?\d+(\.\d+)?/);
-    stocks.push({
-      ticker: ticker.trim(),
-      name: name?.trim() || "",
-      rating: rating.trim(),
-      upside: upsideMatch ? parseFloat(upsideMatch[0]) : 0
-    });
+  for(const line of lines){
+    const parts = line.split("\t").length > 1 ? line.split("\t") : line.split(","); // TSV first, else CSV
+    const joined = parts.length > 1 ? parts.map(p => p.trim()) : [line];
+
+    // ticker: first 2-4 caps token
+    const ticker = (joined.join(" ").match(/\b[A-Z]{2,4}\b/) || [null])[0];
+    if(!ticker || TICKER_STOP.has(ticker)) continue;
+
+    const ratingMatch = joined.join(" ").match(/\b(Strong Buy|Buy|Hold|Sell|Strong Sell)\b/i);
+    const rating = ratingMatch ? ratingMatch[0] : "";
+
+    const upsideMatch = joined.join(" ").match(/([-+]?\d+(\.\d+)?)\s*%?\s*(upside)?/i);
+    const upside = upsideMatch ? parseFloat(upsideMatch[1]) : 0;
+
+    // name: try second column, else empty
+    const name = (parts.length >= 2 ? parts[1].trim() : "");
+
+    if(!rating && !upsideMatch) continue;
+
+    stocks.push({ ticker, name, rating, upside });
   }
 
-  const buys  = stocks.filter(x => (x.rating || "").includes("Buy")).sort((a,b) => (b.upside || 0) - (a.upside || 0)).slice(0,5);
-  const holds = stocks.filter(x => (x.rating || "") === "Hold").sort((a,b) => (b.upside || 0) - (a.upside || 0)).slice(0,5);
-  const sells = stocks.filter(x => (x.rating || "").includes("Sell")).sort((a,b) => (a.upside || 0) - (b.upside || 0)).slice(0,5);
+  // fallback to your old fixed format if parsing found nothing
+  if(stocks.length === 0){
+    const legacy = lines;
+    for(let i = 0; i < legacy.length; i++){
+      const ticker = legacy[i];
+      const name = legacy[i + 1];
+      const rating = legacy[i + 3];
+      const upsideLine = legacy[i + 7];
+      if(!ticker || !rating || !upsideLine) continue;
+
+      const upsideMatch = upsideLine.match(/[-+]?\d+(\.\d+)?/);
+      stocks.push({
+        ticker: ticker.trim(),
+        name: name?.trim() || "",
+        rating: rating.trim(),
+        upside: upsideMatch ? parseFloat(upsideMatch[0]) : 0
+      });
+    }
+  }
+
+  const buys  = stocks.filter(x => (x.rating || "").toLowerCase().includes("buy")).sort((a,b) => (b.upside||0)-(a.upside||0)).slice(0,5);
+  const holds = stocks.filter(x => (x.rating || "").toLowerCase() === "hold").sort((a,b) => (b.upside||0)-(a.upside||0)).slice(0,5);
+  const sells = stocks.filter(x => (x.rating || "").toLowerCase().includes("sell")).sort((a,b) => (a.upside||0)-(b.upside||0)).slice(0,5);
 
   renderBrokerList(buys, "topBuys", "Buy");
   renderBrokerList(holds, "topHolds", "Hold");
@@ -1107,12 +1202,24 @@ function parseBrokerData(){
 
 async function copyBrief(){
   const reg = document.getElementById("regimeLabel")?.innerText?.trim() || "—";
+
+  // include KPI strip if loaded
+  const kpis = [...document.querySelectorAll("#kpiRow .kpi")].map(k => {
+    const l = k.querySelector(".label")?.innerText?.trim() || "";
+    const v = k.querySelector(".value")?.innerText?.trim() || "";
+    const d = k.querySelector(".delta")?.innerText?.trim() || "";
+    return l ? `${l}: ${v} (${d.replace(/^Δ\s*/,"")})` : null;
+  }).filter(Boolean);
+
   const sayLis = [...(document.querySelectorAll("#clientSay li") || [])].map(li => "- " + li.innerText.trim());
   const doLis  = [...(document.querySelectorAll("#clientDo li") || [])].map(li => "- " + li.innerText.trim());
 
   const text =
 `ADVISER DAILY BRIEF
 ${new Date().toLocaleString("en-AU")}
+
+KPIs:
+${kpis.length ? kpis.map(x => "- " + x).join("\n") : "- —"}
 
 Market regime:
 ${reg}
@@ -1137,7 +1244,7 @@ ${doLis.join("\n") || "- —"}
   }
 }
 
-/* ✅ FIX: fault-tolerant market loading (one symbol can fail without killing the whole dashboard) */
+/* Market loader (your fault-tolerant approach retained) */
 async function refreshAll(){
   const btn = document.getElementById("refreshBtn");
   const marketRowsEl = document.getElementById("marketRows");
@@ -1177,9 +1284,7 @@ async function refreshAll(){
 
     for(const res of perAsset){
       if(res.status !== "fulfilled"){
-        // record failure and render placeholder row
-        const msg = String(res.reason?.message || res.reason || "Unknown error");
-        failures.push(msg);
+        failures.push(String(res.reason?.message || res.reason || "Unknown error"));
         continue;
       }
 
@@ -1260,7 +1365,6 @@ async function refreshAll(){
       marketRowsEl.innerHTML = rows || `<tr><td colspan="6" class="neg">No market rows rendered (all failed).</td></tr>`;
     }
 
-    // Regime + client messaging always render (even if some metrics are missing)
     const reg = computeRegime(metrics);
     const regimeLabel = document.getElementById("regimeLabel");
     if(regimeLabel){
@@ -1281,7 +1385,6 @@ async function refreshAll(){
     if(clientSay) clientSay.innerHTML = buildClientSay(metrics).map(t => `<li>${escapeHtml(t)}</li>`).join("");
     if(clientDo)  clientDo.innerHTML  = buildClientDo(metrics).map(t => `<li>${escapeHtml(t)}</li>`).join("");
 
-    // KPI scrape from table (simple + reliable)
     function findLevelForSymbol(sym){
       const rows = [...document.querySelectorAll("#marketRows tr")];
       for(const r of rows){
