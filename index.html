@@ -325,6 +325,10 @@ hr.sep{ border:none; height:1px; background:rgba(255,255,255,.07); margin:12px 0
         <div class="smallmuted">What to say today</div>
         <ul class="bullets" id="clientSay"></ul>
 
+        <!-- ✅ NEW: Specific market news -->
+        <div class="smallmuted" style="margin-top:14px">Specific market news (today)</div>
+        <ul class="bullets" id="clientNews"></ul>
+
         <hr class="sep"/>
 
         <div class="smallmuted">What to do today (general best practice)</div>
@@ -554,6 +558,23 @@ const BROKER_PICKS = [
   { ticker:"BXB", name:"Brambles",          rating:"Buy",        upside:8.66,  brokers:3, lastUpdate:"2026-02-20" }
 ];
 
+/* -----------------------------
+   ✅ NEW: SPECIFIC MARKET NEWS (manual + auto)
+------------------------------ */
+const PINNED_MARKET_NEWS = [
+  // Edit these as needed (manual “always show” items)
+  { text: "Budget/Tax watch: proposed CGT-related changes — review client suitability + implementation timing.", impact:"high" },
+  { text: "Super: Division 296 developments — identify clients near $3m thresholds and confirm tracking approach.", impact:"high" }
+];
+
+const MARKET_NEWS_KWS = [
+  "cba","commonwealth bank","nab","anz","westpac","macquarie",
+  "asx","shares","sell-off","selloff","plunge","tumbles","falls","down",
+  "results","guidance","profit","dividend","buyback",
+  "rba","cash rate","cpi","inflation","employment",
+  "cgt","capital gains","tax","ato","super","division 296","div 296"
+];
+
 const ASX200_TICKERS = new Set([
   "BHP","CBA","NAB","WBC","ANZ","MQG","WES","WOW","CSL","TLS","GMG","ALL","RIO","FMG","COL","TCL","SCG","QBE","SUN",
   "RHC","IAG","CPU","S32","ORG","STO","WDS","APA","ALD","BXB","ASX","REA","XRO","SEK","RMD","FPH","COH","A2M",
@@ -565,7 +586,6 @@ const ASX200_TICKERS = new Set([
 /* ✅ Revised feeds:
    - Keep adviser feeds
    - Add RBA + ABS (more reliable and relevant)
-   - AFR companies often blocks; you can re-add if it works in your environment.
 */
 const FEEDS = {
   adviser: [
@@ -667,6 +687,14 @@ function impactTag(title){
   const t = (title || "").toLowerCase();
   if(IMPACT.high.some(k => t.includes(k))) return { cls:"badge-high", txt:"🔴 High" };
   if(IMPACT.mid.some(k => t.includes(k)))  return { cls:"badge-mid",  txt:"🟠 Med" };
+  return { cls:"badge-low", txt:"🟢 Low" };
+}
+
+/* ✅ helper for pinned impact */
+function impactBadge(impact){
+  const imp = (impact || "").toLowerCase();
+  if(imp === "high") return { cls:"badge-high", txt:"🔴 High" };
+  if(imp === "mid")  return { cls:"badge-mid",  txt:"🟠 Med" };
   return { cls:"badge-low", txt:"🟢 Low" };
 }
 
@@ -862,6 +890,60 @@ function extractCompanyFromSignal(title){
   if(match && match[1]) return match[1].trim();
   const ticker = extractAsxCode(title);
   return ticker || "ASX";
+}
+
+/* -----------------------------
+   ✅ NEW: SPECIFIC MARKET NEWS RENDERING
+------------------------------ */
+function titleMatchesMarketNews(title){
+  const t = (title || "").toLowerCase();
+  return MARKET_NEWS_KWS.some(k => t.includes(k));
+}
+
+/* very light “big mover” detection from headline text:
+   catches patterns like "CBA down 10%" / "CBA falls 9.8%"
+*/
+function detectBigMover(title){
+  const s = (title || "");
+  const m = s.match(/\b([A-Z]{2,4})\b.*\b(down|falls?|plunges?|tumbles?)\b.*\b([0-9]{1,2}(?:\.[0-9])?)%\b/i);
+  if(!m) return null;
+  const ticker = m[1].toUpperCase();
+  const pct = parseFloat(m[3]);
+  if(!Number.isFinite(pct)) return null;
+  return { ticker, pct };
+}
+
+function renderClientNews(items){
+  const el = document.getElementById("clientNews");
+  if(!el) return;
+
+  if(!items || !items.length){
+    el.innerHTML = `<li class="smallmuted">No major tagged items detected — use pinned notes if needed.</li>`;
+    return;
+  }
+
+  el.innerHTML = items.slice(0,6).map(x => {
+    const tag = x.impact ? impactBadge(x.impact) : impactTag(x.title || x.text);
+    const srcBadge = x.src ? `<span class="badge badge-src">${escapeHtml(x.src)}</span>` : "";
+    const ago = x.dateMs ? ` · <span class="smallmuted">${fmtTimeAgo(x.dateMs)}</span>` : "";
+    const text = x.title || x.text || "";
+    const href = x.link ? safeUrl(x.link) : "#";
+
+    if(x.link){
+      return `<li>
+        <a href="${escapeHtml(href)}" target="_blank" rel="noopener" style="display:block">
+          <span class="badge ${tag.cls}">${escapeHtml(tag.txt)}</span>
+          ${srcBadge}
+          ${escapeHtml(text)}${ago}
+        </a>
+      </li>`;
+    }
+
+    return `<li>
+      <span class="badge ${tag.cls}">${escapeHtml(tag.txt)}</span>
+      ${escapeHtml(text)}
+    </li>`;
+  }).join("");
 }
 
 function renderNews(list, el){
@@ -1231,6 +1313,44 @@ async function refreshNews(){
   renderAsxTable((markets.items || []).slice(0,10));
 
   renderFnArenaTable(fnArena.items || []);
+
+  /* ✅ NEW: Specific market news list (pinned + movers + filtered headlines) */
+  const allFeedItems = [
+    ...(adviser.items || []),
+    ...(markets.items || []),
+    ...(leg.items || []),
+    ...(macro.items || []),
+    ...(fnArena.items || [])
+  ];
+
+  const filtered = allFeedItems
+    .filter(i => i && i.title && i.link)
+    .filter(i => titleMatchesMarketNews(i.title))
+    .slice(0,8);
+
+  const movers = [];
+  for(const it of filtered){
+    const mv = detectBigMover(it.title);
+    if(mv){
+      movers.push({
+        text: `${mv.ticker} flagged in headlines: down ~${mv.pct.toFixed(1)}% (verify move + driver).`,
+        impact: mv.pct >= 8 ? "high" : "mid"
+      });
+    }
+  }
+
+  const pinned = PINNED_MARKET_NEWS.map(x => ({ ...x }));
+  const combined = [...movers, ...pinned, ...filtered];
+
+  const seenNews = new Set();
+  const finalNews = combined.filter(x => {
+    const k = (x.title || x.text || "").toLowerCase();
+    if(!k || seenNews.has(k)) return false;
+    seenNews.add(k);
+    return true;
+  });
+
+  renderClientNews(finalNews);
 }
 
 /* -----------------------------
@@ -1261,7 +1381,7 @@ function renderBestPicks(data){
 
   const topSellsData = (data || [])
     .filter(x => (x.rating || "").toLowerCase().includes("sell"))
-    .sort((a,b) => (a.upside || 0) - (b.upside || 0))
+    .sort((a,b) => (a.upside || 0) - (a.upside || 0))
     .slice(0,5);
 
   renderBrokerList(topBuysData, "topBuys", "Buy");
@@ -1294,7 +1414,7 @@ function renderBrokerList(list, id, label){
 }
 
 /* -----------------------------
-   COPY BRIEF (updated to include Budget)
+   COPY BRIEF (updated to include Specific market news + Budget)
 ------------------------------ */
 async function copyBrief(){
   const reg = document.getElementById("regimeLabel")?.innerText?.trim() || "—";
@@ -1307,6 +1427,7 @@ async function copyBrief(){
   }).filter(Boolean);
 
   const sayLis = [...(document.querySelectorAll("#clientSay li") || [])].map(li => "- " + li.innerText.trim());
+  const newsLis = [...(document.querySelectorAll("#clientNews li") || [])].map(li => "- " + li.innerText.trim());
   const doLis  = [...(document.querySelectorAll("#clientDo li") || [])].map(li => "- " + li.innerText.trim());
   const budgetLis = [...(document.querySelectorAll("#budgetBullets li") || [])].map(li => "- " + li.innerText.trim());
 
@@ -1322,6 +1443,9 @@ ${reg}
 
 What to say:
 ${sayLis.join("\n") || "- —"}
+
+Specific market news:
+${newsLis.join("\n") || "- —"}
 
 What to do:
 ${doLis.join("\n") || "- —"}
