@@ -80,7 +80,9 @@ h1{ margin:0; font-size:26px; font-weight:750; letter-spacing:.2px; }
 /* ✅ Accessible focus */
 .btn:focus-visible,
 a:focus-visible,
-textarea:focus-visible{
+textarea:focus-visible,
+select:focus-visible,
+input:focus-visible{
   outline:none;
   box-shadow: var(--focus);
 }
@@ -252,6 +254,68 @@ hr.sep{ border:none; height:1px; background:rgba(255,255,255,.07); margin:12px 0
 }
 
 .copyhint{ margin-top:10px; color:var(--muted); font-size:12px; }
+
+/* ✅ NEW: mini settings bar */
+.settingsbar{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  align-items:center;
+  justify-content:flex-end;
+}
+.settingsbar label{
+  display:flex; align-items:center; gap:8px;
+  font-size:12px; color:var(--muted);
+  padding:6px 10px; border-radius:999px;
+  border:1px solid rgba(255,255,255,.10);
+  background:rgba(255,255,255,.03);
+}
+.settingsbar input[type="checkbox"]{ transform:scale(1.1); }
+.settingsbar select{
+  background:#081024; color:var(--text);
+  border:1px solid rgba(255,255,255,.10);
+  border-radius:10px;
+  padding:6px 8px;
+  font-size:12px;
+}
+
+/* ✅ NEW: Toasts */
+.toastwrap{
+  position:fixed;
+  right:14px; bottom:14px;
+  display:flex; flex-direction:column;
+  gap:10px;
+  z-index:9999;
+}
+.toast{
+  min-width:260px;
+  max-width:360px;
+  border-radius:16px;
+  padding:12px 12px;
+  border:1px solid rgba(255,255,255,.10);
+  background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+  box-shadow:0 18px 45px rgba(0,0,0,.5);
+  display:flex; gap:10px; align-items:flex-start;
+}
+.toast .dot{
+  width:10px; height:10px; border-radius:50%;
+  margin-top:4px;
+  box-shadow:0 0 0 3px rgba(255,255,255,.06);
+}
+.toast .title{ font-weight:900; font-size:13px; }
+.toast .msg{ color:var(--muted); font-size:12px; margin-top:4px; line-height:1.35; }
+.toast .x{
+  margin-left:auto;
+  border:none;
+  background:transparent;
+  color:var(--muted);
+  cursor:pointer;
+  font-size:16px;
+  line-height:1;
+}
+.toast.ok .dot{ background:var(--green); }
+.toast.warn .dot{ background:var(--amber); }
+.toast.bad .dot{ background:var(--red); }
 </style>
 </head>
 
@@ -274,8 +338,27 @@ hr.sep{ border:none; height:1px; background:rgba(255,255,255,.07); margin:12px 0
 
     <div style="display:flex;flex-direction:column;align-items:flex-end;gap:10px">
       <div class="toolbar">
+        <button class="btn secondary" id="downloadBtn" onclick="downloadBrief()">⬇️ Download</button>
         <button class="btn secondary" id="copyBtn" onclick="copyBrief()">📋 Copy briefing</button>
-        <button class="btn" id="refreshBtn" onclick="refreshAll()">🔄 Refresh</button>
+        <button class="btn" id="refreshBtn" onclick="refreshAll({showToast:true})">🔄 Refresh</button>
+      </div>
+
+      <div class="settingsbar" aria-label="Live settings">
+        <label title="Automatically refresh the dashboard">
+          <input id="autoToggle" type="checkbox"/>
+          Auto-refresh
+        </label>
+        <label title="Auto-refresh interval">
+          Every
+          <select id="autoMins">
+            <option value="5">5m</option>
+            <option value="10">10m</option>
+            <option value="15">15m</option>
+            <option value="30">30m</option>
+            <option value="60">60m</option>
+          </select>
+        </label>
+        <button class="btn secondary" id="pauseBtn" onclick="toggleLive()">⏸ Pause live</button>
       </div>
 
       <!-- ✅ aria-live for status -->
@@ -325,7 +408,6 @@ hr.sep{ border:none; height:1px; background:rgba(255,255,255,.07); margin:12px 0
         <div class="smallmuted">What to say today</div>
         <ul class="bullets" id="clientSay"></ul>
 
-        <!-- ✅ NEW: Specific market news -->
         <div class="smallmuted" style="margin-top:14px">Specific market news (today)</div>
         <ul class="bullets" id="clientNews"></ul>
 
@@ -385,14 +467,11 @@ hr.sep{ border:none; height:1px; background:rgba(255,255,255,.07); margin:12px 0
         </table>
       </div>
 
-      <!-- ✅ removed: Broker consensus loader -->
-
     </div>
 
     <!-- RIGHT -->
     <div class="stack">
 
-      <!-- ✅ NEW: RBA snapshot -->
       <div class="card">
         <div class="card-header">
           <h2>RBA snapshot</h2>
@@ -401,7 +480,6 @@ hr.sep{ border:none; height:1px; background:rgba(255,255,255,.07); margin:12px 0
         <div id="rbaCard" class="smallmuted">Loading RBA…</div>
       </div>
 
-      <!-- ✅ NEW: Property snapshot -->
       <div class="card">
         <div class="card-header">
           <h2>Residential property (Melbourne/VIC)</h2>
@@ -410,7 +488,6 @@ hr.sep{ border:none; height:1px; background:rgba(255,255,255,.07); margin:12px 0
         <div id="propertyCard" class="smallmuted">Loading property…</div>
       </div>
 
-      <!-- ✅ NEW: Term deposits -->
       <div class="card">
         <div class="card-header">
           <h2>Term deposits — 3 months</h2>
@@ -426,7 +503,6 @@ hr.sep{ border:none; height:1px; background:rgba(255,255,255,.07); margin:12px 0
         </table>
       </div>
 
-      <!-- ✅ NEW: Budget summary (manual paste) -->
       <div class="card">
         <div class="card-header">
           <h2>Federal Budget — proposed changes</h2>
@@ -439,7 +515,7 @@ hr.sep{ border:none; height:1px; background:rgba(255,255,255,.07); margin:12px 0
           placeholder="Paste dot points here (one per line)..."
         ></textarea>
 
-        <button class="btn" style="margin-top:10px" onclick="renderBudget()">Load Budget Summary</button>
+        <button class="btn" style="margin-top:10px" onclick="renderBudget({toast:true})">Load Budget Summary</button>
 
         <div class="smallmuted" style="margin-top:10px">Rendered summary</div>
         <ul class="bullets" id="budgetBullets"></ul>
@@ -531,20 +607,28 @@ hr.sep{ border:none; height:1px; background:rgba(255,255,255,.07); margin:12px 0
   </div>
 </div>
 
+<!-- ✅ Toasts -->
+<div class="toastwrap" id="toastWrap" aria-live="polite" aria-relevant="additions removals"></div>
+
 <script>
 /* -----------------------------
    CONFIG
 ------------------------------ */
 const PROXY = "https://wild-dream-69cc.seanhurren.workers.dev";
 
+/* localStorage settings */
+const LS = {
+  AUTO_ON: "adb::autoOn",
+  AUTO_MINS: "adb::autoMins",
+  LIVE_PAUSED: "adb::paused",
+  BUDGET: "adb::budgetDraft"
+};
+
 /* RSS cache to reduce latency & rate limits */
 const RSS_CACHE_MS = 5 * 60 * 1000; // 5 minutes
 const RSS_CACHE_KEY = (u) => `rssCache::${u}`;
 
-/* Term deposit rates (3 months) — robust approach:
-   - Keep Big 4 manual (pages are inconsistent to scrape reliably)
-   - Optionally include an extra “anchor” bank that publishes a clean rate table.
-*/
+/* Term deposit rates (3 months) */
 const TD_3M_MANUAL = [
   { bank:"CBA", rate:"—", notes:"Set manually (public page inconsistent to parse)" },
   { bank:"ANZ", rate:"—", notes:"Set manually" },
@@ -558,11 +642,8 @@ const BROKER_PICKS = [
   { ticker:"BXB", name:"Brambles",          rating:"Buy",        upside:8.66,  brokers:3, lastUpdate:"2026-02-20" }
 ];
 
-/* -----------------------------
-   ✅ NEW: SPECIFIC MARKET NEWS (manual + auto)
------------------------------- */
+/* SPECIFIC MARKET NEWS */
 const PINNED_MARKET_NEWS = [
-  // Edit these as needed (manual “always show” items)
   { text: "Budget/Tax watch: proposed CGT-related changes — review client suitability + implementation timing.", impact:"high" },
   { text: "Super: Division 296 developments — identify clients near $3m thresholds and confirm tracking approach.", impact:"high" }
 ];
@@ -583,10 +664,7 @@ const ASX200_TICKERS = new Set([
   "SUL","ALQ","BKW","AZJ","ORI","ORA","JLG","NEA","ZIP","WTC","BRG","PDN","APX","IFL","HUB","MFG","GQG","VEA"
 ]);
 
-/* ✅ Revised feeds:
-   - Keep adviser feeds
-   - Add RBA + ABS (more reliable and relevant)
-*/
+/* feeds */
 const FEEDS = {
   adviser: [
     { url: "https://faaa.au/media-releases/feed/", src: "FAAA" },
@@ -648,6 +726,47 @@ const INS_KWS   = ["insurance","tpd","income protection","life insurance","traum
 /* filter out common false “tickers” */
 const TICKER_STOP = new Set(["US","CEO","CPI","GDP","RBA","ABS","ASIC","APRA","ATO","ETF","SMSF","AFR","IFA","FAAA","AUS","USD","AUD","UK","EU"]);
 
+/* -----------------------------
+   DOM CACHE
+------------------------------ */
+const $ = (id) => document.getElementById(id);
+const dom = {
+  lastUpdated: $("lastUpdated"),
+  marketRows: $("marketRows"),
+  feedHealth: $("feedHealth"),
+  regimeLabel: $("regimeLabel"),
+  regimeDrivers: $("regimeDrivers"),
+  clientSay: $("clientSay"),
+  clientDo: $("clientDo"),
+  clientNews: $("clientNews"),
+  adviserNews: $("adviserNews"),
+  superNews: $("superNews"),
+  insNews: $("insNews"),
+  macroNews: $("macroNews"),
+  asxNewsTbody: document.querySelector("#asxNewsTable tbody"),
+  fnArenaTbody: document.querySelector("#fnArenaTable tbody"),
+  rbaCard: $("rbaCard"),
+  propertyCard: $("propertyCard"),
+  tdTable: $("tdTable"),
+  budgetInput: $("budgetInput"),
+  budgetBullets: $("budgetBullets"),
+  kpiRow: $("kpiRow"),
+  copyBtn: $("copyBtn"),
+  refreshBtn: $("refreshBtn"),
+  downloadBtn: $("downloadBtn"),
+  autoToggle: $("autoToggle"),
+  autoMins: $("autoMins"),
+  pauseBtn: $("pauseBtn"),
+  toastWrap: $("toastWrap")
+};
+
+let AUTO_TIMER = null;
+let LIVE_PAUSED = false;
+let REFRESH_IN_FLIGHT = false;
+
+/* -----------------------------
+   UTIL
+------------------------------ */
 function isNum(x){ return typeof x === "number" && Number.isFinite(x); }
 
 function safePct(current, base){
@@ -658,14 +777,12 @@ function safeBps(current, base){
   if(!isNum(current) || !isNum(base)) return "—";
   return ((current - base) * 100).toFixed(0) + " bps";
 }
-
 function lastNonNull(closes){
   for(let i = closes.length - 1; i >= 0; i--){
     if(isNum(closes[i])) return closes[i];
   }
   return null;
 }
-
 function firstCloseForYear(timestamps, closes, year){
   for(let i = 0; i < timestamps.length; i++){
     const y = new Date(timestamps[i] * 1000).getFullYear();
@@ -682,44 +799,11 @@ function lastCloseForYear(timestamps, closes, year){
   }
   return null;
 }
-
-function impactTag(title){
-  const t = (title || "").toLowerCase();
-  if(IMPACT.high.some(k => t.includes(k))) return { cls:"badge-high", txt:"🔴 High" };
-  if(IMPACT.mid.some(k => t.includes(k)))  return { cls:"badge-mid",  txt:"🟠 Med" };
-  return { cls:"badge-low", txt:"🟢 Low" };
+function parseMaybeDate(str){
+  if(!str) return null;
+  const t = Date.parse(str);
+  return Number.isFinite(t) ? t : null;
 }
-
-/* ✅ helper for pinned impact */
-function impactBadge(impact){
-  const imp = (impact || "").toLowerCase();
-  if(imp === "high") return { cls:"badge-high", txt:"🔴 High" };
-  if(imp === "mid")  return { cls:"badge-mid",  txt:"🟠 Med" };
-  return { cls:"badge-low", txt:"🟢 Low" };
-}
-
-function sentimentTag(title){
-  const t = (title || "").toLowerCase();
-  if(t.includes("upgrade") || t.includes("raised to") || t.includes("lifted to") || t.includes("buy") || t.includes("overweight")){
-    return { cls:"badge-pos", txt:"Positive" };
-  }
-  if(t.includes("downgrade") || t.includes("lowered to") || t.includes("cut to") || t.includes("sell") || t.includes("underweight")){
-    return { cls:"badge-neg", txt:"Negative" };
-  }
-  return { cls:"badge-neu", txt:"Neutral" };
-}
-
-function parseBrokerAction(title){
-  const t = (title || "").toLowerCase();
-  if(t.includes("upgrade")) return "Upgrade";
-  if(t.includes("downgrade")) return "Downgrade";
-  if(t.includes("initiat")) return "Initiation";
-  if(t.includes("raised to") || t.includes("lifted to")) return "Raised to";
-  if(t.includes("lowered to") || t.includes("cut to")) return "Cut to";
-  if(t.includes("rating")) return "Rating";
-  return "Broker update";
-}
-
 function fmtTimeAgo(dateMs){
   if(!dateMs) return "";
   const delta = Date.now() - dateMs;
@@ -731,13 +815,6 @@ function fmtTimeAgo(dateMs){
   const d = Math.floor(hr / 24);
   return `${d}d ago`;
 }
-
-function parseMaybeDate(str){
-  if(!str) return null;
-  const t = Date.parse(str);
-  return Number.isFinite(t) ? t : null;
-}
-
 function escapeHtml(s){
   return String(s ?? "")
     .replaceAll("&","&amp;")
@@ -747,10 +824,11 @@ function escapeHtml(s){
     .replaceAll("'","&#039;");
 }
 
-/* ✅ blocks javascript: etc from feeds */
+/* ✅ stronger URL guard: only http/https, strips control chars */
 function safeUrl(href){
   try{
-    const u = new URL(href, location.href);
+    const cleaned = String(href || "").replace(/[\u0000-\u001F\u007F\s]+/g, "").trim();
+    const u = new URL(cleaned, location.href);
     if(u.protocol === "http:" || u.protocol === "https:") return u.toString();
   }catch(e){}
   return "#";
@@ -762,24 +840,80 @@ function fetchWithTimeout(url, ms=9000){
   return fetch(url, { cache:"no-store", signal: ctrl.signal }).finally(() => clearTimeout(id));
 }
 
-/* Yahoo chart via Worker */
+/* -----------------------------
+   TOASTS
+------------------------------ */
+function toast(type, title, msg, ttl=2600){
+  if(!dom.toastWrap) return;
+  const el = document.createElement("div");
+  el.className = `toast ${type}`;
+  el.innerHTML = `
+    <span class="dot" aria-hidden="true"></span>
+    <div>
+      <div class="title">${escapeHtml(title)}</div>
+      <div class="msg">${escapeHtml(msg || "")}</div>
+    </div>
+    <button class="x" aria-label="Dismiss">×</button>
+  `;
+  const kill = () => { if(el && el.parentNode) el.parentNode.removeChild(el); };
+  el.querySelector(".x").addEventListener("click", kill);
+  dom.toastWrap.appendChild(el);
+  setTimeout(kill, ttl);
+}
+
+/* -----------------------------
+   TAGS
+------------------------------ */
+function impactTag(title){
+  const t = (title || "").toLowerCase();
+  if(IMPACT.high.some(k => t.includes(k))) return { cls:"badge-high", txt:"🔴 High" };
+  if(IMPACT.mid.some(k => t.includes(k)))  return { cls:"badge-mid",  txt:"🟠 Med" };
+  return { cls:"badge-low", txt:"🟢 Low" };
+}
+function impactBadge(impact){
+  const imp = (impact || "").toLowerCase();
+  if(imp === "high") return { cls:"badge-high", txt:"🔴 High" };
+  if(imp === "mid")  return { cls:"badge-mid",  txt:"🟠 Med" };
+  return { cls:"badge-low", txt:"🟢 Low" };
+}
+function sentimentTag(title){
+  const t = (title || "").toLowerCase();
+  if(t.includes("upgrade") || t.includes("raised to") || t.includes("lifted to") || t.includes("buy") || t.includes("overweight")){
+    return { cls:"badge-pos", txt:"Positive" };
+  }
+  if(t.includes("downgrade") || t.includes("lowered to") || t.includes("cut to") || t.includes("sell") || t.includes("underweight")){
+    return { cls:"badge-neg", txt:"Negative" };
+  }
+  return { cls:"badge-neu", txt:"Neutral" };
+}
+function parseBrokerAction(title){
+  const t = (title || "").toLowerCase();
+  if(t.includes("upgrade")) return "Upgrade";
+  if(t.includes("downgrade")) return "Downgrade";
+  if(t.includes("initiat")) return "Initiation";
+  if(t.includes("raised to") || t.includes("lifted to")) return "Raised to";
+  if(t.includes("lowered to") || t.includes("cut to")) return "Cut to";
+  if(t.includes("rating")) return "Rating";
+  return "Broker update";
+}
+
+/* -----------------------------
+   RSS / YAHOO
+------------------------------ */
 async function yahooChart(symbol, range){
   const url = `${PROXY}?symbol=${encodeURIComponent(symbol)}&range=${encodeURIComponent(range)}`;
   const res = await fetchWithTimeout(url, 9000);
   const text = await res.text();
-
   let json;
   try{ json = JSON.parse(text); }
   catch(e){ throw new Error("Proxy did not return JSON (Yahoo)"); }
-
   const result = json?.chart?.result?.[0];
   if(!result) throw new Error(`Yahoo returned no result for ${symbol}`);
   return result;
 }
 
-/* RSS via Worker + cache (improved for Atom/RSS) */
 async function fetchRSS(url){
-  // try cache
+  // cache
   try{
     const cached = sessionStorage.getItem(RSS_CACHE_KEY(url));
     if(cached){
@@ -807,7 +941,7 @@ async function fetchRSS(url){
     return { title, link, dateMs: parseMaybeDate(pub) };
   });
 
-  // Atom entries fallback
+  // Atom fallback
   if(items.length === 0){
     items = [...xml.querySelectorAll("entry")].map(e => {
       const title = e.querySelector("title")?.textContent?.trim() || "";
@@ -823,7 +957,6 @@ async function fetchRSS(url){
 
   items = items.filter(x => x.title && x.link);
 
-  // cache
   try{
     sessionStorage.setItem(RSS_CACHE_KEY(url), JSON.stringify({ ts: Date.now(), items: items.slice(0,10) }));
   }catch(e){}
@@ -869,7 +1002,7 @@ function isInsItem(title){
   return INS_KWS.some(k => t.includes(k));
 }
 
-/* ✅ better ticker extraction (reduces false positives) */
+/* ticker extraction */
 function extractAsxCode(title){
   if(!title) return null;
   const matches = title.match(/\b[A-Z]{2,4}\b/g) || [];
@@ -883,7 +1016,6 @@ function extractAsxCode(title){
   }
   return null;
 }
-
 function extractCompanyFromSignal(title){
   if(!title) return "ASX";
   const match = title.match(/^([A-Za-z&.\s]+?)\s+(upgrade|downgrade|raised|cut|initiated|rating)/i);
@@ -892,17 +1024,11 @@ function extractCompanyFromSignal(title){
   return ticker || "ASX";
 }
 
-/* -----------------------------
-   ✅ NEW: SPECIFIC MARKET NEWS RENDERING
------------------------------- */
+/* Specific market news */
 function titleMatchesMarketNews(title){
   const t = (title || "").toLowerCase();
   return MARKET_NEWS_KWS.some(k => t.includes(k));
 }
-
-/* very light “big mover” detection from headline text:
-   catches patterns like "CBA down 10%" / "CBA falls 9.8%"
-*/
 function detectBigMover(title){
   const s = (title || "");
   const m = s.match(/\b([A-Z]{2,4})\b.*\b(down|falls?|plunges?|tumbles?)\b.*\b([0-9]{1,2}(?:\.[0-9])?)%\b/i);
@@ -913,8 +1039,37 @@ function detectBigMover(title){
   return { ticker, pct };
 }
 
+/* -----------------------------
+   RENDER
+------------------------------ */
+function renderNews(list, el){
+  if(!el) return;
+
+  if(!list || list.length === 0){
+    el.innerHTML = `<li><a href="#" onclick="return false;">
+      <span class="badge badge-mid">🟠 Med</span>
+      No items available.
+    </a></li>`;
+    return;
+  }
+
+  el.innerHTML = list.map(n => {
+    const tag = impactTag(n.title);
+    const ago = n.dateMs ? ` · <span class="smallmuted">${fmtTimeAgo(n.dateMs)}</span>` : "";
+    const srcBadge = n.src ? `<span class="badge badge-src">${escapeHtml(n.src)}</span>` : "";
+    const href = safeUrl(n.link);
+    return `<li>
+      <a href="${escapeHtml(href)}" target="_blank" rel="noopener">
+        <span class="badge ${tag.cls}">${tag.txt}</span>
+        ${srcBadge}
+        ${escapeHtml(n.title)}${ago}
+      </a>
+    </li>`;
+  }).join("");
+}
+
 function renderClientNews(items){
-  const el = document.getElementById("clientNews");
+  const el = dom.clientNews;
   if(!el) return;
 
   if(!items || !items.length){
@@ -946,34 +1101,8 @@ function renderClientNews(items){
   }).join("");
 }
 
-function renderNews(list, el){
-  if(!el) return;
-
-  if(!list || list.length === 0){
-    el.innerHTML = `<li><a href="#" onclick="return false;">
-      <span class="badge badge-mid">🟠 Med</span>
-      No items available.
-    </a></li>`;
-    return;
-  }
-
-  el.innerHTML = list.map(n => {
-    const tag = impactTag(n.title);
-    const ago = n.dateMs ? ` · <span class="smallmuted">${fmtTimeAgo(n.dateMs)}</span>` : "";
-    const srcBadge = n.src ? `<span class="badge badge-src">${escapeHtml(n.src)}</span>` : "";
-    const href = safeUrl(n.link);
-    return `<li>
-      <a href="${escapeHtml(href)}" target="_blank" rel="noopener">
-        <span class="badge ${tag.cls}">${tag.txt}</span>
-        ${srcBadge}
-        ${escapeHtml(n.title)}${ago}
-      </a>
-    </li>`;
-  }).join("");
-}
-
 function renderAsxTable(items){
-  const tbody = document.querySelector("#asxNewsTable tbody");
+  const tbody = dom.asxNewsTbody;
   if(!tbody) return;
 
   items = (items || []).filter(i => i && i.title && i.link);
@@ -1005,7 +1134,7 @@ function renderAsxTable(items){
 }
 
 function renderFnArenaTable(items){
-  const tbody = document.querySelector("#fnArenaTable tbody");
+  const tbody = dom.fnArenaTbody;
   if(!tbody) return;
 
   items = (items || [])
@@ -1045,6 +1174,46 @@ function renderFnArenaTable(items){
   }).join("");
 }
 
+/* Feed health */
+function setFeedHealth(totalFailed){
+  const el = dom.feedHealth;
+  if(!el) return;
+
+  const dot = el.querySelector(".health-dot");
+  const text = el.querySelector("span:last-child");
+  if(!dot || !text) return;
+
+  if(totalFailed === 0){
+    dot.className = "health-dot health-ok";
+    text.textContent = "Feeds: all live";
+  }else if(totalFailed <= 2){
+    dot.className = "health-dot health-warn";
+    text.textContent = `Feeds: ${totalFailed} delayed`;
+  }else{
+    dot.className = "health-dot health-bad";
+    text.textContent = `Feeds: issues (${totalFailed})`;
+  }
+}
+
+/* KPIs */
+function setKpi(index, label, value, deltaText, deltaIsPosNeg){
+  const row = dom.kpiRow;
+  if(!row) return;
+  const kpi = row.children?.[index];
+  if(!kpi) return;
+
+  kpi.querySelector(".label").textContent = label;
+  kpi.querySelector(".value").textContent = value;
+
+  const dEl = kpi.querySelector(".delta");
+  if(deltaIsPosNeg === "pos") dEl.innerHTML = `Δ <span class="pos">${escapeHtml(deltaText)}</span>`;
+  else if(deltaIsPosNeg === "neg") dEl.innerHTML = `Δ <span class="neg">${escapeHtml(deltaText)}</span>`;
+  else dEl.textContent = deltaText ? `Δ ${deltaText}` : "—";
+}
+
+/* -----------------------------
+   REGIME + CLIENT BULLETS
+------------------------------ */
 function computeRegime(m){
   let score = 0;
   const drivers = [];
@@ -1147,60 +1316,29 @@ function buildClientDo(m){
   return actions.slice(0,5);
 }
 
-function setFeedHealth(totalFailed){
-  const el = document.getElementById("feedHealth");
-  if(!el) return;
-
-  const dot = el.querySelector(".health-dot");
-  const text = el.querySelector("span:last-child");
-  if(!dot || !text) return;
-
-  if(totalFailed === 0){
-    dot.className = "health-dot health-ok";
-    text.textContent = "Feeds: all live";
-  }else if(totalFailed <= 2){
-    dot.className = "health-dot health-warn";
-    text.textContent = `Feeds: ${totalFailed} delayed`;
-  }else{
-    dot.className = "health-dot health-bad";
-    text.textContent = `Feeds: issues (${totalFailed})`;
-  }
-}
-
-function setKpi(index, label, value, deltaText, deltaIsPosNeg){
-  const row = document.getElementById("kpiRow");
-  if(!row) return;
-  const kpi = row.children?.[index];
-  if(!kpi) return;
-
-  kpi.querySelector(".label").textContent = label;
-  kpi.querySelector(".value").textContent = value;
-
-  const dEl = kpi.querySelector(".delta");
-  if(deltaIsPosNeg === "pos") dEl.innerHTML = `Δ <span class="pos">${escapeHtml(deltaText)}</span>`;
-  else if(deltaIsPosNeg === "neg") dEl.innerHTML = `Δ <span class="neg">${escapeHtml(deltaText)}</span>`;
-  else dEl.textContent = deltaText ? `Δ ${deltaText}` : "—";
-}
-
 /* -----------------------------
-   NEW: Budget + RBA + Property + TD
+   MODULE LOADERS (more isolated)
 ------------------------------ */
-function renderBudget(){
-  const raw = (document.getElementById("budgetInput")?.value || "").trim();
-  const el = document.getElementById("budgetBullets");
-  if(!el) return;
+function renderBudget(opts={}){
+  const raw = (dom.budgetInput?.value || "").trim();
+  if(!dom.budgetBullets) return;
+
+  // persist draft
+  try{ localStorage.setItem(LS.BUDGET, dom.budgetInput.value || ""); }catch(e){}
 
   if(!raw){
-    el.innerHTML = `<li>No budget notes loaded.</li>`;
+    dom.budgetBullets.innerHTML = `<li>No budget notes loaded.</li>`;
+    if(opts.toast) toast("warn","Budget","No dot points pasted yet.");
     return;
   }
   const lines = raw.split("\n").map(s => s.trim()).filter(Boolean);
-  el.innerHTML = lines.slice(0,12).map(x => `<li>${escapeHtml(x)}</li>`).join("");
+  dom.budgetBullets.innerHTML = lines.slice(0,12).map(x => `<li>${escapeHtml(x)}</li>`).join("");
+  if(opts.toast) toast("ok","Budget","Summary rendered.");
 }
 
 async function loadRbaSnapshot(){
-  const el = document.getElementById("rbaCard");
-  if(!el) return;
+  if(!dom.rbaCard) return;
+  dom.rbaCard.textContent = "Loading RBA…";
 
   try{
     const url = `${PROXY}?url=${encodeURIComponent("https://www.rba.gov.au/cash-rate-target-overview.html")}`;
@@ -1215,7 +1353,7 @@ async function loadRbaSnapshot(){
     const eff  = effMatch ? effMatch[1] : "—";
     const next = nextMatch ? nextMatch[1] : "—";
 
-    el.innerHTML = `
+    dom.rbaCard.innerHTML = `
       <div class="kpi" style="margin-top:6px">
         <div class="label">Cash rate target</div>
         <div class="value">${escapeHtml(rate)}</div>
@@ -1226,15 +1364,13 @@ async function loadRbaSnapshot(){
       </div>
     `;
   }catch(e){
-    el.innerHTML = `<span class="neg">RBA snapshot unavailable (feed issue).</span>`;
+    dom.rbaCard.innerHTML = `<span class="neg">RBA snapshot unavailable (feed issue).</span>`;
   }
 }
 
 async function loadTdRates(){
-  const tbody = document.getElementById("tdTable");
-  if(!tbody) return;
+  if(!dom.tdTable) return;
 
-  // optional "anchor" scrape from a clean rate table (best-effort)
   let anchor = null;
   try{
     const url = `${PROXY}?url=${encodeURIComponent("https://www.bankaust.com.au/banking/term-deposits")}`;
@@ -1247,7 +1383,7 @@ async function loadTdRates(){
   const rows = [...TD_3M_MANUAL];
   if(anchor) rows.push(anchor);
 
-  tbody.innerHTML = rows.map(r => `
+  dom.tdTable.innerHTML = rows.map(r => `
     <tr>
       <td><b>${escapeHtml(r.bank)}</b></td>
       <td>${escapeHtml(r.rate)}</td>
@@ -1257,8 +1393,8 @@ async function loadTdRates(){
 }
 
 async function loadPropertyCard(){
-  const el = document.getElementById("propertyCard");
-  if(!el) return;
+  if(!dom.propertyCard) return;
+  dom.propertyCard.textContent = "Loading property…";
 
   try{
     const url = `${PROXY}?url=${encodeURIComponent("https://www.abs.gov.au/statistics/economy/price-indexes-and-inflation/total-value-dwellings/dec-quarter-2025")}`;
@@ -1269,7 +1405,7 @@ async function loadPropertyCard(){
     const value = html.match(/to\s*\$([0-9,.]+)\s*billion/i);
     const mean  = html.match(/mean price[^$]*\$\s*([0-9,.]+)/i);
 
-    el.innerHTML = `
+    dom.propertyCard.innerHTML = `
       <ul class="bullets">
         <li>ABS (Dec Qtr 2025): total dwelling value ${value ? "$"+value[1]+"b" : "—"} (${total ? "+$"+total[1]+"b QoQ" : "—"}).</li>
         <li>National mean dwelling price: ${mean ? "$"+mean[1] : "—"}.</li>
@@ -1277,12 +1413,12 @@ async function loadPropertyCard(){
       </ul>
     `;
   }catch(e){
-    el.innerHTML = `<span class="neg">Property snapshot unavailable (feed issue).</span>`;
+    dom.propertyCard.innerHTML = `<span class="neg">Property snapshot unavailable (feed issue).</span>`;
   }
 }
 
 /* -----------------------------
-   NEWS
+   NEWS REFRESH (isolated)
 ------------------------------ */
 async function refreshNews(){
   const groups = await Promise.all([
@@ -1302,19 +1438,16 @@ async function refreshNews(){
   const totalFailed = adviser.failed + markets.failed + leg.failed + macro.failed + fnArena.failed;
   setFeedHealth(totalFailed);
 
-  renderNews(adviser.items || [], document.getElementById("adviserNews"));
+  renderNews(adviser.items || [], dom.adviserNews);
 
   const legItems = (leg.items || []);
-  renderNews(legItems.filter(i => isSuperItem(i.title)).slice(0,8), document.getElementById("superNews"));
-  renderNews(legItems.filter(i => isInsItem(i.title)).slice(0,8),   document.getElementById("insNews"));
-  renderNews(macro.items || [], document.getElementById("macroNews"));
+  renderNews(legItems.filter(i => isSuperItem(i.title)).slice(0,8), dom.superNews);
+  renderNews(legItems.filter(i => isInsItem(i.title)).slice(0,8),   dom.insNews);
+  renderNews(macro.items || [], dom.macroNews);
 
-  // Use marketsAu items in the "ASX company headlines" table as a reliable feed table
   renderAsxTable((markets.items || []).slice(0,10));
-
   renderFnArenaTable(fnArena.items || []);
 
-  /* ✅ NEW: Specific market news list (pinned + movers + filtered headlines) */
   const allFeedItems = [
     ...(adviser.items || []),
     ...(markets.items || []),
@@ -1351,10 +1484,12 @@ async function refreshNews(){
   });
 
   renderClientNews(finalNews);
+
+  return { totalFailed };
 }
 
 /* -----------------------------
-   BROKER QUICK LIST (unchanged)
+   BROKER QUICK LIST (same logic, fix sell sort bug)
 ------------------------------ */
 async function loadBrokerPicks(){
   try{
@@ -1379,9 +1514,10 @@ function renderBestPicks(data){
     .sort((a,b) => (b.upside || 0) - (a.upside || 0))
     .slice(0,5);
 
+  // ✅ FIX: sort sells by lowest upside first (more negative / least upside)
   const topSellsData = (data || [])
     .filter(x => (x.rating || "").toLowerCase().includes("sell"))
-    .sort((a,b) => (a.upside || 0) - (a.upside || 0))
+    .sort((a,b) => (a.upside || 0) - (b.upside || 0))
     .slice(0,5);
 
   renderBrokerList(topBuysData, "topBuys", "Buy");
@@ -1414,11 +1550,10 @@ function renderBrokerList(list, id, label){
 }
 
 /* -----------------------------
-   COPY BRIEF (updated to include Specific market news + Budget)
+   COPY / DOWNLOAD BRIEF
 ------------------------------ */
-async function copyBrief(){
-  const reg = document.getElementById("regimeLabel")?.innerText?.trim() || "—";
-
+function buildBriefText(){
+  const reg = dom.regimeLabel?.innerText?.trim() || "—";
   const kpis = [...document.querySelectorAll("#kpiRow .kpi")].map(k => {
     const l = k.querySelector(".label")?.innerText?.trim() || "";
     const v = k.querySelector(".value")?.innerText?.trim() || "";
@@ -1431,8 +1566,7 @@ async function copyBrief(){
   const doLis  = [...(document.querySelectorAll("#clientDo li") || [])].map(li => "- " + li.innerText.trim());
   const budgetLis = [...(document.querySelectorAll("#budgetBullets li") || [])].map(li => "- " + li.innerText.trim());
 
-  const text =
-`ADVISER DAILY BRIEF (MELBOURNE)
+  return `ADVISER DAILY BRIEF (MELBOURNE)
 ${new Date().toLocaleString("en-AU")}
 
 KPIs:
@@ -1453,30 +1587,53 @@ ${doLis.join("\n") || "- —"}
 Federal Budget (proposed changes):
 ${budgetLis.join("\n") || "- —"}
 `;
+}
 
+async function copyBrief(){
+  const text = buildBriefText();
   try{
     await navigator.clipboard.writeText(text);
-    const btn = document.getElementById("copyBtn");
-    if(btn){
-      const old = btn.innerText;
-      btn.innerText = "✅ Copied";
-      setTimeout(()=>btn.innerText = old, 1200);
+    toast("ok","Copied","Briefing copied to clipboard.");
+    if(dom.copyBtn){
+      const old = dom.copyBtn.innerText;
+      dom.copyBtn.innerText = "✅ Copied";
+      setTimeout(()=>dom.copyBtn.innerText = old, 900);
     }
   }catch(e){
+    toast("bad","Copy failed","Clipboard permissions blocked by browser.");
     alert("Clipboard copy failed (browser permissions).");
   }
 }
 
-/* -----------------------------
-   MARKET LOADER (your fault-tolerant approach retained)
------------------------------- */
-async function refreshAll(){
-  const btn = document.getElementById("refreshBtn");
-  const marketRowsEl = document.getElementById("marketRows");
+function downloadBrief(){
+  const text = buildBriefText();
+  const blob = new Blob([text], {type:"text/plain;charset=utf-8"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `adviser-daily-brief-${new Date().toISOString().slice(0,10)}.txt`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+  toast("ok","Downloaded","Briefing saved as .txt");
+}
 
-  if(btn){ btn.disabled = true; btn.innerText = "Refreshing…"; }
-  if(marketRowsEl){
-    marketRowsEl.innerHTML = `<tr><td colspan="6" class="smallmuted">Loading live market data…</td></tr>`;
+/* -----------------------------
+   MARKET REFRESH (guarded + better UX)
+------------------------------ */
+async function refreshAll(opts={showToast:false}){
+  if(REFRESH_IN_FLIGHT) return;
+  if(LIVE_PAUSED){
+    if(opts.showToast) toast("warn","Live paused","Resume live to refresh.");
+    return;
+  }
+
+  REFRESH_IN_FLIGHT = true;
+
+  if(dom.refreshBtn){ dom.refreshBtn.disabled = true; dom.refreshBtn.innerText = "Refreshing…"; }
+  if(dom.marketRows){
+    dom.marketRows.innerHTML = `<tr><td colspan="6" class="smallmuted">Loading live market data…</td></tr>`;
   }
 
   const metrics = {
@@ -1492,6 +1649,8 @@ async function refreshAll(){
     goldLvl:null
   };
 
+  const failures = [];
+
   try{
     const perAsset = await Promise.allSettled(
       ASSETS.map(async a => {
@@ -1505,7 +1664,6 @@ async function refreshAll(){
     );
 
     let rows = "";
-    const failures = [];
 
     for(const res of perAsset){
       if(res.status !== "fulfilled"){
@@ -1586,29 +1744,25 @@ async function refreshAll(){
       if(a.symbol === "GC=F"){ metrics.goldLvl = cur; }
     }
 
-    if(marketRowsEl){
-      marketRowsEl.innerHTML = rows || `<tr><td colspan="6" class="neg">No market rows rendered (all failed).</td></tr>`;
+    if(dom.marketRows){
+      dom.marketRows.innerHTML = rows || `<tr><td colspan="6" class="neg">No market rows rendered (all failed).</td></tr>`;
     }
 
     const reg = computeRegime(metrics);
-    const regimeLabel = document.getElementById("regimeLabel");
-    if(regimeLabel){
-      regimeLabel.innerHTML = `
+    if(dom.regimeLabel){
+      dom.regimeLabel.innerHTML = `
         <span class="regime-dot" style="background:${reg.color}"></span>
         <b style="color:${reg.color}">${escapeHtml(reg.label)}</b>
         <span class="smallmuted"> · Score ${escapeHtml(reg.score.toFixed(1))}</span>
       `;
     }
-    const regimeDrivers = document.getElementById("regimeDrivers");
-    if(regimeDrivers){
+    if(dom.regimeDrivers){
       const extra = failures.length ? [`Market data issues: ${failures.slice(0,2).join(" | ")}`] : [];
-      regimeDrivers.innerHTML = reg.drivers.concat(extra).slice(0,6).map(d => `<li>${escapeHtml(d)}</li>`).join("");
+      dom.regimeDrivers.innerHTML = reg.drivers.concat(extra).slice(0,6).map(d => `<li>${escapeHtml(d)}</li>`).join("");
     }
 
-    const clientSay = document.getElementById("clientSay");
-    const clientDo  = document.getElementById("clientDo");
-    if(clientSay) clientSay.innerHTML = buildClientSay(metrics).map(t => `<li>${escapeHtml(t)}</li>`).join("");
-    if(clientDo)  clientDo.innerHTML  = buildClientDo(metrics).map(t => `<li>${escapeHtml(t)}</li>`).join("");
+    if(dom.clientSay) dom.clientSay.innerHTML = buildClientSay(metrics).map(t => `<li>${escapeHtml(t)}</li>`).join("");
+    if(dom.clientDo)  dom.clientDo.innerHTML  = buildClientDo(metrics).map(t => `<li>${escapeHtml(t)}</li>`).join("");
 
     function findLevelForSymbol(sym){
       const rows = [...document.querySelectorAll("#marketRows tr")];
@@ -1640,43 +1794,138 @@ async function refreshAll(){
     setKpi(4, "Gold",    goldK.lvl, goldK.oneDay, clsToSign(goldK.oneDayCls));
     setKpi(5, "VIX",     vixK.lvl, vixK.oneDay, clsToSign(vixK.oneDayCls));
 
-    await refreshNews();
+    // refresh RSS + cards (isolated)
+    const newsRes = await refreshNews();
 
-    // NEW loaders
-    await loadRbaSnapshot();
-    await loadTdRates();
-    await loadPropertyCard();
+    await Promise.allSettled([
+      loadRbaSnapshot(),
+      loadTdRates(),
+      loadPropertyCard()
+    ]);
+
     renderBudget();
 
     const now = new Date();
-    const lastUpdated = document.getElementById("lastUpdated");
-    if(lastUpdated){
-      lastUpdated.textContent =
+    if(dom.lastUpdated){
+      dom.lastUpdated.textContent =
         `Last updated: ${now.toLocaleString("en-AU", {
           weekday:"short", year:"numeric", month:"short", day:"2-digit",
           hour:"2-digit", minute:"2-digit"
         })}`;
     }
 
+    if(opts.showToast){
+      if(failures.length || newsRes.totalFailed){
+        toast("warn","Refreshed","Some feeds may be delayed.");
+      }else{
+        toast("ok","Refreshed","All modules updated.");
+      }
+    }
+
   }catch(err){
     const msg = String(err?.message || err);
-    if(marketRowsEl){
-      marketRowsEl.innerHTML = `<tr><td colspan="6" class="neg">Error loading data: ${escapeHtml(msg)}</td></tr>`;
+    if(dom.marketRows){
+      dom.marketRows.innerHTML = `<tr><td colspan="6" class="neg">Error loading data: ${escapeHtml(msg)}</td></tr>`;
     }
-    const regimeLabel = document.getElementById("regimeLabel");
-    if(regimeLabel){
-      regimeLabel.innerHTML = `<span class="regime-dot" style="background:#ff5c7a"></span><b style="color:#ff5c7a">Error</b>`;
+    if(dom.regimeLabel){
+      dom.regimeLabel.innerHTML = `<span class="regime-dot" style="background:#ff5c7a"></span><b style="color:#ff5c7a">Error</b>`;
     }
-    const regimeDrivers = document.getElementById("regimeDrivers");
-    if(regimeDrivers){ regimeDrivers.innerHTML = `<li>${escapeHtml(msg)}</li>`; }
+    if(dom.regimeDrivers){ dom.regimeDrivers.innerHTML = `<li>${escapeHtml(msg)}</li>`; }
     setFeedHealth(4);
+    toast("bad","Refresh failed", msg);
   }finally{
-    if(btn){ btn.disabled = false; btn.innerText = "🔄 Refresh"; }
+    if(dom.refreshBtn){ dom.refreshBtn.disabled = false; dom.refreshBtn.innerText = "🔄 Refresh"; }
+    REFRESH_IN_FLIGHT = false;
   }
 }
 
-refreshAll();
-loadBrokerPicks();
+/* -----------------------------
+   LIVE CONTROLS
+------------------------------ */
+function applySettingsFromStorage(){
+  let autoOn = true;
+  let mins = 10;
+  let paused = false;
+
+  try{
+    autoOn = (localStorage.getItem(LS.AUTO_ON) ?? "true") === "true";
+    mins = parseInt(localStorage.getItem(LS.AUTO_MINS) ?? "10", 10);
+    paused = (localStorage.getItem(LS.LIVE_PAUSED) ?? "false") === "true";
+  }catch(e){}
+
+  if(dom.autoToggle) dom.autoToggle.checked = autoOn;
+  if(dom.autoMins) dom.autoMins.value = String(mins || 10);
+
+  LIVE_PAUSED = paused;
+  updatePauseBtn();
+  scheduleAutoRefresh();
+}
+
+function persistSettings(){
+  try{
+    localStorage.setItem(LS.AUTO_ON, String(dom.autoToggle?.checked ?? true));
+    localStorage.setItem(LS.AUTO_MINS, String(dom.autoMins?.value ?? "10"));
+    localStorage.setItem(LS.LIVE_PAUSED, String(LIVE_PAUSED));
+  }catch(e){}
+}
+
+function updatePauseBtn(){
+  if(!dom.pauseBtn) return;
+  dom.pauseBtn.innerText = LIVE_PAUSED ? "▶️ Resume live" : "⏸ Pause live";
+}
+
+function scheduleAutoRefresh(){
+  if(AUTO_TIMER){ clearInterval(AUTO_TIMER); AUTO_TIMER = null; }
+
+  const autoOn = dom.autoToggle?.checked ?? true;
+  const mins = parseInt(dom.autoMins?.value ?? "10", 10);
+
+  if(!autoOn) return;
+  if(!Number.isFinite(mins) || mins <= 0) return;
+
+  AUTO_TIMER = setInterval(() => {
+    refreshAll({showToast:false});
+  }, mins * 60 * 1000);
+}
+
+function toggleLive(){
+  LIVE_PAUSED = !LIVE_PAUSED;
+  persistSettings();
+  updatePauseBtn();
+  toast(LIVE_PAUSED ? "warn" : "ok", LIVE_PAUSED ? "Paused" : "Live", LIVE_PAUSED ? "Live refresh disabled." : "Live refresh resumed.");
+}
+
+dom.autoToggle?.addEventListener("change", () => { persistSettings(); scheduleAutoRefresh(); toast("ok","Settings","Auto-refresh updated."); });
+dom.autoMins?.addEventListener("change", () => { persistSettings(); scheduleAutoRefresh(); toast("ok","Settings",`Interval set to ${dom.autoMins.value}m.`); });
+
+/* persist budget drafts */
+dom.budgetInput?.addEventListener("input", () => {
+  try{ localStorage.setItem(LS.BUDGET, dom.budgetInput.value || ""); }catch(e){}
+});
+
+/* -----------------------------
+   INIT
+------------------------------ */
+(function init(){
+  // restore budget draft
+  try{
+    const draft = localStorage.getItem(LS.BUDGET);
+    if(draft != null && dom.budgetInput) dom.budgetInput.value = draft;
+  }catch(e){}
+
+  applySettingsFromStorage();
+  refreshAll({showToast:false});
+  loadBrokerPicks();
+
+  // nice: warn if tab hidden (optional behaviour)
+  document.addEventListener("visibilitychange", () => {
+    if(document.hidden) return;
+    // on returning to tab, do a quiet refresh if auto is on and not paused
+    if((dom.autoToggle?.checked ?? true) && !LIVE_PAUSED){
+      refreshAll({showToast:false});
+    }
+  });
+})();
 </script>
 </body>
 </html>
