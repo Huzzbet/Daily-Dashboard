@@ -319,6 +319,42 @@ hr.sep{ border:none; height:1px; background:rgba(255,255,255,.07); margin:12px 0
 </style>
 </head>
 
+.heatmap-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
+  gap:12px;
+}
+
+.sector-tile{
+  padding:16px;
+  border-radius:16px;
+  text-align:center;
+}
+
+.sector-name{
+  display:block;
+  font-size:13px;
+}
+
+.sector-return{
+  display:block;
+  margin-top:8px;
+  font-size:22px;
+  font-weight:700;
+}
+
+.heat-green{
+  background:#155f35;
+}
+
+.heat-red{
+  background:#7d2020;
+}
+
+.heat-amber{
+  background:#7b6318;
+}
+  
 <body>
 <div class="container">
 
@@ -421,32 +457,37 @@ hr.sep{ border:none; height:1px; background:rgba(255,255,255,.07); margin:12px 0
 
       <div class="card">
         <div class="card-header">
-          <h2>Sharemarket Performance</h2>
-          <span>Daily · 2026 YTD · 2025 CY</span>
-        </div>
-        <table class="market-table">
-          <thead>
-            <tr>
-              <th>ASSET</th>
-              <th>TICKER</th>
-              <th>LEVEL</th>
-              <th>1-DAY</th>
-              <th>2026 YTD</th>
-              <th>2025 CY</th>
-            </tr>
-          </thead>
-          <tbody id="marketRows">
-            <tr><td colspan="6" class="smallmuted">Press refresh to load live data…</td></tr>
-          </tbody>
-        </table>
-      </div>
-
-      <div class="card">
+               <div class="card">
         <div class="card-header">
           <h2>Broker research — idea scan</h2>
           <span>Directional only (headlines)</span>
         </div>
 
+<div class="card">
+  <div class="card-header">
+    <h2>Market Breadth</h2>
+  </div>
+
+  <div class="kpi-row">
+
+    <div class="kpi">
+      <div class="label">Advancers</div>
+      <div class="value">137</div>
+    </div>
+
+    <div class="kpi">
+      <div class="label">Decliners</div>
+      <div class="value">63</div>
+    </div>
+
+    <div class="kpi">
+      <div class="label">A/D Ratio</div>
+      <div class="value">2.17</div>
+    </div>
+
+  </div>
+</div>
+                 
         <div class="smallmuted" style="margin-bottom:10px">
           A quick scan of broker activity (upgrades/downgrades/initiations) inferred from FN Arena headlines.
           Treat as “ideas” to review — not advice.
@@ -1571,6 +1612,56 @@ ${new Date().toLocaleString("en-AU")}
 
 KPIs:
 ${kpis.length ? kpis.map(x => "- " + x).join("\n") : "- —"}
+ <h2>Sharemarket Performance</h2>
+          <span>Daily · 2026 YTD · 2025 CY</span>
+        </div>
+        <table class="market-table">
+          <thead>
+            <tr>
+              <th>ASSET</th>
+              <th>TICKER</th>
+              <th>LEVEL</th>
+              <th>1-DAY</th>
+              <th>2026 YTD</th>
+              <th>2025 CY</th>
+            </tr>
+          </thead>
+          <tbody id="marketRows">
+            <tr><td colspan="6" class="smallmuted">Press refresh to load live data…</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+<div class="card">
+  <div class="card-header">
+    <h2>ASX Sector Heat Map</h2>
+    <span>Day • Week • Month • YTD</span>
+  </div>
+
+  <div class="heatmap-grid">
+
+    <div class="sector-tile heat-green">
+      <span class="sector-name">Banks</span>
+      <span class="sector-return">+2.4%</span>
+    </div>
+
+    <div class="sector-tile heat-red">
+      <span class="sector-name">Resources</span>
+      <span class="sector-return">-1.2%</span>
+    </div>
+
+    <div class="sector-tile heat-green">
+      <span class="sector-name">Technology</span>
+      <span class="sector-return">+4.5%</span>
+    </div>
+
+    <div class="sector-tile heat-amber">
+      <span class="sector-name">REITs</span>
+      <span class="sector-return">+0.2%</span>
+    </div>
+
+  </div>
+</div>
 
 Market regime:
 ${reg}
