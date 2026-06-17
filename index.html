@@ -425,7 +425,25 @@ hr.sep{ border:none; height:1px; background:rgba(255,255,255,.07); margin:12px 0
 
     <!-- LEFT -->
     <div class="stack">
-
+ <h2>Sharemarket Performance</h2>
+          <span>Daily · 2026 YTD · 2025 CY</span>
+        </div>
+        <table class="market-table">
+          <thead>
+            <tr>
+              <th>ASSET</th>
+              <th>TICKER</th>
+              <th>LEVEL</th>
+              <th>1-DAY</th>
+              <th>2026 YTD</th>
+              <th>2025 CY</th>
+            </tr>
+          </thead>
+          <tbody id="marketRows">
+            <tr><td colspan="6" class="smallmuted">Press refresh to load live data…</td></tr>
+          </tbody>
+        </table>
+      </div>
       <div class="card">
         <div class="card-header">
           <h2>Market Regime</h2>
@@ -1612,25 +1630,7 @@ ${new Date().toLocaleString("en-AU")}
 
 KPIs:
 ${kpis.length ? kpis.map(x => "- " + x).join("\n") : "- —"}
- <h2>Sharemarket Performance</h2>
-          <span>Daily · 2026 YTD · 2025 CY</span>
-        </div>
-        <table class="market-table">
-          <thead>
-            <tr>
-              <th>ASSET</th>
-              <th>TICKER</th>
-              <th>LEVEL</th>
-              <th>1-DAY</th>
-              <th>2026 YTD</th>
-              <th>2025 CY</th>
-            </tr>
-          </thead>
-          <tbody id="marketRows">
-            <tr><td colspan="6" class="smallmuted">Press refresh to load live data…</td></tr>
-          </tbody>
-        </table>
-      </div>
+
 
 <div class="card">
   <div class="card-header">
