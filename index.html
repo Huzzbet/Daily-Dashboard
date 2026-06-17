@@ -316,6 +316,49 @@ hr.sep{ border:none; height:1px; background:rgba(255,255,255,.07); margin:12px 0
 .toast.ok .dot{ background:var(--green); }
 .toast.warn .dot{ background:var(--amber); }
 .toast.bad .dot{ background:var(--red); }
+.heatmap-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:12px;
+  margin-top:10px;
+}
+
+.sector-tile{
+  border-radius:18px;
+  padding:16px;
+  text-align:center;
+  border:1px solid rgba(255,255,255,.08);
+}
+
+.sector-name{
+  font-size:13px;
+  color:white;
+  opacity:.9;
+}
+
+.sector-return{
+  font-size:24px;
+  font-weight:900;
+  margin-top:8px;
+}
+
+.heat-green{
+  background:linear-gradient(180deg,#1f7a43,#155f35);
+}
+
+.heat-amber{
+  background:linear-gradient(180deg,#8a6b1f,#7b6318);
+}
+
+.heat-red{
+  background:linear-gradient(180deg,#8b2525,#7d2020);
+}
+
+@media (max-width:800px){
+  .heatmap-grid{
+    grid-template-columns:repeat(2,1fr);
+  }
+} 
 </style>
 </head>
 
@@ -444,6 +487,46 @@ hr.sep{ border:none; height:1px; background:rgba(255,255,255,.07); margin:12px 0
           </tbody>
         </table>
       </div>
+  <div class="card">
+  <div class="card-header">
+    <h2>ASX Sector Heat Map</h2>
+    <span>Market Leadership</span>
+  </div>
+
+  <div class="heatmap-grid">
+
+    <div class="sector-tile heat-green">
+      <div class="sector-name">🏦 Banks</div>
+      <div class="sector-return">+12.4%</div>
+    </div>
+
+    <div class="sector-tile heat-green">
+      <div class="sector-name">💻 Technology</div>
+      <div class="sector-return">+24.1%</div>
+    </div>
+
+    <div class="sector-tile heat-green">
+      <div class="sector-name">🏠 REITs</div>
+      <div class="sector-return">+7.2%</div>
+    </div>
+
+    <div class="sector-tile heat-amber">
+      <div class="sector-name">🏥 Healthcare</div>
+      <div class="sector-return">-0.3%</div>
+    </div>
+
+    <div class="sector-tile heat-red">
+      <div class="sector-name">⚡ Energy</div>
+      <div class="sector-return">-8.1%</div>
+    </div>
+
+    <div class="sector-tile heat-green">
+      <div class="sector-name">🏭 Industrials</div>
+      <div class="sector-return">+4.7%</div>
+    </div>
+
+  </div>
+</div>
       <div class="card">
         <div class="card-header">
           <h2>Market Regime</h2>
