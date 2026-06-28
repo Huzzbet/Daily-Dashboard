@@ -1741,28 +1741,42 @@ async function loadRbaSnapshot(){
   }
 }
 
-async function loadTdRates(){
-  if(!dom.tdTable) return;
-
-  let anchor = null;
-  try{
-    const url = `${PROXY}?url=${encodeURIComponent("https://www.bankaust.com.au/banking/term-deposits")}`;
-    const res = await fetchWithTimeout(url, 9000);
-    const html = await res.text();
-    const m = html.match(/3 months[^0-9]*([0-9]+\.[0-9]+)%\s*p\.a\./i);
-    if(m) anchor = { bank:"Bank Australia", rate:`${m[1]}% p.a.`, notes:"Published table rate (interest at maturity)" };
-  }catch(e){}
-
-  const rows = [...TD_3M_MANUAL];
-  if(anchor) rows.push(anchor);
-
-  dom.tdTable.innerHTML = rows.map(r => `
-    <tr>
-      <td><b>${escapeHtml(r.bank)}</b></td>
-      <td>${escapeHtml(r.rate)}</td>
-      <td class="smallmuted">${escapeHtml(r.notes)}</td>
-    </tr>
-  `).join("");
+async function loadTdRates() {
+    const tbody = document.getElementById("tdTable");
+    tbody.innerHTML =
+        '<tr><td colspan="3" class="center">Loading rates...</td></tr>';
+    try {
+        const res = await fetch(
+            `${PROXY}?url=` +
+            encodeURIComponent("https://www.canstar.com.au/term-deposits/compare/best-term-deposit-rates/")
+        );
+        const html = await res.text();
+        const doc = new DOMParser().parseFromString(html, "text/html");
+        const rows = [...doc.querySelectorAll("table tbody tr")];
+        let output = "";
+        rows.slice(0,10).forEach(row=>{
+            const cols=[...row.querySelectorAll("td")];
+            if(cols.length<3) return;
+            const bank=cols[0].innerText.trim();
+            const rate=cols[1].innerText.trim();
+            const term=cols[2].innerText.trim();
+            output+=`
+            <tr>
+                <td>${bank}</td>
+                <td>${rate}</td>
+                <td>${term}</td>
+            </tr>`;
+        });
+        if(output===""){
+            output='<tr><td colspan="3">No rates found.</td></tr>';
+        }
+        tbody.innerHTML=output;
+    }
+    catch(err){
+        console.error(err);
+        tbody.innerHTML=
+        '<tr><td colspan="3">Unable to load rates.</td></tr>';
+    }
 }
 
 async function loadPropertyCard(){
