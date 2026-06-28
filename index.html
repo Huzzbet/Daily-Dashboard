@@ -622,28 +622,184 @@ hr.sep{ border:none; height:1px; background:rgba(255,255,255,.07); margin:12px 0
         <div id="rbaCard" class="smallmuted">Loading RBA…</div>
       </div>
 
-      <div class="card">
-        <div class="card-header">
-          <h2>Residential property (Melbourne/VIC)</h2>
-          <span>Prices · momentum</span>
-        </div>
-        <div id="propertyCard" class="smallmuted">Loading property…</div>
-      </div>
-
-      <div class="card">
-        <div class="card-header">
-          <h2>Term deposits — 3 months</h2>
-          <span>Client cash options</span>
-        </div>
-        <table class="news-table">
-          <thead>
-            <tr><th>Bank</th><th>3-month rate</th><th>Notes</th></tr>
-          </thead>
-          <tbody id="tdTable">
-            <tr><td colspan="3" class="muted center">Loading…</td></tr>
-          </tbody>
-        </table>
-      </div>
+   <!-- ===========================
+PROPERTY & CASH DASHBOARD
+Replace your Residential Property
+and Term Deposit cards with this
+============================ -->
+<!-- PROPERTY CARD -->
+<div class="card">
+<div class="card-header">
+<h2>Residential Property Monitor</h2>
+<span>Median House Prices</span>
+</div>
+<div class="smallmuted" style="margin-bottom:12px">
+Selected suburbs commonly discussed with clients.
+</div>
+<table class="news-table">
+<thead>
+<tr>
+<th>Suburb</th>
+<th>Median</th>
+<th>1 Yr</th>
+<th>3 Yr</th>
+<th>5 Yr</th>
+</tr>
+</thead>
+<tbody id="propertyTable">
+<tr>
+<td>Malvern</td>
+<td>$2.64m</td>
+<td class="neg">▼ 16.1%</td>
+<td class="pos">▲ 8.5%</td>
+<td class="pos">▲ 29.8%</td>
+</tr>
+<tr>
+<td>Bentleigh</td>
+<td>$1.78m</td>
+<td class="pos">▲ 4.3%</td>
+<td class="pos">▲ 17.9%</td>
+<td class="pos">▲ 43.2%</td>
+</tr>
+<tr>
+<td>Torquay</td>
+<td>$1.19m</td>
+<td class="pos">▲ 2.8%</td>
+<td class="pos">▲ 15.4%</td>
+<td class="pos">▲ 68.0%</td>
+</tr>
+<tr>
+<td>Sorrento</td>
+<td>$2.42m</td>
+<td class="pos">▲ 5.6%</td>
+<td class="pos">▲ 23.6%</td>
+<td class="pos">▲ 71.3%</td>
+</tr>
+</tbody>
+</table>
+<div class="smallmuted" style="margin-top:10px">
+Source: PropTrack / CoreLogic (future live feed).
+</div>
+</div>
+<!-- TERM DEPOSITS -->
+<div class="card">
+<div class="card-header">
+<h2>Term Deposit Comparison</h2>
+<span>Best Client Cash Rates</span>
+</div>
+<table class="news-table">
+<thead>
+<tr>
+<th>Institution</th>
+<th>3 mth</th>
+<th>6 mth</th>
+<th>12 mth</th>
+</tr>
+</thead>
+<tbody id="depositTable">
+<tr>
+<td>CBA</td>
+<td>--</td>
+<td>--</td>
+<td>--</td>
+</tr>
+<tr>
+<td>NAB</td>
+<td>--</td>
+<td>--</td>
+<td>--</td>
+</tr>
+<tr>
+<td>ANZ</td>
+<td>--</td>
+<td>--</td>
+<td>--</td>
+</tr>
+<tr>
+<td>Westpac</td>
+<td>--</td>
+<td>--</td>
+<td>--</td>
+</tr>
+<tr>
+<td>Rabobank</td>
+<td>--</td>
+<td>--</td>
+<td>--</td>
+</tr>
+<tr>
+<td>Macquarie</td>
+<td>--</td>
+<td>--</td>
+<td>--</td>
+</tr>
+<tr>
+<td>ING</td>
+<td>--</td>
+<td>--</td>
+<td>--</td>
+</tr>
+</tbody>
+</table>
+<div class="kpi-row" style="margin-top:15px">
+<div class="kpi">
+<div class="label">
+Highest 3 Month
+</div>
+<div class="value" id="best3">
+--
+</div>
+</div>
+<div class="kpi">
+<div class="label">
+Highest 6 Month
+</div>
+<div class="value" id="best6">
+--
+</div>
+</div>
+<div class="kpi">
+<div class="label">
+Highest 12 Month
+</div>
+<div class="value" id="best12">
+--
+</div>
+</div>
+</div>
+</div>
+<script>
+const PROPERTY_DATA=[
+{
+suburb:"Malvern",
+median:"$2.64m",
+y1:"-16.1%",
+y3:"+8.5%",
+y5:"+29.8%"
+},
+{
+suburb:"Bentleigh",
+median:"$1.78m",
+y1:"+4.3%",
+y3:"+17.9%",
+y5:"+43.2%"
+},
+{
+suburb:"Torquay",
+median:"$1.19m",
+y1:"+2.8%",
+y3:"+15.4%",
+y5:"+68.0%"
+},
+{
+suburb:"Sorrento",
+median:"$2.42m",
+y1:"+5.6%",
+y3:"+23.6%",
+y5:"+71.3%"
+}
+];
+</script>
 
       <div class="card">
         <div class="card-header">
