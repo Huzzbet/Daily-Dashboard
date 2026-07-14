@@ -458,38 +458,10 @@ hr.sep{ border:none; height:1px; background:rgba(255,255,255,.07); margin:12px 0
 
   <div class="heatmap-grid">
 
-    <div class="sector-tile heat-green">
-      <div class="sector-name">🏦 Banks</div>
-      <div class="sector-return">+12.4%</div>
-    </div>
-
-    <div class="sector-tile heat-green">
-      <div class="sector-name">💻 Technology</div>
-      <div class="sector-return">+24.1%</div>
-    </div>
-
-    <div class="sector-tile heat-green">
-      <div class="sector-name">🏠 REITs</div>
-      <div class="sector-return">+7.2%</div>
-    </div>
-
-    <div class="sector-tile heat-amber">
-      <div class="sector-name">🏥 Healthcare</div>
-      <div class="sector-return">-0.3%</div>
-    </div>
-
-    <div class="sector-tile heat-red">
-      <div class="sector-name">⚡ Energy</div>
-      <div class="sector-return">-8.1%</div>
-    </div>
-
-    <div class="sector-tile heat-green">
-      <div class="sector-name">🏭 Industrials</div>
-      <div class="sector-return">+4.7%</div>
-    </div>
-
+   <div class="heatmap-grid" id="sectorHeatmap">
+  <div class="smallmuted">
+    Loading sector performance...
   </div>
-</div>
       <div class="card">
         <div class="card-header">
           <h2>Market Regime</h2>
@@ -1035,7 +1007,14 @@ const ASSETS = [
   { name:"Gold",           symbol:"GC=F",       link:"https://finance.yahoo.com/quote/GC%3DF" },
   { name:"VIX",            symbol:"^VIX",       link:"https://finance.yahoo.com/quote/%5EVIX" }
 ];
-
+const SECTORS = [
+  { name:"Banks",       symbol:"QFN.AX", icon:"🏦" },
+  { name:"Technology",  symbol:"ATEC.AX", icon:"💻" },
+  { name:"REITs",       symbol:"VAP.AX", icon:"🏠" },
+  { name:"Healthcare",  symbol:"IXJ",    icon:"🏥" },
+  { name:"Energy",      symbol:"FUEL.AX",icon:"⚡" },
+  { name:"Industrials", symbol:"EX20.AX",icon:"🏭" }
+];
 const IMPACT = {
   high: [
     "rate decision","cash rate","monetary policy","statement on monetary policy",
@@ -2180,10 +2159,11 @@ async function refreshAll(opts={showToast:false}){
     const newsRes = await refreshNews();
 
     await Promise.allSettled([
-      loadRbaSnapshot(),
-      loadTdRates(),
-      loadPropertyCard()
-    ]);
+  loadRbaSnapshot(),
+  loadTdRates(),
+  loadPropertyCard(),
+  loadSectorHeatmap()
+]);
 
     renderBudget();
 
@@ -2288,6 +2268,54 @@ dom.budgetInput?.addEventListener("input", () => {
 /* -----------------------------
    INIT
 ------------------------------ */
+async function loadSectorHeatmap(){
+
+    const container =
+        document.getElementById("sectorHeatmap");
+
+    let html = "";
+
+    for(const sector of SECTORS){
+
+        const data =
+            await yahooChart(
+                sector.symbol,
+                "1d"
+            );
+
+        const today =
+            data.meta.regularMarketPrice;
+
+        const yesterday =
+            data.meta.previousClose;
+
+        const change =
+            ((today - yesterday) / yesterday) * 100;
+
+        let colour = "heat-amber";
+
+        if(change > 0.5)
+            colour = "heat-green";
+
+        if(change < -0.5)
+            colour = "heat-red";
+
+        html += `
+            <div class="sector-tile ${colour}">
+                <div class="sector-name">
+                    ${sector.icon} ${sector.name}
+                </div>
+
+                <div class="sector-return">
+                    ${change.toFixed(2)}%
+                </div>
+            </div>
+        `;
+    }
+
+    container.innerHTML = html;
+}
+
 (function init(){
   // restore budget draft
   try{
@@ -2298,6 +2326,14 @@ dom.budgetInput?.addEventListener("input", () => {
   applySettingsFromStorage();
   refreshAll({showToast:false});
   loadBrokerPicks();
+  (function init(){
+
+  applySettingsFromStorage();
+  refreshAll({showToast:false});
+  loadBrokerPicks();
+  loadSectorHeatmap();
+
+})();
 
   // nice: warn if tab hidden (optional behaviour)
   document.addEventListener("visibilitychange", () => {
