@@ -2291,8 +2291,16 @@ async function loadSectorHeatmap(){
         const yesterday =
             data.meta.previousClose;
 
-        const change =
-            ((today - yesterday) / yesterday) * 100;
+       let change = null;
+
+if (
+    Number.isFinite(today) &&
+    Number.isFinite(yesterday) &&
+    yesterday !== 0
+) {
+    change =
+        ((today - yesterday) / yesterday) * 100;
+}
 
         let colour = "heat-amber";
 
@@ -2309,9 +2317,13 @@ async function loadSectorHeatmap(){
                 </div>
 
                 <div class="sector-return">
-                    ${change.toFixed(2)}%
-                </div>
-            </div>
+                    <div class="sector-return">
+    ${
+        Number.isFinite(change)
+            ? change.toFixed(2) + "%"
+            : "No data"
+    }
+</div
         `;
     }
 
