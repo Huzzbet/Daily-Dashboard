@@ -460,11 +460,10 @@ hr.sep{ border:none; height:1px; background:rgba(255,255,255,.07); margin:12px 0
 
   <div class="heatmap-grid">
 
- <div id="sectorHeatmap" class="heatmap-grid">
-  </div>
-  <div class="smallmuted">
-    Loading sector performance...
-  </div>
+ <<div id="sectorHeatmap" class="heatmap-grid">
+    <div class="smallmuted">
+        Loading sector performance...
+    </div>
 </div>
       <div class="card">
         <div class="card-header">
@@ -1013,7 +1012,7 @@ const SECTORS = [
   { name:"Banks",       symbol:"QFN.AX", icon:"🏦" },
   { name:"Technology",  symbol:"ATEC.AX", icon:"💻" },
   { name:"REITs",       symbol:"VAP.AX", icon:"🏠" },
-  { name:"Healthcare",  symbol:"IXJ",    icon:"🏥" },
+ { name:"Healthcare", symbol:"IHE.AX",    icon:"🏥" },
   { name:"Energy",      symbol:"FUEL.AX",icon:"⚡" },
   { name:"Industrials", symbol:"EX20.AX",icon:"🏭" }
 ];
@@ -2279,6 +2278,67 @@ async function loadSectorHeatmap(){
 
     for(const sector of SECTORS){
 
+    try{
+
+        const data = await yahooChart(
+            sector.symbol,
+            "1d"
+        );
+
+        const today =
+            data.meta.regularMarketPrice;
+
+        const yesterday =
+            data.meta.previousClose;
+
+        let change = null;
+
+        if(
+            Number.isFinite(today) &&
+            Number.isFinite(yesterday) &&
+            yesterday !== 0
+        ){
+            change =
+                ((today - yesterday) / yesterday) * 100;
+        }
+
+        let colour = "heat-amber";
+
+        if(change > 0.5) colour = "heat-green";
+        if(change < -0.5) colour = "heat-red";
+
+        html += `
+            <div class="sector-tile ${colour}">
+                <div class="sector-name">
+                    ${sector.icon} ${sector.name}
+                </div>
+
+                <div class="sector-return">
+                    ${
+                        Number.isFinite(change)
+                            ? `${change.toFixed(2)}%`
+                            : "No data"
+                    }
+                </div>
+            </div>
+        `;
+
+    } catch(err){
+
+        html += `
+            <div class="sector-tile heat-amber">
+                <div class="sector-name">
+                    ${sector.icon} ${sector.name}
+                </div>
+
+                <div class="sector-return">
+                    No data
+                </div>
+            </div>
+        `;
+    }
+}
+
         const data =
             await yahooChart(
                 sector.symbol,
@@ -2311,20 +2371,20 @@ if (
             colour = "heat-red";
 
         html += `
-            <div class="sector-tile ${colour}">
-                <div class="sector-name">
-                    ${sector.icon} ${sector.name}
-                </div>
+    <div class="sector-tile ${colour}">
+        <div class="sector-name">
+            ${sector.icon} ${sector.name}
+        </div>
 
-                <div class="sector-return">
-                    <div class="sector-return">
-    ${
-        Number.isFinite(change)
-            ? change.toFixed(2) + "%"
-            : "No data"
-    }
-</div
-        `;
+        <div class="sector-return">
+            ${
+                Number.isFinite(change)
+                    ? `${change.toFixed(2)}%`
+                    : "No data"
+            }
+        </div>
+    </div>
+`;
     }
 
     container.innerHTML = html;
