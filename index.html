@@ -460,7 +460,7 @@ hr.sep{ border:none; height:1px; background:rgba(255,255,255,.07); margin:12px 0
 
   <div class="heatmap-grid">
 
- <<div id="sectorHeatmap" class="heatmap-grid">
+<div id="sectorHeatmap" class="heatmap-grid">
     <div class="smallmuted">
         Loading sector performance...
     </div>
@@ -2276,14 +2276,19 @@ async function loadSectorHeatmap(){
 
     let html = "";
 
-    for(const sector of SECTORS){
+for (const sector of SECTORS) {
 
-    try{
+    try {
 
-        const data = await yahooChart(
-            sector.symbol,
-            "1d"
-        );
+        ...
+
+    } catch(err) {
+
+        ...
+
+    }
+
+}
 
         const today =
             data.meta.regularMarketPrice;
@@ -2400,12 +2405,18 @@ if (
   applySettingsFromStorage();
   refreshAll({showToast:false});
   loadBrokerPicks();
-  (function init(){
+(function init(){
 
-  applySettingsFromStorage();
-  refreshAll({showToast:false});
-  loadBrokerPicks();
-  loadSectorHeatmap();
+...
+refreshAll();
+loadBrokerPicks();
+
+(function init(){
+
+...
+refreshAll();
+loadBrokerPicks();
+loadSectorHeatmap();
 
 })();
 
