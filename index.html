@@ -1904,12 +1904,15 @@ ${kpis.length ? kpis.map(x => "- " + x).join("\n") : "- —"}
 
 
 <div class="card">
-  <div class="card-header">
-    <h2>ASX Sector Heat Map</h2>
-    <span>Day • Week • Month • YTD</span>
-  </div>
+    <div class="card-header">
+        <h2>ASX Sector Heat Map</h2>
+        <span>Market Leadership</span>
+    </div>
 
-  <div class="heatmap-grid">
+    <div id="sectorHeatmap" class="heatmap-grid">
+        Loading...
+    </div>
+</div>
 
     <div class="sector-tile heat-green">
       <span class="sector-name">Banks</span>
@@ -2269,127 +2272,71 @@ dom.budgetInput?.addEventListener("input", () => {
 /* -----------------------------
    INIT
 ------------------------------ */
-async function loadSectorHeatmap(){
+async function loadSectorHeatmap() {
 
-    const container =
-        document.getElementById("sectorHeatmap");
+    const container = document.getElementById("sectorHeatmap");
+
+    if (!container) return;
+
+    container.innerHTML =
+        '<div class="smallmuted">Loading sector performance...</div>';
 
     let html = "";
 
-for (const sector of SECTORS) {
+    for (const sector of SECTORS) {
 
-    try {
+        try {
 
-        ...
+            const data = await yahooChart(sector.symbol, "1d");
 
-    } catch(err) {
+            const today = data.meta.regularMarketPrice;
+            const yesterday = data.meta.previousClose;
 
-        ...
+            let change = null;
 
-    }
-
-}
-
-        const today =
-            data.meta.regularMarketPrice;
-
-        const yesterday =
-            data.meta.previousClose;
-
-        let change = null;
-
-        if(
-            Number.isFinite(today) &&
-            Number.isFinite(yesterday) &&
-            yesterday !== 0
-        ){
-            change =
-                ((today - yesterday) / yesterday) * 100;
-        }
-
-        let colour = "heat-amber";
-
-        if(change > 0.5) colour = "heat-green";
-        if(change < -0.5) colour = "heat-red";
-
-        html += `
-            <div class="sector-tile ${colour}">
-                <div class="sector-name">
-                    ${sector.icon} ${sector.name}
-                </div>
-
-                <div class="sector-return">
-                    ${
-                        Number.isFinite(change)
-                            ? `${change.toFixed(2)}%`
-                            : "No data"
-                    }
-                </div>
-            </div>
-        `;
-
-    } catch(err){
-
-        html += `
-            <div class="sector-tile heat-amber">
-                <div class="sector-name">
-                    ${sector.icon} ${sector.name}
-                </div>
-
-                <div class="sector-return">
-                    No data
-                </div>
-            </div>
-        `;
-    }
-}
-
-        const data =
-            await yahooChart(
-                sector.symbol,
-                "1d"
-            );
-
-        const today =
-            data.meta.regularMarketPrice;
-
-        const yesterday =
-            data.meta.previousClose;
-
-       let change = null;
-
-if (
-    Number.isFinite(today) &&
-    Number.isFinite(yesterday) &&
-    yesterday !== 0
-) {
-    change =
-        ((today - yesterday) / yesterday) * 100;
-}
-
-        let colour = "heat-amber";
-
-        if(change > 0.5)
-            colour = "heat-green";
-
-        if(change < -0.5)
-            colour = "heat-red";
-
-        html += `
-    <div class="sector-tile ${colour}">
-        <div class="sector-name">
-            ${sector.icon} ${sector.name}
-        </div>
-
-        <div class="sector-return">
-            ${
-                Number.isFinite(change)
-                    ? `${change.toFixed(2)}%`
-                    : "No data"
+            if (
+                Number.isFinite(today) &&
+                Number.isFinite(yesterday) &&
+                yesterday !== 0
+            ) {
+                change = ((today - yesterday) / yesterday) * 100;
             }
-        </div>
-    </div>
-`;
+
+            let colour = "heat-amber";
+
+            if (change > 0.5) colour = "heat-green";
+            else if (change < -0.5) colour = "heat-red";
+
+            html += `
+                <div class="sector-tile ${colour}">
+                    <div class="sector-name">
+                        ${sector.icon} ${sector.name}
+                    </div>
+
+                    <div class="sector-return">
+                        ${
+                            Number.isFinite(change)
+                                ? change.toFixed(2) + "%"
+                                : "No data"
+                        }
+                    </div>
+                </div>
+            `;
+
+        } catch (err) {
+
+            html += `
+                <div class="sector-tile heat-amber">
+                    <div class="sector-name">
+                        ${sector.icon} ${sector.name}
+                    </div>
+
+                    <div class="sector-return">
+                        No data
+                    </div>
+                </div>
+            `;
+        }
     }
 
     container.innerHTML = html;
