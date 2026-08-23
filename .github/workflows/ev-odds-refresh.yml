@@ -1,9 +1,11 @@
 name: Refresh BetIQ EV odds
 
+# IMPORTANT: This workflow is deliberately manual-only.
+# The Odds API key is used only when you explicitly run this workflow.
+# There is NO scheduled/automatic API polling.
+
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '23 * * * *'
 
 permissions:
   contents: write
@@ -33,7 +35,7 @@ jobs:
                   'provider': 'The Odds API',
                   'sports': ['AFL','NBA'],
                   'markets': [],
-                  'error': 'Missing GitHub Actions secret ODDS_API_KEY'
+                  'error': 'Missing GitHub Actions secret ODDS_API_KEY. No API request was made.'
               }
               out.write_text(json.dumps(payload, indent=2), encoding='utf-8')
               print(payload['error'])
@@ -107,8 +109,6 @@ jobs:
                               })
                               rows.append(row)
 
-          # Keep a clean, provider-neutral feed. Model probabilities are deliberately
-          # left null until the model layer is connected; BetIQ will not invent edge.
           payload = {
               'updated': datetime.now(timezone.utc).isoformat(),
               'provider': 'The Odds API',
@@ -129,5 +129,5 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add data/odds_today.json
           git diff --cached --quiet && exit 0
-          git commit -m 'Refresh BetIQ AFL and NBA odds [skip ci]'
+          git commit -m 'Refresh BetIQ AFL and NBA odds [manual]'
           git push
