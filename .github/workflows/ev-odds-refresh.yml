@@ -1,0 +1,133 @@
+name: Refresh BetIQ EV odds
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '23 * * * *'
+
+permissions:
+  contents: write
+
+jobs:
+  refresh-odds:
+    runs-on: ubuntu-latest
+    env:
+      ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Fetch AFL and NBA odds
+        run: |
+          python3 - <<'PY'
+          import json, os, urllib.parse, urllib.request
+          from datetime import datetime, timezone
+          from pathlib import Path
+
+          key = os.environ.get('ODDS_API_KEY','').strip()
+          out = Path('data/odds_today.json')
+
+          if not key:
+              payload = {
+                  'updated': datetime.now(timezone.utc).isoformat(),
+                  'provider': 'The Odds API',
+                  'sports': ['AFL','NBA'],
+                  'markets': [],
+                  'error': 'Missing GitHub Actions secret ODDS_API_KEY'
+              }
+              out.write_text(json.dumps(payload, indent=2), encoding='utf-8')
+              print(payload['error'])
+              raise SystemExit(0)
+
+          sports = [
+              ('AFL','aussierules_afl'),
+              ('NBA','basketball_nba'),
+          ]
+          markets = 'h2h,spreads,totals'
+          rows = []
+          usage = []
+
+          def fetch(url):
+              req = urllib.request.Request(url, headers={'User-Agent':'BetIQ/1.0'})
+              with urllib.request.urlopen(req, timeout=30) as r:
+                  headers = dict(r.headers.items())
+                  return json.loads(r.read().decode('utf-8')), headers
+
+          for sport_name, sport_key in sports:
+              qs = urllib.parse.urlencode({
+                  'regions':'au',
+                  'markets':markets,
+                  'oddsFormat':'decimal',
+                  'dateFormat':'iso',
+                  'apiKey':key,
+              })
+              url = f'https://api.the-odds-api.com/v4/sports/{sport_key}/odds?{qs}'
+              try:
+                  events, headers = fetch(url)
+                  usage.append({
+                      'sport': sport_name,
+                      'remaining': headers.get('x-requests-remaining'),
+                      'used': headers.get('x-requests-used'),
+                      'last': headers.get('x-requests-last'),
+                  })
+              except Exception as e:
+                  print(f'{sport_name}: {e}')
+                  continue
+
+              for event in events:
+                  home = event.get('home_team','')
+                  away = event.get('away_team','')
+                  base = {
+                      'sport': sport_name,
+                      'sportKey': sport_key,
+                      'eventId': event.get('id'),
+                      'game': f'{home} vs {away}',
+                      'homeTeam': home,
+                      'awayTeam': away,
+                      'commenceTime': event.get('commence_time'),
+                  }
+
+                  for book in event.get('bookmakers',[]):
+                      source = book.get('title') or book.get('key')
+                      for market in book.get('markets',[]):
+                          mkey = market.get('key')
+                          for outcome in market.get('outcomes',[]):
+                              price = outcome.get('price')
+                              if not isinstance(price,(int,float)) or price <= 1:
+                                  continue
+                              row = dict(base)
+                              row.update({
+                                  'source': source,
+                                  'bookmakerKey': book.get('key'),
+                                  'marketKey': mkey,
+                                  'selection': outcome.get('name'),
+                                  'price': price,
+                                  'point': outcome.get('point'),
+                                  'lastUpdate': market.get('last_update') or book.get('last_update'),
+                              })
+                              rows.append(row)
+
+          # Keep a clean, provider-neutral feed. Model probabilities are deliberately
+          # left null until the model layer is connected; BetIQ will not invent edge.
+          payload = {
+              'updated': datetime.now(timezone.utc).isoformat(),
+              'provider': 'The Odds API',
+              'regions': ['au'],
+              'sports': ['AFL','NBA'],
+              'marketsRequested': ['h2h','spreads','totals'],
+              'usage': usage,
+              'markets': rows,
+              'modelStatus': 'odds-only; model probability not supplied by provider'
+          }
+          out.write_text(json.dumps(payload, indent=2), encoding='utf-8')
+          print(f'Wrote {len(rows)} odds rows')
+          PY
+
+      - name: Commit odds snapshot
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add data/odds_today.json
+          git diff --cached --quiet && exit 0
+          git commit -m 'Refresh BetIQ AFL and NBA odds [skip ci]'
+          git push
