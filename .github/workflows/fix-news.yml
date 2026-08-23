@@ -14,23 +14,25 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Inject resilient news loader
+      - name: Install resilient news loader
         run: |
           python3 - <<'PY'
           from pathlib import Path
           p = Path('index.html')
           s = p.read_text(encoding='utf-8')
-          marker = '<script id="resilient-news-loader">'
-          if marker in s:
-              print('News loader already installed')
-              raise SystemExit(0)
+          start = s.find('<script id="resilient-news-loader">')
+          if start >= 0:
+              end = s.find('</script>', start)
+              if end >= 0:
+                  s = s[:start] + s[end + len('</script>'):]
           script = r'''<script id="resilient-news-loader">
 (function(){
+  const PROXY='https://wild-dream-69cc.seanhurren.workers.dev';
   const feeds={
     adviser:[
       ['FAAA / advice','https://news.google.com/rss/search?q=FAAA+financial+advice+Australia&hl=en-AU&gl=AU&ceid=AU:en'],
       ['ASIC / advice','https://news.google.com/rss/search?q=ASIC+financial+advice+Australia&hl=en-AU&gl=AU&ceid=AU:en'],
-      ['Financial advisers','https://news.google.com/rss/search?q=financial+adviser+Australia+IFA+InvestorDaily&hl=en-AU&gl=AU&ceid=AU:en']
+      ['IFA / InvestorDaily','https://news.google.com/rss/search?q=IFA+InvestorDaily+financial+adviser+Australia&hl=en-AU&gl=AU&ceid=AU:en']
     ],
     super:[
       ['ASIC / super','https://news.google.com/rss/search?q=ASIC+superannuation+Australia&hl=en-AU&gl=AU&ceid=AU:en'],
@@ -45,50 +47,58 @@ jobs:
     macro:[
       ['RBA','https://news.google.com/rss/search?q=RBA+Australia+interest+rates&hl=en-AU&gl=AU&ceid=AU:en'],
       ['ABS','https://news.google.com/rss/search?q=ABS+Australia+CPI+employment+GDP+wages&hl=en-AU&gl=AU&ceid=AU:en'],
-      ['Treasury','https://news.google.com/rss/search?q=Australia+Treasury+economy+inflation&hl=en-AU&gl=AU&ceid=AU:en']
+      ['Treasury','https://news.google.com/rss/search?q=Australia+Treasury+economy+inflation&hl=en-AU&gl=AU:en']
     ],
     asx:[
       ['ASX market','https://news.google.com/rss/search?q=ASX+Australia+earnings+guidance+dividend+capital+raising&hl=en-AU&gl=AU&ceid=AU:en'],
-      ['CBA NAB ANZ WBC','https://news.google.com/rss/search?q=CBA+NAB+ANZ+WBC+ASX&hl=en-AU&gl=AU&ceid=AU:en'],
-      ['BHP RIO CSL XRO','https://news.google.com/rss/search?q=BHP+RIO+CSL+XRO+ASX&hl=en-AU&gl=AU&ceid=AU:en']
+      ['Banks','https://news.google.com/rss/search?q=CBA+NAB+ANZ+WBC+Australia+ASX&hl=en-AU&gl=AU&ceid=AU:en'],
+      ['Large caps','https://news.google.com/rss/search?q=BHP+RIO+CSL+XRO+FMG+WES+WOW+MQG+REA+TLS+ASX&hl=en-AU&gl=AU&ceid=AU:en']
     ]
   };
-  const escapeHtml=x=>String(x||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-  const impact=t=>{t=t.toLowerCase();if(/profit|earnings|guidance|downgrade|downgrad|cut|lawsuit|fine|fraud|collapse|warning/.test(t))return 'High';if(/rate|inflation|cpi|employment|wage|capital|dividend|acquisition|deal|policy|regulat/.test(t))return 'Medium';return 'Low'};
-  const timeAgo=d=>{const n=new Date(d),m=Math.max(0,Math.round((Date.now()-n)/60000));if(m<60)return m+'m';const h=Math.round(m/60);if(h<24)return h+'h';return Math.round(h/24)+'d'};
+  const esc=x=>String(x||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  const safeUrl=x=>{try{const u=new URL(String(x||''));return ['http:','https:'].includes(u.protocol)?u.href:'#'}catch{return '#'}};
+  const impact=t=>{t=String(t||'').toLowerCase();if(/profit|earnings|guidance|downgrade|downgrad|cut|lawsuit|fine|fraud|collapse|warning|enforcement|breach|takeover|merger|trading halt|capital raising/.test(t))return 'High';if(/rate|inflation|cpi|employment|wage|capital|dividend|acquisition|deal|policy|regulat|super|insurance|claims|asic|apra|treasury|rba/.test(t))return 'Medium';return 'Low'};
+  const ago=d=>{const n=new Date(d),m=Math.max(0,Math.round((Date.now()-n)/60000));if(!Number.isFinite(m))return '—';if(m<60)return m+'m';const h=Math.round(m/60);if(h<24)return h+'h';return Math.round(h/24)+'d'};
   async function rss(url){
-    const api='https://api.rss2json.com/v1/api.json?rss_url='+encodeURIComponent(url);
-    const r=await fetch(api,{cache:'no-store'}); if(!r.ok) throw Error('feed');
-    const j=await r.json(); return (j.items||[]).map(x=>({title:x.title||'',link:x.link||'',date:x.pubDate||''}));
+    const r=await fetch(PROXY+'?url='+encodeURIComponent(url),{cache:'no-store'});
+    if(!r.ok)throw Error('feed '+r.status);
+    const xml=await r.text();
+    const doc=new DOMParser().parseFromString(xml,'text/xml');
+    let items=[...doc.querySelectorAll('item')].map(i=>({title:i.querySelector('title')?.textContent?.trim()||'',link:i.querySelector('link')?.textContent?.trim()||'',date:i.querySelector('pubDate')?.textContent?.trim()||''}));
+    if(!items.length)items=[...doc.querySelectorAll('entry')].map(i=>({title:i.querySelector('title')?.textContent?.trim()||'',link:i.querySelector('link')?.getAttribute('href')||'',date:i.querySelector('updated')?.textContent?.trim()||''}));
+    return items.filter(x=>x.title&&x.link).slice(0,8);
   }
   async function collect(group){
-    const all=[]; await Promise.all((feeds[group]||[]).map(async ([label,url])=>{try{(await rss(url)).slice(0,5).forEach(x=>all.push({...x,label}))}catch(e){}}));
-    const seen=new Set(); return all.filter(x=>{const k=x.title.toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();if(!k||seen.has(k))return false;seen.add(k);return true}).sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,6);
+    const all=[]; let failed=0;
+    await Promise.all((feeds[group]||[]).map(async ([src,url])=>{try{(await rss(url)).forEach(x=>all.push({...x,src}))}catch(e){failed++}}));
+    const seen=new Set();
+    const items=all.filter(x=>{const k=x.title.toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();if(!k||seen.has(k))return false;seen.add(k);return true}).sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,10);
+    return {items,failed};
   }
   function renderList(id,items){
-    const el=document.getElementById(id); if(!el)return;
-    if(!items.length){el.innerHTML='<li><div class="small">No new items found — source feeds may be quiet.</div></li>';return}
-    el.innerHTML=items.map(x=>`<li><a href="${escapeHtml(x.link)}" target="_blank" rel="noopener"><span class="badge ${impact(x.title)==='High'?'high':impact(x.title)==='Medium'?'mid':'low'}">${impact(x.title)}</span><b>${escapeHtml(x.title)}</b><div class="small" style="margin-top:4px">${escapeHtml(x.label)} · ${timeAgo(x.date)} ago</div></a></li>`).join('');
+    const el=document.getElementById(id);if(!el)return;
+    if(!items.length){el.innerHTML='<li><div class="small">No current headlines found. Feed sources may be quiet.</div></li>';return}
+    el.innerHTML=items.slice(0,8).map(x=>{const p=impact(x.title);return `<li><a href="${esc(safeUrl(x.link))}" target="_blank" rel="noopener"><span class="badge ${p==='High'?'high':p==='Medium'?'mid':'low'}">${p}</span><span class="badge src">${esc(x.src)}</span><b>${esc(x.title)}</b><div class="small" style="margin-top:4px">${ago(x.date)} ago</div></a></li>`}).join('');
   }
   function renderASX(items){
     const el=document.getElementById('asxNews');if(!el)return;
-    if(!items.length){el.innerHTML='<tr><td colspan="4" class="small">No current ASX headlines found.</td></tr>';return}
-    el.innerHTML=items.map(x=>{const m=x.title.match(/\b(?:CBA|NAB|ANZ|WBC|BHP|RIO|CSL|XRO|FMG|WES|WOW|MQG|REA|TLS)\b/i);return `<tr><td><b>${escapeHtml(m?m[0]:'ASX')}</b></td><td><a href="${escapeHtml(x.link)}" target="_blank" rel="noopener">${escapeHtml(x.title)}</a></td><td><span class="badge ${impact(x.title)==='High'?'high':impact(x.title)==='Medium'?'mid':'low'}">${impact(x.title)}</span></td><td>${timeAgo(x.date)} ago</td></tr>`}).join('');
+    if(!items.length){el.innerHTML='<tr><td colspan="4" class="small">No current ASX company headlines found.</td></tr>';return}
+    el.innerHTML=items.slice(0,10).map(x=>{const m=x.title.match(/\b(?:CBA|NAB|ANZ|WBC|BHP|RIO|CSL|XRO|FMG|WES|WOW|MQG|REA|TLS|ASX)\b/i);const p=impact(x.title);return `<tr><td><b>${esc(m?m[0].toUpperCase():'ASX')}</b></td><td><a href="${esc(safeUrl(x.link))}" target="_blank" rel="noopener">${esc(x.title)}</a></td><td><span class="badge ${p==='High'?'high':p==='Medium'?'mid':'low'}">${p}</span></td><td>${ago(x.date)} ago</td></tr>`}).join('');
   }
   async function run(){
-    const groups=['adviser','super','insurance','macro'];
-    const results=await Promise.all(groups.map(collect));
-    groups.forEach((g,i)=>renderList(g,results[i]));
-    renderASX(await collect('asx'));
+    const names=['adviser','super','insurance','macro','asx'];
+    const out=await Promise.all(names.map(collect));
+    names.forEach((g,i)=>{if(g==='asx')renderASX(out[i].items);else renderList(g,out[i].items)});
+    const failures=out.reduce((n,x)=>n+x.failed,0);
     const dot=document.getElementById('healthDot'),health=document.getElementById('health');
-    if(dot&&health){dot.classList.add('ok');health.textContent='Feeds: live news loaded'}
+    if(dot&&health){dot.className='dot '+(failures?'':'ok');health.textContent=failures?`Feeds: ${failures} news source(s) delayed`:'Feeds: live news loaded'}
   }
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run);else run();
+  run();
 })();
 </script>'''
           s=s.replace('</body>', script+'\n</body>')
           p.write_text(s,encoding='utf-8')
-          print('Injected resilient news loader')
+          print('Installed resilient news loader')
           PY
 
       - name: Commit patch
@@ -97,5 +107,5 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add index.html
           git diff --cached --quiet && exit 0
-          git commit -m 'Fix live advice, super, insurance, macro and ASX news feeds'
+          git commit -m 'Fix resilient advice super insurance macro and ASX news'
           git push
