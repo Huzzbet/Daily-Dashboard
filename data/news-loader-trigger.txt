@@ -1,1 +1,1 @@
-Trigger resilient news panel repair workflow.
+Trigger hardened news feed repair workflow.
