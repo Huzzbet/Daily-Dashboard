@@ -1,0 +1,129 @@
+name: Refresh dashboard live data
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '17 * * * *'
+
+permissions:
+  contents: write
+
+jobs:
+  refresh-data:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build property and news snapshots
+        run: |
+          python3 - <<'PY'
+          import json, re, urllib.request, xml.etree.ElementTree as ET
+          from pathlib import Path
+          from html import unescape
+
+          UA='Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/126 Safari/537.36'
+
+          def get(url):
+              req=urllib.request.Request(url,headers={'User-Agent':UA})
+              with urllib.request.urlopen(req,timeout=20) as r:
+                  return r.read()
+
+          property_pages=[
+            ['Bentleigh','https://www.property.com.au/vic/bentleigh-3204/'],
+            ['Bentleigh East','https://www.property.com.au/vic/bentleigh-east-3165/'],
+            ['Malvern','https://www.property.com.au/vic/malvern-3144/'],
+            ['Torquay','https://www.property.com.au/vic/torquay-3228/'],
+            ['Sorrento','https://www.property.com.au/vic/sorrento-3943/']
+          ]
+          props=[]
+          for name,url in property_pages:
+              try:
+                  text=unescape(re.sub(r'<[^>]+>',' ',get(url).decode('utf-8','ignore')))
+                  text=re.sub(r'\s+',' ',text)
+                  m=re.search(r'Median price trend for houses.*?\$([0-9,]+).*?Past 12 month growth:\s*([+-]?[0-9.]+)%',text,re.I)
+                  props.append({'name':name,'median':'$'+m.group(1),'growth':float(m.group(2))} if m else {'name':name,'median':None,'growth':None})
+              except Exception:
+                  props.append({'name':name,'median':None,'growth':None})
+          Path('property-data.json').write_text(json.dumps({'updated':__import__('datetime').datetime.utcnow().isoformat()+'Z','rows':props},separators=(',',':')),encoding='utf-8')
+
+          feeds={
+            'adviser':[
+              ['FAAA / advice','https://news.google.com/rss/search?q=FAAA+financial+advice+Australia&hl=en-AU&gl=AU&ceid=AU:en'],
+              ['ASIC / advice','https://news.google.com/rss/search?q=ASIC+financial+advice+Australia&hl=en-AU&gl=AU&ceid=AU:en'],
+              ['IFA / InvestorDaily','https://news.google.com/rss/search?q=IFA+InvestorDaily+financial+adviser+Australia&hl=en-AU&gl=AU&ceid=AU:en']],
+            'super':[
+              ['ASIC / super','https://news.google.com/rss/search?q=ASIC+superannuation+Australia&hl=en-AU&gl=AU&ceid=AU:en'],
+              ['APRA / super','https://news.google.com/rss/search?q=APRA+superannuation+Australia&hl=en-AU&gl=AU&ceid=AU:en'],
+              ['Treasury / retirement','https://news.google.com/rss/search?q=Australia+Treasury+superannuation+retirement&hl=en-AU&gl=AU&ceid=AU:en']],
+            'insurance':[
+              ['ASIC / insurance','https://news.google.com/rss/search?q=ASIC+insurance+Australia&hl=en-AU&gl=AU&ceid=AU:en'],
+              ['APRA / insurance','https://news.google.com/rss/search?q=APRA+insurance+Australia&hl=en-AU&gl=AU&ceid=AU:en'],
+              ['AFCA / claims','https://news.google.com/rss/search?q=AFCA+insurance+claims+Australia&hl=en-AU&gl=AU&ceid=AU:en']],
+            'macro':[
+              ['RBA','https://news.google.com/rss/search?q=RBA+Australia+interest+rates&hl=en-AU&gl=AU&ceid=AU:en'],
+              ['ABS','https://news.google.com/rss/search?q=ABS+Australia+CPI+employment+GDP+wages&hl=en-AU&gl=AU&ceid=AU:en'],
+              ['Treasury','https://news.google.com/rss/search?q=Australia+Treasury+economy+inflation&hl=en-AU&gl=AU&ceid=AU:en']],
+            'asx':[
+              ['ASX market','https://news.google.com/rss/search?q=ASX+Australia+earnings+guidance+dividend+capital+raising&hl=en-AU&gl=AU&ceid=AU:en'],
+              ['Banks','https://news.google.com/rss/search?q=CBA+NAB+ANZ+WBC+Australia+ASX&hl=en-AU&gl=AU&ceid=AU:en'],
+              ['Large caps','https://news.google.com/rss/search?q=BHP+RIO+CSL+XRO+FMG+WES+WOW+MQG+REA+TLS+ASX&hl=en-AU&gl=AU&ceid=AU:en']]
+          }
+          def parse_feed(url,src):
+              root=ET.fromstring(get(url))
+              out=[]
+              for item in root.findall('.//item'):
+                  title=(item.findtext('title') or '').strip(); link=(item.findtext('link') or '').strip(); date=(item.findtext('pubDate') or '').strip()
+                  if title and link: out.append({'title':title,'link':link,'date':date,'src':src})
+              return out[:8]
+          news={}
+          for group,items in feeds.items():
+              all=[]
+              for src,url in items:
+                  try: all += parse_feed(url,src)
+                  except Exception: pass
+              seen=set(); clean=[]
+              for x in all:
+                  k=re.sub(r'[^a-z0-9]+',' ',x['title'].lower()).strip()
+                  if k and k not in seen: seen.add(k); clean.append(x)
+              news[group]=clean[:10]
+          Path('news-data.json').write_text(json.dumps({'updated':__import__('datetime').datetime.utcnow().isoformat()+'Z','groups':news},ensure_ascii=False,separators=(',',':')),encoding='utf-8')
+          PY
+
+      - name: Install local snapshot overlay
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('index.html')
+          s=p.read_text(encoding='utf-8')
+          marker='<script id="local-snapshot-overlay">'
+          if marker in s:
+              a=s.index(marker); b=s.index('</script>',a)+len('</script>'); s=s[:a]+s[b:]
+          script=r'''<script id="local-snapshot-overlay">
+(function(){
+  const esc=x=>String(x??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  const safe=x=>{try{const u=new URL(x);return ['http:','https:'].includes(u.protocol)?u.href:'#'}catch{return '#'}};
+  const impact=t=>{t=String(t||'').toLowerCase();if(/profit|earnings|guidance|downgrade|downgrad|cut|lawsuit|fine|fraud|collapse|warning|enforcement|breach|takeover|merger|trading halt|capital raising/.test(t))return ['High','high'];if(/rate|inflation|cpi|employment|wage|capital|dividend|acquisition|deal|policy|regulat|super|insurance|claims|asic|apra|treasury|rba/.test(t))return ['Medium','mid'];return ['Low','low']};
+  const ago=d=>{const n=new Date(d),m=Math.max(0,Math.round((Date.now()-n)/60000));if(!Number.isFinite(m))return '—';if(m<60)return m+'m';const h=Math.round(m/60);if(h<24)return h+'h';return Math.round(h/24)+'d'};
+  async function load(){
+    try{const p=await fetch('property-data.json?'+Date.now()).then(r=>r.json());const el=document.getElementById('property');if(el&&p.rows)el.innerHTML=p.rows.map(x=>`<tr><td>${esc(x.name)}</td><td>${x.median?esc(x.median):'—'}</td><td class="${Number(x.growth)>=0?'pos':'neg'}">${Number.isFinite(Number(x.growth))?(Number(x.growth)>=0?'+':'')+Number(x.growth).toFixed(1)+'%':'—'}</td></tr>`).join('');}
+    catch(e){}
+    try{const n=await fetch('news-data.json?'+Date.now()).then(r=>r.json());const g=n.groups||{};['adviser','super','insurance','macro'].forEach(id=>{const el=document.getElementById(id),items=g[id]||[];if(el)el.innerHTML=items.length?items.slice(0,8).map(x=>{const p=impact(x.title);return `<li><a href="${safe(x.link)}" target="_blank" rel="noopener"><span class="badge ${p[1]}">${p[0]}</span><span class="badge src">${esc(x.src)}</span><b>${esc(x.title)}</b><div class="small" style="margin-top:4px">${ago(x.date)} ago</div></a></li>`}).join(''):'<li class="small">No current headlines found.</li>'});const el=document.getElementById('asxNews'),items=g.asx||[];if(el)el.innerHTML=items.length?items.slice(0,10).map(x=>{const m=x.title.match(/\b(?:CBA|NAB|ANZ|WBC|BHP|RIO|CSL|XRO|FMG|WES|WOW|MQG|REA|TLS|ASX)\b/i),p=impact(x.title);return `<tr><td><b>${esc(m?m[0].toUpperCase():'ASX')}</b></td><td><a href="${safe(x.link)}" target="_blank" rel="noopener">${esc(x.title)}</a></td><td><span class="badge ${p[1]}">${p[0]}</span></td><td>${ago(x.date)} ago</td></tr>`}).join(''):'<tr><td colspan="4" class="small">No current ASX company headlines found.</td></tr>';
+    }catch(e){}
+  }
+  load();setInterval(load,10*60*1000);
+})();
+</script>'''
+          s=s.replace('</body>',script+'\n</body>')
+          p.write_text(s,encoding='utf-8')
+          PY
+
+      - name: Commit generated data and overlay
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html property-data.json news-data.json
+          git diff --cached --quiet && exit 0
+          git commit -m 'Add resilient property and news snapshots [skip ci]'
+          git push
