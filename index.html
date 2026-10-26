@@ -51,6 +51,53 @@ select{background:#fff;color:#1f3048;border-color:#d4deeb}
 @media(max-width:650px){.container{padding:10px 9px 32px}.topbar{padding:17px 15px;border-radius:15px}.topbar h1{font-size:25px}.toolbar{width:100%;gap:7px}.toolbar .btn{flex:1;padding:10px 8px;font-size:12px}.settings{gap:6px}.settings label{font-size:11px}.card{padding:14px;border-radius:14px}.kpis{gap:8px}.kpi{padding:11px}.kpi .value{font-size:17px}.table{font-size:12px}.table th,.table td{padding:10px 7px}.heat{gap:8px}.tile{padding:11px;min-height:145px}.tile .ret{font-size:21px}}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
 
+
+/* Market Mind shared visual system — dark market terminal + amber signal accent */
+:root{--bg:#05080d;--card:#0a0f16;--border:#1b2531;--text:#f3f6f8;--muted:#7f8b99;--green:#26d07c;--amber:#ffb000;--red:#ff5b67;--accent:#ffb000;--radius:8px;--shadow:0 8px 24px rgba(0,0,0,.22)}
+body{background:radial-gradient(circle at 50% 0,#111923 0,#05080d 52%);color:var(--text)}
+.container{max-width:1500px;padding:22px 20px 50px}
+.topbar{background:rgba(5,8,13,.92);border:1px solid #1b2531;border-radius:4px;padding:20px 22px;align-items:center;box-shadow:none}
+.topbar h1{color:#f3f6f8;font-weight:850;letter-spacing:-.8px}
+.sub{color:#a0abb8}
+.pill{border-radius:3px;border-color:#27313d;background:#0a0f16;color:#9aa6b4}
+.card{background:linear-gradient(180deg,rgba(12,18,27,.98),rgba(7,11,17,.98));border:1px solid #1b2531;border-radius:5px;box-shadow:none;padding:18px}
+.header{border-bottom:1px solid #1b2531;padding-bottom:12px;margin-bottom:13px}
+.header h2{color:#f3f6f8;font-size:14px;letter-spacing:.02em;text-transform:uppercase}
+.header span,.small,.source{color:#7f8b99}
+.btn{border-radius:3px;border:1px solid #2a3542;background:#0b1119;color:#dce3ea;font-size:12px;font-weight:800;letter-spacing:.02em}
+.btn:hover{background:#151e29}
+.btn.primary{background:#ffb000;color:#111820;border:1px solid #ffb000}
+.btn.primary:hover{background:#ffc13b}
+.settings label{border-radius:3px;border-color:#27313d;background:#0a0f16;color:#9aa6b4}
+select{background:#0a0f16;color:#e6ebf0;border-color:#27313d;border-radius:3px}
+.kpi{background:#080d13;border:1px solid #202b37;border-radius:4px}
+.kpi .label{color:#7f8b99;text-transform:uppercase;letter-spacing:.09em;font-size:10px}
+.kpi .value{color:#f3f6f8;font-variant-numeric:tabular-nums}
+.kpi .delta{font-variant-numeric:tabular-nums}
+.pos{color:#26d07c!important}.neg{color:#ff5b67!important}.neu{color:#ffb000!important}
+.table{color:#dbe2e9}
+.table th{background:#080d13;color:#7f8b99;letter-spacing:.12em}
+.table th,.table td{border-bottom-color:#1b2531}
+.table tbody tr:hover{background:#111923}
+.table a{color:#ffbf36}
+.news a{background:#080d13;border-color:#1b2531;color:#dbe2e9;border-radius:3px}
+.news a:hover{background:#101721;border-color:#394552}
+.badge{border-radius:2px;letter-spacing:.06em}
+.high{background:rgba(255,91,103,.14);color:#ff737d}
+.mid{background:rgba(255,176,0,.14);color:#ffbf36}
+.low{background:rgba(38,208,124,.13);color:#26d07c}
+.src{background:rgba(255,176,0,.1);color:#ffca58}
+.tile{border-radius:3px}
+.tile .period{background:rgba(0,0,0,.2)}
+.health{color:#9aa6b4}
+.dot.ok{background:#26d07c}.dot.bad{background:#ff5b67}
+.toast{background:#0a0f16;color:#f3f6f8;border-color:#27313d;border-radius:4px}
+#updated{color:#ffb000}
+.topbar .pills{margin-top:13px}
+.topbar>div:first-child>div:first-child{color:#ffb000!important;letter-spacing:.16em!important}
+@media(max-width:1050px){.container{padding:14px 12px 36px}.topbar{align-items:flex-start}.grid{gap:14px}.stack{gap:14px}}
+@media(max-width:650px){.container{padding:8px 8px 28px}.topbar{padding:15px 13px;border-radius:4px}.topbar h1{font-size:24px}.toolbar{width:100%;gap:6px}.toolbar .btn{flex:1;padding:10px 6px;font-size:11px}.settings{gap:6px}.settings label{font-size:10px}.card{padding:13px;border-radius:4px}.kpis{gap:7px}.kpi{padding:10px}.kpi .value{font-size:16px}.table{font-size:12px}.table th,.table td{padding:9px 6px}.heat{gap:7px}.tile{padding:10px;min-height:140px}.tile .ret{font-size:20px}}
+
 </style></head><body><div class="container">
 <header class="topbar"><div><div style="font-size:10px;font-weight:850;letter-spacing:.16em;text-transform:uppercase;color:#175cd3;margin-bottom:7px">PRIVATE WEALTH · MARKET INTELLIGENCE</div><h1>Adviser Daily Brief</h1><div class="sub">Australia · Melbourne · Internal Use Only</div><div class="small mono" id="updated">Last updated: —</div><div class="pills"><span class="pill">🧾 Clients · Super · Compliance</span><span class="pill">🏠 Melbourne · Housing · Deposits</span><span class="pill">⚠️ Signal-only · Verify before advice</span></div></div><div><div class="toolbar"><button class="btn" id="copy">📋 Copy briefing</button><button class="btn" id="download">⬇️ Download</button><button class="btn primary" id="refresh">🔄 Refresh</button></div><div class="settings" style="margin-top:9px"><label><input id="auto" type="checkbox" checked> Auto-refresh</label><label>Every <select id="mins"><option>5</option><option selected>10</option><option>15</option><option>30</option><option>60</option></select>m</label><button class="btn" id="pause">⏸ Pause live</button></div><div class="health" style="margin-top:9px"><span class="dot" id="healthDot"></span><span id="health">Feeds: checking…</span></div></div></header>
 <section class="card" style="margin-top:18px"><div class="header"><h2>Today at a glance</h2><span>Fast context before client calls</span></div><div class="kpis" id="kpis"></div></section>
