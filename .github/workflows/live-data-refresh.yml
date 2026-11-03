@@ -148,6 +148,8 @@ jobs:
           td_url = 'https://www.money.com.au/banking/term-deposit-rates'
           try:
               txt, _ = page_text(td_url)
+              asof_match = re.search(r'correct as at\s+([0-9]{1,2}\s+[A-Za-z]+\s+20[0-9]{2})', txt, re.I)
+              as_of = asof_match.group(1) if asof_match else None
               for months in (3, 6, 12):
                   pattern = rf'{months}\s*months?\s+([0-9]+\.[0-9]{{2}})%\s+p\.a\.\s+from\s+([^.;]+)'
                   m = re.search(pattern, txt, re.I)
@@ -159,7 +161,7 @@ jobs:
                       6: (5.45, 'Australian Military Bank / Gateway Bank / Heartland Bank'),
                       12: (5.60, 'Community First Bank / Bank Australia / Qudos Bank')
                   }
-                  deposits.append({'term':f'{months} months','rate':float(m.group(1)) if m else fallbacks[months][0],'provider':m.group(2).strip() if m else fallbacks[months][1],'source':td_url,'fallback':not bool(m)})
+                  deposits.append({'term':f'{months} months','rate':float(m.group(1)) if m else fallbacks[months][0],'provider':m.group(2).strip() if m else fallbacks[months][1],'source':td_url,'fallback':not bool(m),'as_of':as_of})
           except Exception as e:
               print('Term deposit source failed:', str(e)[:180])
               deposits = [{'term':f'{m} months','rate':None,'provider':'Unavailable','source':td_url} for m in (3,6,12)]
