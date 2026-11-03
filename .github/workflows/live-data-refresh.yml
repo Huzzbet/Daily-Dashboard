@@ -1,129 +1,168 @@
-name: Refresh dashboard live data
+name: Refresh adviser content snapshots
 
 on:
-  push:
-    branches: [main]
   schedule:
     - cron: '17 * * * *'
+  workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
-  refresh-data:
-    if: github.actor != 'github-actions[bot]'
+  refresh-content:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build property and news snapshots
+      - name: Build news, macro, property and deposit snapshots
         run: |
           python3 - <<'PY'
           import json, re, urllib.request, xml.etree.ElementTree as ET
           from pathlib import Path
+          from datetime import datetime, timezone
+          from email.utils import parsedate_to_datetime
           from html import unescape
 
-          UA='Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/126 Safari/537.36'
+          UA = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/126 Safari/537.36'
+          now = datetime.now(timezone.utc)
 
-          def get(url):
-              req=urllib.request.Request(url,headers={'User-Agent':UA})
-              with urllib.request.urlopen(req,timeout=20) as r:
+          def get(url, timeout=25):
+              req = urllib.request.Request(url, headers={'User-Agent': UA})
+              with urllib.request.urlopen(req, timeout=timeout) as r:
                   return r.read()
 
-          property_pages=[
-            ['Bentleigh','https://www.property.com.au/vic/bentleigh-3204/'],
-            ['Bentleigh East','https://www.property.com.au/vic/bentleigh-east-3165/'],
-            ['Malvern','https://www.property.com.au/vic/malvern-3144/'],
-            ['Torquay','https://www.property.com.au/vic/torquay-3228/'],
-            ['Sorrento','https://www.property.com.au/vic/sorrento-3943/']
-          ]
-          props=[]
-          for name,url in property_pages:
-              try:
-                  text=unescape(re.sub(r'<[^>]+>',' ',get(url).decode('utf-8','ignore')))
-                  text=re.sub(r'\s+',' ',text)
-                  m=re.search(r'Median price trend for houses.*?\$([0-9,]+).*?Past 12 month growth:\s*([+-]?[0-9.]+)%',text,re.I)
-                  props.append({'name':name,'median':'$'+m.group(1),'growth':float(m.group(2))} if m else {'name':name,'median':None,'growth':None})
-              except Exception:
-                  props.append({'name':name,'median':None,'growth':None})
-          Path('property-data.json').write_text(json.dumps({'updated':__import__('datetime').datetime.utcnow().isoformat()+'Z','rows':props},separators=(',',':')),encoding='utf-8')
-
-          feeds={
-            'adviser':[
-              ['FAAA / advice','https://news.google.com/rss/search?q=FAAA+financial+advice+Australia&hl=en-AU&gl=AU&ceid=AU:en'],
-              ['ASIC / advice','https://news.google.com/rss/search?q=ASIC+financial+advice+Australia&hl=en-AU&gl=AU&ceid=AU:en'],
-              ['IFA / InvestorDaily','https://news.google.com/rss/search?q=IFA+InvestorDaily+financial+adviser+Australia&hl=en-AU&gl=AU&ceid=AU:en']],
-            'super':[
-              ['ASIC / super','https://news.google.com/rss/search?q=ASIC+superannuation+Australia&hl=en-AU&gl=AU&ceid=AU:en'],
-              ['APRA / super','https://news.google.com/rss/search?q=APRA+superannuation+Australia&hl=en-AU&gl=AU&ceid=AU:en'],
-              ['Treasury / retirement','https://news.google.com/rss/search?q=Australia+Treasury+superannuation+retirement&hl=en-AU&gl=AU&ceid=AU:en']],
-            'insurance':[
-              ['ASIC / insurance','https://news.google.com/rss/search?q=ASIC+insurance+Australia&hl=en-AU&gl=AU&ceid=AU:en'],
-              ['APRA / insurance','https://news.google.com/rss/search?q=APRA+insurance+Australia&hl=en-AU&gl=AU&ceid=AU:en'],
-              ['AFCA / claims','https://news.google.com/rss/search?q=AFCA+insurance+claims+Australia&hl=en-AU&gl=AU&ceid=AU:en']],
-            'macro':[
-              ['RBA','https://news.google.com/rss/search?q=RBA+Australia+interest+rates&hl=en-AU&gl=AU&ceid=AU:en'],
-              ['ABS','https://news.google.com/rss/search?q=ABS+Australia+CPI+employment+GDP+wages&hl=en-AU&gl=AU&ceid=AU:en'],
-              ['Treasury','https://news.google.com/rss/search?q=Australia+Treasury+economy+inflation&hl=en-AU&gl=AU&ceid=AU:en']],
-            'asx':[
-              ['ASX market','https://news.google.com/rss/search?q=ASX+Australia+earnings+guidance+dividend+capital+raising&hl=en-AU&gl=AU&ceid=AU:en'],
-              ['Banks','https://news.google.com/rss/search?q=CBA+NAB+ANZ+WBC+Australia+ASX&hl=en-AU&gl=AU&ceid=AU:en'],
-              ['Large caps','https://news.google.com/rss/search?q=BHP+RIO+CSL+XRO+FMG+WES+WOW+MQG+REA+TLS+ASX&hl=en-AU&gl=AU&ceid=AU:en']]
-          }
-          def parse_feed(url,src):
-              root=ET.fromstring(get(url))
-              out=[]
+          def rss(url, source, limit=10):
+              root = ET.fromstring(get(url))
+              out = []
               for item in root.findall('.//item'):
-                  title=(item.findtext('title') or '').strip(); link=(item.findtext('link') or '').strip(); date=(item.findtext('pubDate') or '').strip()
-                  if title and link: out.append({'title':title,'link':link,'date':date,'src':src})
-              return out[:8]
-          news={}
-          for group,items in feeds.items():
-              all=[]
-              for src,url in items:
-                  try: all += parse_feed(url,src)
-                  except Exception: pass
-              seen=set(); clean=[]
-              for x in all:
-                  k=re.sub(r'[^a-z0-9]+',' ',x['title'].lower()).strip()
-                  if k and k not in seen: seen.add(k); clean.append(x)
-              news[group]=clean[:10]
-          Path('news-data.json').write_text(json.dumps({'updated':__import__('datetime').datetime.utcnow().isoformat()+'Z','groups':news},ensure_ascii=False,separators=(',',':')),encoding='utf-8')
+                  title = (item.findtext('title') or '').strip()
+                  link = (item.findtext('link') or '').strip()
+                  rawdate = (item.findtext('pubDate') or '').strip()
+                  try: date = parsedate_to_datetime(rawdate).astimezone(timezone.utc).isoformat()
+                  except Exception: date = None
+                  if title and link:
+                      out.append({'title': title, 'link': link, 'date': date, 'src': source})
+              return out[:limit]
+
+          def google(q):
+              return 'https://news.google.com/rss/search?q=' + urllib.parse.quote(q) + '&hl=en-AU&gl=AU&ceid=AU:en'
+
+          import urllib.parse
+          feed_specs = {
+            'global': [
+              ('Global markets', google('(global markets OR Wall Street OR bond yields OR commodities)')),
+              ('IPO and AI', google('(Anthropic OR OpenAI OR AI company) (IPO OR listing OR funding OR valuation)')),
+              ('Central banks', google('(Federal Reserve OR RBA OR ECB OR Bank of Japan) (interest rate OR inflation OR policy)'))],
+            'adviser': [
+              ('FAAA / advice', google('Australia financial advice FAAA adviser regulation')),
+              ('ASIC / advice', google('ASIC financial advice Australia adviser')),
+              ('InvestorDaily', google('InvestorDaily financial adviser Australia wealth'))],
+            'super': [
+              ('ASIC / super', google('ASIC superannuation Australia retirement')),
+              ('APRA / super', google('APRA superannuation fund Australia')),
+              ('Treasury / retirement', google('Australia Treasury superannuation retirement tax'))],
+            'insurance': [
+              ('ASIC / insurance', google('ASIC insurance Australia life insurance claims')),
+              ('APRA / insurance', google('APRA insurance Australia life insurance')),
+              ('AFCA / claims', google('AFCA insurance claims Australia'))],
+            'macro': [
+              ('RBA', 'https://www.rba.gov.au/rss/rss-cb.xml'),
+              ('ABS', google('ABS Australia CPI inflation employment GDP wages')),
+              ('Treasury', google('Australia Treasury economy inflation budget'))],
+            'asx': [
+              ('ASX company news', google('ASX Australia company earnings results guidance profit warning dividend')),
+              ('Banks', google('CBA NAB ANZ Westpac Macquarie results Australia shares')),
+              ('Large caps', google('BHP Rio Tinto CSL Xero Wesfarmers Woolworths Goodman Group results ASX'))],
+            'broker': [
+              ('FNArena', 'https://www.fnarena.com/index.php/feed/')]
+          }
+
+          groups = {}
+          for group, specs in feed_specs.items():
+              items, seen = [], set()
+              for source, url in specs:
+                  try:
+                      for item in rss(url, source, 12):
+                          key = re.sub(r'[^a-z0-9]+', ' ', item['title'].lower()).strip()
+                          if key and key not in seen:
+                              seen.add(key); items.append(item)
+                  except Exception as e:
+                      print('Feed failed:', group, source, str(e)[:180])
+              items.sort(key=lambda x: x.get('date') or '', reverse=True)
+              groups[group] = items[:30]
+              print(group, 'items:', len(groups[group]))
+
+          def page_text(url):
+              raw = get(url).decode('utf-8', 'ignore')
+              txt = unescape(re.sub(r'<[^>]+>', ' ', raw))
+              return re.sub(r'\s+', ' ', txt), raw
+
+          suburbs = [
+            ('Bentleigh','https://www.property.com.au/vic/bentleigh-3204/'),
+            ('Bentleigh East','https://www.property.com.au/vic/bentleigh-east-3165/'),
+            ('Malvern','https://www.property.com.au/vic/malvern-3144/'),
+            ('Torquay','https://www.property.com.au/vic/torquay-3228/'),
+            ('Sorrento','https://www.property.com.au/vic/sorrento-3943/')
+          ]
+          property_rows = []
+          for name, url in suburbs:
+              row = {'name':name, 'median':None, 'growth':None, 'source':url}
+              try:
+                  txt, _ = page_text(url)
+                  m = re.search(r'Median price trend for houses.{0,500}?\$([0-9,]+).{0,300}?Past 12 month growth:\s*([+-]?[0-9.]+)%', txt, re.I)
+                  if m:
+                      row['median'] = '$' + m.group(1); row['growth'] = float(m.group(2))
+              except Exception as e: print('Property failed:', name, str(e)[:150])
+              property_rows.append(row)
+
+          deposits = []
+          td_url = 'https://www.canstar.com.au/term-deposits/compare/best-term-deposit-rates/'
+          try:
+              txt, _ = page_text(td_url)
+              for months in (3, 6, 12):
+                  patterns = [
+                    rf'Highest {months}-month term deposit rates.{{0,1200}}?(\d+\.\d{{2}})%',
+                    rf'{months}\s*month(?:s)? term deposit.{{0,250}}?(\d+\.\d{{2}})%'
+                  ]
+                  rate = None
+                  for pattern in patterns:
+                      m = re.search(pattern, txt, re.I)
+                      if m: rate = float(m.group(1)); break
+                  deposits.append({'term':f'{months} months','rate':rate,'provider':'Canstar comparison','source':td_url})
+          except Exception as e:
+              print('Term deposit source failed:', str(e)[:180])
+              deposits = [{'term':f'{m} months','rate':None,'provider':'Unavailable','source':td_url} for m in (3,6,12)]
+
+          rba = {'cash_rate':None,'effective_date':None,'source':'https://www.rba.gov.au/cash-rate-target-overview.html'}
+          try:
+              txt, _ = page_text(rba['source'])
+              m = re.search(r'Cash rate target\s+([0-9]+\.[0-9]+)\s*%', txt, re.I)
+              if m: rba['cash_rate'] = float(m.group(1))
+              d = re.search(r'Effective date\s+([0-9]{1,2}\s+[A-Za-z]+\s+20[0-9]{2})', txt, re.I)
+              if d: rba['effective_date'] = d.group(1)
+          except Exception as e: print('RBA failed:', str(e)[:180])
+
+          cpi = {'annual':None,'trimmed_mean':None,'period':None,'source':'https://www.abs.gov.au/statistics/economy/price-indexes-and-inflation/consumer-price-index-australia/latest-release'}
+          try:
+              txt, _ = page_text(cpi['source'])
+              m = re.search(r'CPI rose\s+([0-9]+\.[0-9]+)%', txt, re.I) or re.search(r'Annual change\s+([0-9]+\.[0-9]+)%', txt, re.I)
+              if m: cpi['annual'] = float(m.group(1))
+              m = re.search(r'Trimmed mean inflation (?:was|rose)\s+([0-9]+\.[0-9]+)%', txt, re.I)
+              if m: cpi['trimmed_mean'] = float(m.group(1))
+              m = re.search(r'In the 12 months to\s+([A-Za-z]+\s+20[0-9]{2})', txt, re.I)
+              if m: cpi['period'] = m.group(1)
+          except Exception as e: print('ABS CPI failed:', str(e)[:180])
+
+          data = {'updated':now.isoformat(),'groups':groups,'property':property_rows,'term_deposits':deposits,'rba':rba,'cpi':cpi}
+          Path('content-data.json').write_text(json.dumps(data, ensure_ascii=False, separators=(',',':')), encoding='utf-8')
+          print('Wrote content-data.json')
           PY
 
-      - name: Install local snapshot overlay
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          p=Path('index.html')
-          s=p.read_text(encoding='utf-8')
-          marker='<script id="local-snapshot-overlay">'
-          if marker in s:
-              a=s.index(marker); b=s.index('</script>',a)+len('</script>'); s=s[:a]+s[b:]
-          script=r'''<script id="local-snapshot-overlay">
-(function(){
-  const esc=x=>String(x??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-  const safe=x=>{try{const u=new URL(x);return ['http:','https:'].includes(u.protocol)?u.href:'#'}catch{return '#'}};
-  const impact=t=>{t=String(t||'').toLowerCase();if(/profit|earnings|guidance|downgrade|downgrad|cut|lawsuit|fine|fraud|collapse|warning|enforcement|breach|takeover|merger|trading halt|capital raising/.test(t))return ['High','high'];if(/rate|inflation|cpi|employment|wage|capital|dividend|acquisition|deal|policy|regulat|super|insurance|claims|asic|apra|treasury|rba/.test(t))return ['Medium','mid'];return ['Low','low']};
-  const ago=d=>{const n=new Date(d),m=Math.max(0,Math.round((Date.now()-n)/60000));if(!Number.isFinite(m))return '—';if(m<60)return m+'m';const h=Math.round(m/60);if(h<24)return h+'h';return Math.round(h/24)+'d'};
-  async function load(){
-    try{const p=await fetch('property-data.json?'+Date.now()).then(r=>r.json());const el=document.getElementById('property');if(el&&p.rows)el.innerHTML=p.rows.map(x=>`<tr><td>${esc(x.name)}</td><td>${x.median?esc(x.median):'—'}</td><td class="${Number(x.growth)>=0?'pos':'neg'}">${Number.isFinite(Number(x.growth))?(Number(x.growth)>=0?'+':'')+Number(x.growth).toFixed(1)+'%':'—'}</td></tr>`).join('');}
-    catch(e){}
-    try{const n=await fetch('news-data.json?'+Date.now()).then(r=>r.json());const g=n.groups||{};['adviser','super','insurance','macro'].forEach(id=>{const el=document.getElementById(id),items=g[id]||[];if(el)el.innerHTML=items.length?items.slice(0,8).map(x=>{const p=impact(x.title);return `<li><a href="${safe(x.link)}" target="_blank" rel="noopener"><span class="badge ${p[1]}">${p[0]}</span><span class="badge src">${esc(x.src)}</span><b>${esc(x.title)}</b><div class="small" style="margin-top:4px">${ago(x.date)} ago</div></a></li>`}).join(''):'<li class="small">No current headlines found.</li>'});const el=document.getElementById('asxNews'),items=g.asx||[];if(el)el.innerHTML=items.length?items.slice(0,10).map(x=>{const m=x.title.match(/\b(?:CBA|NAB|ANZ|WBC|BHP|RIO|CSL|XRO|FMG|WES|WOW|MQG|REA|TLS|ASX)\b/i),p=impact(x.title);return `<tr><td><b>${esc(m?m[0].toUpperCase():'ASX')}</b></td><td><a href="${safe(x.link)}" target="_blank" rel="noopener">${esc(x.title)}</a></td><td><span class="badge ${p[1]}">${p[0]}</span></td><td>${ago(x.date)} ago</td></tr>`}).join(''):'<tr><td colspan="4" class="small">No current ASX company headlines found.</td></tr>';
-    }catch(e){}
-  }
-  load();setInterval(load,10*60*1000);
-})();
-</script>'''
-          s=s.replace('</body>',script+'\n</body>')
-          p.write_text(s,encoding='utf-8')
-          PY
-
-      - name: Commit generated data and overlay
+      - name: Publish content snapshot
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add index.html property-data.json news-data.json
+          git add content-data.json
           git diff --cached --quiet && exit 0
-          git commit -m 'Add resilient property and news snapshots [skip ci]'
+          git commit -m 'Refresh adviser news and data snapshots [skip ci]'
           git push
