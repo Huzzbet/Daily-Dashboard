@@ -9,8 +9,8 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: adviser-content-snapshot
-  cancel-in-progress: true
+  group: adviser-snapshots
+  cancel-in-progress: false
 
 permissions:
   contents: write
