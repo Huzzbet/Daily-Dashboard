@@ -126,6 +126,8 @@ select{background:#0a0f16;color:#e6ebf0;border-color:#27313d;border-radius:3px}
 .market-overview{display:block}.market-takeaway-note{margin:5px 0 14px;color:#7f8b99;font-size:12px}.market-takeaways{list-style:none;margin:0;padding:0;display:grid;gap:9px}.market-takeaways li{position:relative;padding:10px 12px 10px 27px;background:#080d13;border:1px solid #1b2531;border-radius:3px;color:#dbe2e9;font-size:13px;line-height:1.45}.market-takeaways li:before{content:"";position:absolute;left:12px;top:17px;width:6px;height:6px;border-radius:50%;background:#ffb000}.market-takeaways li{padding-top:11px;padding-bottom:11px}.market-takeaway-category{display:block;color:#ffb000;font-size:9px;font-weight:850;letter-spacing:.13em;text-transform:uppercase;margin-bottom:5px}.market-takeaway-headline{font-weight:750;color:#f3f6f8;line-height:1.4}.market-takeaway-headline a{color:#f3f6f8;text-decoration:none}.market-takeaway-headline a:hover{color:#ffbf36}.market-takeaway-why{margin-top:4px;color:#9aa6b4;font-size:11px;line-height:1.45}.market-takeaway-source{margin-top:5px;color:#647181;font-size:9px}.market-takeaways strong{color:#ffbf36;font-weight:800}@media(max-width:650px){.market-takeaways li{font-size:12px;padding:9px 10px 9px 25px}}
 
 /* Adviser Daily Brief — responsive professional layout */
+.container>.topbar{display:flex}
+
 html{font-size:16px;-webkit-text-size-adjust:100%;text-size-adjust:100%}
 body{min-width:320px;overflow-x:hidden}
 .container{display:block;width:100%;max-width:1500px;margin:0 auto;padding:22px clamp(12px,2.2vw,30px) 56px}
@@ -322,7 +324,7 @@ async function refresh(){if(inFlight||paused)return;inFlight=true;$('refresh').d
     try{
       const r=await fetch('content-data.json?ts='+Date.now(),{cache:'no-store'});if(!r.ok)throw Error('content snapshot not published');const d=await r.json(),g=d.groups||{};
       let marketStamp=window.__marketDataUpdated;
-      if(!marketStamp){try{const mr=await fetch('market-data.json?ts='+Date.now(),{cache:'no-store'});if(mr.ok){const md=await mr.json();marketStamp=md.updated;window.__marketDataUpdated=marketStamp;}}catch{}}
+      if(!marketStamp||!window.__marketSnapshotMetrics){try{const mr=await fetch('market-data.json?ts='+Date.now(),{cache:'no-store'});if(mr.ok){const md=await mr.json();marketStamp=marketStamp||md.updated;window.__marketDataUpdated=marketStamp;window.__marketSnapshotMetrics=window.__marketSnapshotMetrics||md.markets||{};}}catch{}}
       const marketAge=marketStamp?Math.max(0,Date.now()-new Date(marketStamp).getTime()):null,contentAge=Math.max(0,Date.now()-new Date(d.updated).getTime());
       const ageLabel=ms=>{if(ms===null)return 'not available';const mins=Math.floor(ms/60000);return mins<60?mins+'m ago':Math.floor(mins/60)+'h '+(mins%60)+'m ago'};
       const timeLabel=stamp=>stamp?new Date(stamp).toLocaleTimeString('en-AU',{hour:'2-digit',minute:'2-digit'}):'—';
