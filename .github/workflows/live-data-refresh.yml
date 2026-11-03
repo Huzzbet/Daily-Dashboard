@@ -32,6 +32,7 @@ jobs:
 
           UA = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/126 Safari/537.36'
           now = datetime.now(timezone.utc)
+          cutoff = (now - __import__('datetime').timedelta(days=14)).strftime('%Y-%m-%d')
 
           def get(url, timeout=25):
               req = urllib.request.Request(url, headers={'User-Agent': UA})
@@ -52,7 +53,7 @@ jobs:
               return out[:limit]
 
           def google(q):
-              return 'https://news.google.com/rss/search?q=' + urllib.parse.quote(q) + '&hl=en-AU&gl=AU&ceid=AU:en'
+              return 'https://news.google.com/rss/search?q=' + urllib.parse.quote(q + ' after:' + cutoff) + '&hl=en-AU&gl=AU&ceid=AU:en'
 
           import urllib.parse
           feed_specs = {
@@ -148,10 +149,10 @@ jobs:
           try:
               txt, _ = page_text(td_url)
               for months in (3, 6, 12):
-                  pattern = rf'{months}\s*months?\s+([0-9]+\\.[0-9]{{2}})%\s+p\\.a\\.\s+from\s+([^.;]+)'
+                  pattern = rf'{months}\s*months?\s+([0-9]+\.[0-9]{{2}})%\s+p\.a\.\s+from\s+([^.;]+)'
                   m = re.search(pattern, txt, re.I)
                   if not m:
-                      pattern = rf'{months}\s*months?.{{0,160}}?([0-9]+\\.[0-9]{{2}})%\s+p\\.a\\.\s+from\s+([^.;]+)'
+                      pattern = rf'{months}\s*months?.{{0,160}}?([0-9]+\.[0-9]{{2}})%\s+p\.a\.\s+from\s+([^.;]+)'
                       m = re.search(pattern, txt, re.I)
                   fallbacks = {
                       3: (5.25, 'BNK / Goldfields Money / RACQ Bank'),
