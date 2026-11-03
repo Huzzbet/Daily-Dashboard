@@ -8,6 +8,10 @@ on:
     - cron: '17 * * * *'
   workflow_dispatch:
 
+concurrency:
+  group: adviser-content-snapshot
+  cancel-in-progress: true
+
 permissions:
   contents: write
 
@@ -192,4 +196,5 @@ jobs:
           git add content-data.json
           git diff --cached --quiet && exit 0
           git commit -m 'Refresh adviser news and data snapshots [skip ci]'
+          git pull --rebase origin main
           git push
