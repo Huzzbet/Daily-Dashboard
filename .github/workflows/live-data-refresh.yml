@@ -154,11 +154,11 @@ jobs:
                       pattern = rf'{months}\\s*months?.{{0,160}}?([0-9]+\\.[0-9]{{2}})%\\s+p\\.a\\.\\s+from\\s+([^.;]+)'
                       m = re.search(pattern, txt, re.I)
                   fallbacks = {
-                  3: (5.25, 'BNK / Goldfields Money / RACQ Bank'),
-                  6: (5.45, 'Australian Military Bank / Gateway Bank / Heartland Bank'),
-                  12: (5.60, 'Community First Bank / Bank Australia / Qudos Bank')
-              }
-              deposits.append({'term':f'{months} months','rate':float(m.group(1)) if m else fallbacks[months][0],'provider':m.group(2).strip() if m else fallbacks[months][1],'source':td_url,'fallback':not bool(m)})
+                      3: (5.25, 'BNK / Goldfields Money / RACQ Bank'),
+                      6: (5.45, 'Australian Military Bank / Gateway Bank / Heartland Bank'),
+                      12: (5.60, 'Community First Bank / Bank Australia / Qudos Bank')
+                  }
+                  deposits.append({'term':f'{months} months','rate':float(m.group(1)) if m else fallbacks[months][0],'provider':m.group(2).strip() if m else fallbacks[months][1],'source':td_url,'fallback':not bool(m)})
           except Exception as e:
               print('Term deposit source failed:', str(e)[:180])
               deposits = [{'term':f'{m} months','rate':None,'provider':'Unavailable','source':td_url} for m in (3,6,12)]
