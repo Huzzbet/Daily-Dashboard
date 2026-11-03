@@ -90,8 +90,8 @@ jobs:
                   try:
                       dt = datetime.strptime(row[0].strip(),'%d-%b-%Y').replace(tzinfo=timezone.utc)
                       vals = [float(x.replace(',','')) for x in row[1:] if x.strip()]
-                      if vals:
-                          series.append((int(dt.timestamp()),vals[0]))
+                      if len(vals) >= 4:
+                          series.append((int(dt.timestamp()),vals[3]))
                   except Exception:
                       continue
               if series:
