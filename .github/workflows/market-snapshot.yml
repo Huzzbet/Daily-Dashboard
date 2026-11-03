@@ -6,7 +6,11 @@ on:
       - '.github/workflows/market-snapshot.yml'
   workflow_dispatch:
   schedule:
-    - cron: '27 * * * *'
+    - cron: '7,27,47 * * * *'
+
+concurrency:
+  group: adviser-market-snapshot
+  cancel-in-progress: true
 
 permissions:
   contents: write
@@ -20,7 +24,7 @@ jobs:
       - name: Fetch market prices and build snapshot
         run: |
           python3 - <<'PY'
-          import json, time, urllib.request, urllib.parse
+          import json, time, csv, re, urllib.request, urllib.parse
           from datetime import datetime, timezone
           from pathlib import Path
 
@@ -59,10 +63,10 @@ jobs:
                   # Compare with the prior available daily close. Yahoo's chartPreviousClose
                   # can refer to the start of the requested history window, not yesterday.
                   day = ret(last,points[-2][1]) if len(points)>1 else None
-                  y2026 = next((v for ts,v in points if datetime.fromtimestamp(ts,timezone.utc).year == 2026), None)
+                  prior_2025 = [v for ts,v in points if datetime.fromtimestamp(ts,timezone.utc).year < 2025]
                   y2025 = [v for ts,v in points if datetime.fromtimestamp(ts,timezone.utc).year == 2025]
-                  y2025_return = ret(y2025[-1],y2025[0]) if len(y2025)>1 else None
-                  ytd = ret(last,y2026) if y2026 else None
+                  y2025_return = ret(y2025[-1],prior_2025[-1]) if y2025 and prior_2025 else None
+                  ytd = ret(last,y2025[-1]) if y2025 else None
                   output['markets'][symbol] = {'cur':last,'ch':day,'ytd':ytd,'cy':y2025_return,'timestamp':last_ts}
                   if symbol in ('^AXFJ','^AXIJ','^AXPJ','^AXHJ','^AXEJ','^AXNJ'):
                       def since(days):
@@ -72,6 +76,44 @@ jobs:
                       output['sectors'][symbol]={'day':day,'oneM':since(30),'oneY':since(365),'fiveY':since(1825)}
               except Exception as e:
                   output['markets'][symbol] = {'error':str(e)}
+          # RBA F2 is the official weekly source for Australian Government bond yields.
+          try:
+              raw = urllib.request.urlopen(urllib.request.Request('https://www.rba.gov.au/statistics/tables/csv/f2-data.csv',headers=headers),timeout=25).read().decode('utf-8-sig')
+              rows = list(csv.reader(raw.splitlines()))
+              series = []
+              for row in rows:
+                  if not row or not re.match(r'^\d{1,2}-[A-Za-z]{3}-\d{4}
+          print('Wrote market-data.json; successful symbols:',sum('cur' in x for x in output['markets'].values()))
+          PY
+
+      - name: Commit market snapshot
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add market-data.json
+          git diff --cached --quiet && exit 0
+          git commit -m 'Refresh market data snapshot [skip ci]'
+          git pull --rebase origin main
+          git push
+,row[0].strip()):
+                      continue
+                  try:
+                      dt=datetime.strptime(row[0].strip(),'%d-%b-%Y').replace(tzinfo=timezone.utc)
+                      vals=[float(x.replace(',','')) for x in row[1:] if x.strip()]
+                      if vals: series.append((int(dt.timestamp()),vals[0]))
+                  except Exception:
+                      pass
+              if series:
+                  ts,val=series[-1]
+                  prev=series[-2][1] if len(series)>1 else None
+                  prior_2025=[v for t,v in series if datetime.fromtimestamp(t,timezone.utc).year<2025]
+                  y2025=[v for t,v in series if datetime.fromtimestamp(t,timezone.utc).year==2025]
+                  output['markets']['^AXJCGB10Y']={'cur':val,'ch':ret(val,prev),'ytd':ret(val,y2025[-1]) if y2025 else None,'cy':ret(y2025[-1],prior_2025[-1]) if y2025 and prior_2025 else None,'timestamp':ts,'source':'RBA F2','asof':datetime.fromtimestamp(ts,timezone.utc).strftime('%d %b %Y')}
+              else:
+                  output['markets']['^AXJCGB10Y']={'error':'No dated observations found in RBA F2 CSV'}
+          except Exception as e:
+              output['markets']['^AXJCGB10Y']={'error':'RBA F2: '+str(e)}
+          
           Path('market-data.json').write_text(json.dumps(output,separators=(',',':')),encoding='utf-8')
           print('Wrote market-data.json; successful symbols:',sum('cur' in x for x in output['markets'].values()))
           PY
