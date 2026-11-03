@@ -201,6 +201,7 @@ body{min-width:320px;overflow-x:hidden}
  .tile{min-height:130px}
 }
 
+.container>.topbar{display:flex!important;flex-wrap:wrap}
 </style></head><body><div class="container">
 <header class="topbar"><div><div style="font-size:10px;font-weight:850;letter-spacing:.16em;text-transform:uppercase;color:#175cd3;margin-bottom:7px">PRIVATE WEALTH · MARKET INTELLIGENCE</div><h1>Adviser Daily Brief</h1><div class="sub">Australia · Melbourne · Internal Use Only</div><div class="small mono" id="updated">Last updated: —</div><div class="pills"><span class="pill">🧾 Clients · Super · Compliance</span><span class="pill">🏠 Melbourne · Housing · Deposits</span><span class="pill">⚠️ Signal-only · Verify before advice</span></div></div><div><div class="toolbar"><button class="btn" id="copy">📋 Copy briefing</button><button class="btn" id="download">⬇️ Download</button><button class="btn primary" id="refresh">🔄 Refresh</button></div><div class="settings" style="margin-top:9px"><label><input id="auto" type="checkbox" checked> Auto-refresh</label><label>Every <select id="mins"><option>5</option><option selected>10</option><option>15</option><option>30</option><option>60</option></select>m</label><button class="btn" id="pause">⏸ Pause live</button></div><div class="health" style="margin-top:9px"><span class="dot" id="healthDot"></span><span id="health">Feeds: checking…</span></div></div></header>
 <section class="ticker-strip" aria-label="Live market ticker">
