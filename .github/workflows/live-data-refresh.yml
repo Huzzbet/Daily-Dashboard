@@ -101,40 +101,47 @@ jobs:
               return re.sub(r'\s+', ' ', txt), raw
 
           suburbs = [
-            ('Bentleigh','https://www.property.com.au/vic/bentleigh-3204/'),
-            ('Bentleigh East','https://www.property.com.au/vic/bentleigh-east-3165/'),
-            ('Malvern','https://www.property.com.au/vic/malvern-3144/'),
-            ('Torquay','https://www.property.com.au/vic/torquay-3228/'),
-            ('Sorrento','https://www.property.com.au/vic/sorrento-3943/')
+            ('Bentleigh','https://www.realestate.com.au/vic/bentleigh-3204/'),
+            ('Bentleigh East','https://www.realestate.com.au/vic/bentleigh-east-3165/'),
+            ('Malvern','https://www.realestate.com.au/vic/malvern-3144/'),
+            ('Torquay','https://www.realestate.com.au/vic/torquay-3228/'),
+            ('Sorrento','https://www.realestate.com.au/vic/sorrento-3943/')
           ]
           property_rows = []
           for name, url in suburbs:
-              row = {'name':name, 'median':None, 'growth':None, 'source':url}
+              row = {'name':name, 'median':None, 'growth':None, 'period':None, 'source':url}
               try:
                   txt, _ = page_text(url)
-                  m = re.search(r'Median price trend for houses.{0,500}?\$([0-9,]+).{0,300}?Past 12 month growth:\s*([+-]?[0-9.]+)%', txt, re.I)
-                  if m:
-                      row['median'] = '$' + m.group(1); row['growth'] = float(m.group(2))
+                  patterns = [
+                    r'Median price snapshot for houses.{0,500}?Median price\\s+\\$([0-9,]+).{0,300}?Past 12 month growth\\s+(?:Up|Down)?\\s*([+-]?[0-9.]+)%',
+                    r'Median price trend for houses.{0,500}?\\$([0-9,]+).{0,300}?Past 12 month growth:?\\s*([+-]?[0-9.]+)%'
+                  ]
+                  for pattern in patterns:
+                      m = re.search(pattern, txt, re.I)
+                      if m:
+                          row['median'] = '$' + m.group(1)
+                          row['growth'] = float(m.group(2))
+                          break
+                  p = re.search(r'(November|October|September|August|July|June|May|April|March|February|January)\\s+20[0-9]{2}\\s+-\\s+(?:October|September|August|July|June|May|April|March|February|January)\\s+20[0-9]{2}', txt, re.I)
+                  if p: row['period'] = p.group(0)
               except Exception as e: print('Property failed:', name, str(e)[:150])
               property_rows.append(row)
 
           deposits = []
-          td_url = 'https://www.canstar.com.au/term-deposits/compare/best-term-deposit-rates/'
+          td_url = 'https://www.money.com.au/banking/term-deposit-rates'
           try:
               txt, _ = page_text(td_url)
               for months in (3, 6, 12):
-                  patterns = [
-                    rf'Highest {months}-month term deposit rates.{{0,1200}}?(\d+\.\d{{2}})%',
-                    rf'{months}\s*month(?:s)? term deposit.{{0,250}}?(\d+\.\d{{2}})%'
-                  ]
-                  rate = None
-                  for pattern in patterns:
+                  pattern = rf'{months}\\s*months?\\s+([0-9]+\\.[0-9]{{2}})%\\s+p\\.a\\.\\s+from\\s+([^.;]+)'
+                  m = re.search(pattern, txt, re.I)
+                  if not m:
+                      pattern = rf'{months}\\s*months?.{{0,160}}?([0-9]+\\.[0-9]{{2}})%\\s+p\\.a\\.\\s+from\\s+([^.;]+)'
                       m = re.search(pattern, txt, re.I)
-                      if m: rate = float(m.group(1)); break
-                  deposits.append({'term':f'{months} months','rate':rate,'provider':'Canstar comparison','source':td_url})
+                  deposits.append({'term':f'{months} months','rate':float(m.group(1)) if m else None,'provider':m.group(2).strip() if m else 'Not available','source':td_url})
           except Exception as e:
               print('Term deposit source failed:', str(e)[:180])
               deposits = [{'term':f'{m} months','rate':None,'provider':'Unavailable','source':td_url} for m in (3,6,12)]
+
 
           rba = {'cash_rate':None,'effective_date':None,'source':'https://www.rba.gov.au/cash-rate-target-overview.html'}
           try:
