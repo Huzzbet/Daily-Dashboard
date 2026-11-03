@@ -56,9 +56,9 @@ jobs:
                   points, meta = fetch(symbol, start_2021 if symbol.startswith('^AX') and symbol not in ('^AXJO','^AXJCGB10Y') else start_2024)
                   if not points: raise ValueError('No usable prices')
                   last_ts, last = points[-1]
-                  prev = meta.get('chartPreviousClose') or meta.get('previousClose')
-                  if symbol in ('^TNX','^AXJCGB10Y') and prev: prev=float(prev)
-                  day = ret(last,float(prev)) if prev else (ret(last,points[-2][1]) if len(points)>1 else None)
+                  # Compare with the prior available daily close. Yahoo's chartPreviousClose
+                  # can refer to the start of the requested history window, not yesterday.
+                  day = ret(last,points[-2][1]) if len(points)>1 else None
                   y2026 = next((v for ts,v in points if datetime.fromtimestamp(ts,timezone.utc).year == 2026), None)
                   y2025 = [v for ts,v in points if datetime.fromtimestamp(ts,timezone.utc).year == 2025]
                   y2025_return = ret(y2025[-1],y2025[0]) if len(y2025)>1 else None
