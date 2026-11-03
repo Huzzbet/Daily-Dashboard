@@ -122,5 +122,10 @@ jobs:
           git add market-data.json
           git diff --cached --quiet && exit 0
           git commit -m 'Refresh market data snapshot [skip ci]'
-          git pull --rebase origin main
-          git push
+          for attempt in 1 2 3; do
+            git pull --rebase origin main
+            if git push; then exit 0; fi
+            sleep 3
+          done
+          echo 'Snapshot push failed after three attempts' >&2
+          exit 1
