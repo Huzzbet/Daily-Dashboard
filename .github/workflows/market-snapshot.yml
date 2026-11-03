@@ -9,8 +9,8 @@ on:
     - cron: '7,27,47 * * * *'
 
 concurrency:
-  group: adviser-market-snapshot
-  cancel-in-progress: true
+  group: adviser-snapshots
+  cancel-in-progress: false
 
 permissions:
   contents: write
