@@ -210,4 +210,43 @@ async function refresh(){if(inFlight||paused)return;inFlight=true;$('refresh').d
   }catch(e){if($('health'))$('health').textContent='Feeds: waiting for GitHub market snapshot';}
 })();
 </script>
+
+<script id="content-snapshot-loader">
+(function(){
+  const $=id=>document.getElementById(id);
+  const esc=x=>String(x??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  const safe=x=>{try{const u=new URL(String(x||''));return ['https:','http:'].includes(u.protocol)?u.href:'#'}catch{return '#'}};
+  const ago=d=>{if(!d)return 'date n/a';const ms=Date.now()-new Date(d).getTime();if(!Number.isFinite(ms))return 'date n/a';const h=Math.max(0,Math.floor(ms/3600000));return h<1?Math.max(1,Math.floor(ms/60000))+'m ago':h<24?h+'h ago':Math.floor(h/24)+'d ago'};
+  const impact=t=>/profit warning|downgrade|fraud|fine|lawsuit|trading halt|loss|miss|cut guidance/i.test(t)?'high':/results|earnings|guidance|rate|inflation|cpi|acquisition|takeover|merger|dividend|capital raising/i.test(t)?'mid':'low';
+  const label=t=>impact(t)==='high'?'High':impact(t)==='mid'?'Medium':'Watch';
+  const link=x=>'<a href="'+safe(x.link)+'" target="_blank" rel="noopener">'+esc(x.title)+'</a>';
+  const list=(id,items)=>{const el=$(id);if(!el)return;el.innerHTML=items?.length?items.slice(0,8).map(x=>'<li><a href="'+safe(x.link)+'" target="_blank" rel="noopener"><span class="badge '+impact(x.title)+'">'+label(x.title)+'</span><span class="badge src">'+esc(x.src||'News')+'</span><b>'+esc(x.title)+'</b><div class="small" style="margin-top:4px">'+ago(x.date)+'</div></a></li>').join(''):'<li class="small">No recent headlines returned by the source.</li>'};
+  const why=c=>({'IPO & AI':'Could influence private-market valuations, listed technology peers and the pace of AI investment.','Rates & central banks':'Rate expectations feed into bond yields, borrowing costs, currency markets and asset valuations.','Company results':'Earnings and management guidance can reset expectations for revenue, margins and dividends.','M&A':'Transaction terms and strategic rationale can affect the companies involved and their sector peers.','Economic data':'The release may shift expectations for inflation, growth and future interest-rate decisions.','Policy & regulation':'Potential implications for affected industries, business costs and advice obligations.','Commodities':'Price changes can alter producer earnings, input costs and inflation expectations.','Markets':'A potentially market-moving development to monitor for its impact on portfolios.'})[c];
+  function renderTop(groups){
+    const all=[...(groups.global||[]),...(groups.macro||[]),...(groups.asx||[]),...(groups.broker||[])].filter(x=>x.title);
+    const now=Date.now(), fresh=all.filter(x=>!x.date||now-new Date(x.date).getTime()<14*86400000);
+    const classify=t=>/anthropic|openai|ipo|initial public offering|artificial intelligence|ai company/i.test(t)?'IPO & AI':/cash rate|interest rate|rate cut|rate hike|central bank|federal reserve|rba|bond yield/i.test(t)?'Rates & central banks':/results|earnings|profit warning|trading update|revenue|guidance|dividend/i.test(t)?'Company results':/acquisition|takeover|merger|buyout/i.test(t)?'M&A':/cpi|inflation|employment|gdp|wages|economic growth|unemployment/i.test(t)?'Economic data':/asic|apra|treasury|legislation|superannuation|tax|regulation/i.test(t)?'Policy & regulation':/oil|gold|copper|iron ore|commodity|energy prices/i.test(t)?'Commodities':'Markets';
+    const score=x=>{const t=x.title.toLowerCase(),age=x.date?Math.max(0,(now-new Date(x.date).getTime())/3600000):240;let s=0;if(/ipo|rate decision|rate cut|rate hike|financial results|profit warning|earnings|acquisition|takeover|merger/.test(t))s+=9;if(/guidance|trading update|inflation|cpi|federal reserve|rba|anthropic|openai|dividend/.test(t))s+=6;if(/asx|nasdaq|s&p|company|shares|market/.test(t))s+=2;return s+Math.max(0,5-age/36)};
+    const sorted=fresh.map(x=>({...x,category:classify(x.title)})).sort((a,b)=>score(b)-score(a));
+    const picked=[],seen=new Set();for(const x of sorted){if(!seen.has(x.category)){picked.push(x);seen.add(x.category)}if(picked.length===3)break;}
+    const el=$('marketTakeaways');if(!el)return;
+    el.innerHTML=picked.length?picked.map(x=>'<li><span class="market-takeaway-category">'+esc(x.category)+'</span><div class="market-takeaway-headline">'+link(x)+'</div><div class="market-takeaway-why">'+esc(why(x.category))+'</div><div class="market-takeaway-source">'+esc(x.src||'Market news')+' · '+ago(x.date)+'</div></li>').join(''):'<li>No significant recent headlines returned. Check the news panels below.</li>';
+  }
+  async function load(){
+    try{
+      const r=await fetch('content-data.json?ts='+Date.now(),{cache:'no-store'});if(!r.ok)throw Error('content snapshot not published');const d=await r.json(),g=d.groups||{};
+      list('adviser',g.adviser);list('super',g.super);list('insurance',g.insurance);list('macro',g.macro);
+      const asx=$('asxNews');if(asx){const items=g.asx||[];asx.innerHTML=items.length?items.slice(0,10).map(x=>{const m=x.title.match(/\b(?:CBA|NAB|ANZ|WBC|BHP|RIO|CSL|XRO|FMG|WES|WOW|MQG|REA|TLS|ASX)\b/i);return '<tr><td><b>'+esc(m?m[0].toUpperCase():'ASX')+'</b></td><td>'+link(x)+'</td><td><span class="badge '+impact(x.title)+'">'+label(x.title)+'</span></td><td>'+ago(x.date)+'</td></tr>'}).join(''):'<tr><td colspan="4" class="small">No recent ASX headlines returned.</td></tr>'}
+      const broker=$('broker');if(broker){const items=g.broker||[];broker.innerHTML=items.length?items.slice(0,10).map(x=>'<tr><td>Broker research</td><td>'+link(x)+'</td><td><span class="badge '+impact(x.title)+'">'+label(x.title)+'</span></td><td>'+ago(x.date)+'</td></tr>').join(''):'<tr><td colspan="4" class="small">No recent broker headlines returned. Check FNArena directly before advice.</td></tr>'}
+      if(typeof latestMarketHeadlines!=='undefined')latestMarketHeadlines=[...(g.global||[]),...(g.macro||[]),...(g.asx||[]),...(g.broker||[])];
+      renderTop(g);
+      const prop=$('property');if(prop){const rows=d.property||[];prop.innerHTML=rows.map(x=>'<tr><td>'+esc(x.name)+'</td><td>'+(x.median?esc(x.median):'—')+'</td><td class="'+(Number(x.growth)>=0?'pos':'neg')+'">'+(Number.isFinite(x.growth)?(x.growth>=0?'+':'')+x.growth.toFixed(1)+'%':'—')+'</td></tr>').join('')||'<tr><td colspan="3">No property data returned.</td></tr>'}
+      const td=$('td');if(td){const rows=d.term_deposits||[];td.innerHTML=rows.map(x=>'<tr><td>'+esc(x.term)+'</td><td>'+(Number.isFinite(x.rate)?x.rate.toFixed(2)+'%':'—')+'</td><td>'+esc(x.provider||'Canstar')+'</td></tr>').join('')+'<tr><td colspan="3" class="small">Indicative comparison snapshot. Verify rates, eligibility and terms with the provider before advice.</td></tr>'}
+      const rba=$('rba');if(rba){const a=d.rba||{},c=d.cpi||{};rba.innerHTML='<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px"><div class="kpi"><div class="label">Cash rate target</div><div class="value">'+(Number.isFinite(a.cash_rate)?a.cash_rate.toFixed(2)+'%':'—')+'</div><div class="delta">Effective '+esc(a.effective_date||'date unavailable')+'</div></div><div class="kpi"><div class="label">CPI inflation</div><div class="value">'+(Number.isFinite(c.annual)?c.annual.toFixed(1)+'%':'—')+'</div><div class="delta">'+esc(c.period||'Latest ABS release')+(Number.isFinite(c.trimmed_mean)?' · Trimmed mean '+c.trimmed_mean.toFixed(1)+'%':'')+'</div></div></div><div class="source">Official RBA / ABS sources. Snapshot '+ago(d.updated)+'. Verify latest release before client use.</div>'}
+      const dot=$('healthDot'),health=$('health');if(dot&&health){dot.className='dot ok';health.textContent='Feeds: market and content snapshots loaded · '+ago(d.updated)}
+    }catch(e){console.warn('Content snapshot unavailable:',e);const h=$('health');if(h)h.textContent='Feeds: market snapshot loaded · content snapshot pending'}
+  }
+  load();setInterval(load,10*60*1000);
+})();
+</script>
 </body></html>
