@@ -21,220 +21,156 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build news, macro, property and deposit snapshots
+      - name: Build news and economic data snapshot
         run: |
           python3 - <<'PY'
-          import json, re, urllib.request, xml.etree.ElementTree as ET
+          import json, re, urllib.request, urllib.parse, xml.etree.ElementTree as ET
           from pathlib import Path
-          from datetime import datetime, timezone
+          from datetime import datetime, timezone, timedelta
           from email.utils import parsedate_to_datetime
           from html import unescape
 
+          old = {}
+          try:
+              old = json.loads(Path('content-data.json').read_text(encoding='utf-8'))
+          except Exception:
+              pass
+
           UA = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/126 Safari/537.36'
           now = datetime.now(timezone.utc)
-          cutoff = (now - __import__('datetime').timedelta(days=14)).strftime('%Y-%m-%d')
+          cutoff = (now - timedelta(days=14)).strftime('%Y-%m-%d')
 
           def get(url, timeout=25):
               req = urllib.request.Request(url, headers={'User-Agent': UA})
-              with urllib.request.urlopen(req, timeout=timeout) as r:
-                  return r.read()
+              with urllib.request.urlopen(req, timeout=timeout) as response:
+                  return response.read()
 
-          def rss(url, source, limit=10):
+          def rss(url, source, limit=12):
               root = ET.fromstring(get(url))
-              out = []
+              items = []
               for item in root.findall('.//item'):
                   title = (item.findtext('title') or '').strip()
                   link = (item.findtext('link') or '').strip()
                   rawdate = (item.findtext('pubDate') or '').strip()
-                  try: date = parsedate_to_datetime(rawdate).astimezone(timezone.utc).isoformat()
-                  except Exception: date = None
+                  try:
+                      date = parsedate_to_datetime(rawdate).astimezone(timezone.utc).isoformat()
+                  except Exception:
+                      date = None
                   if title and link:
-                      out.append({'title': title, 'link': link, 'date': date, 'src': source})
-              return out[:limit]
+                      items.append({'title':title, 'link':link, 'date':date, 'src':source})
+              return items[:limit]
 
-          def google(q):
-              return 'https://news.google.com/rss/search?q=' + urllib.parse.quote(q + ' after:' + cutoff) + '&hl=en-AU&gl=AU&ceid=AU:en'
+          def google(query):
+              q = urllib.parse.quote(query + ' after:' + cutoff)
+              return 'https://news.google.com/rss/search?q=' + q + '&hl=en-AU&gl=AU&ceid=AU:en'
 
-          import urllib.parse
-          feed_specs = {
-            'global': [
-              ('Global markets', google('(global markets OR Wall Street OR bond yields OR commodities)')),
-              ('IPO and AI', google('(Anthropic OR OpenAI OR AI company) (IPO OR listing OR funding OR valuation)')),
-              ('Central banks', google('(Federal Reserve OR RBA OR ECB OR Bank of Japan) (interest rate OR inflation OR policy)'))],
-            'adviser': [
-              ('FAAA / advice', google('Australia financial advice FAAA adviser regulation')),
-              ('ASIC / advice', google('ASIC financial advice Australia adviser')),
-              ('InvestorDaily', google('InvestorDaily financial adviser Australia wealth'))],
-            'super': [
-              ('ASIC / super', google('ASIC superannuation Australia retirement')),
-              ('APRA / super', google('APRA superannuation fund Australia')),
-              ('Treasury / retirement', google('Australia Treasury superannuation retirement tax'))],
-            'insurance': [
-              ('ASIC / insurance', google('ASIC insurance Australia life insurance claims')),
-              ('APRA / insurance', google('APRA insurance Australia life insurance')),
-              ('AFCA / claims', google('AFCA insurance claims Australia'))],
-            'macro': [
-              ('RBA', 'https://www.rba.gov.au/rss/rss-cb.xml'),
-              ('ABS', google('ABS Australia CPI inflation employment GDP wages')),
-              ('Treasury', google('Australia Treasury economy inflation budget'))],
-            'asx': [
-              ('ASX company news', google('ASX Australia company earnings results guidance profit warning dividend')),
-              ('Banks', google('CBA NAB ANZ Westpac Macquarie results Australia shares')),
-              ('Large caps', google('BHP Rio Tinto CSL Xero Wesfarmers Woolworths Goodman Group results ASX'))],
-            'broker': [
-              ('FNArena', 'https://www.fnarena.com/index.php/feed/')]
+          feeds = {
+            'global': [('Global markets',google('(global markets OR Wall Street OR bond yields OR commodities)')),
+                       ('IPO and AI',google('(Anthropic OR OpenAI OR AI company) (IPO OR listing OR funding OR valuation)')),
+                       ('Central banks',google('(Federal Reserve OR RBA OR ECB OR Bank of Japan) (interest rate OR inflation OR policy)'))],
+            'adviser': [('Australian advice',google('Australia financial advice FAAA adviser regulation')),
+                        ('ASIC advice',google('ASIC financial advice Australia adviser')),
+                        ('Wealth news',google('Australian financial adviser wealth management news'))],
+            'super': [('ASIC super',google('ASIC superannuation Australia retirement')),
+                      ('APRA super',google('APRA superannuation fund Australia')),
+                      ('Treasury retirement',google('Australia Treasury superannuation retirement tax'))],
+            'insurance': [('ASIC insurance',google('ASIC insurance Australia life insurance claims')),
+                          ('APRA insurance',google('APRA insurance Australia life insurance')),
+                          ('AFCA claims',google('AFCA insurance claims Australia'))],
+            'macro': [('RBA','https://www.rba.gov.au/rss/rss-cb.xml'),
+                      ('ABS',google('ABS Australia CPI inflation employment GDP wages')),
+                      ('Treasury',google('Australia Treasury economy inflation budget'))],
+            'asx': [('ASX company news',google('ASX Australia company earnings results guidance profit warning dividend')),
+                    ('Banks',google('CBA NAB ANZ Westpac Macquarie results Australia shares')),
+                    ('Large caps',google('BHP Rio Tinto CSL Xero Wesfarmers Woolworths Goodman Group results ASX'))],
+            'broker': [('FNArena','https://www.fnarena.com/index.php/feed/')]
           }
 
           groups = {}
-          for group, specs in feed_specs.items():
-              items, seen = [], set()
+          for group, specs in feeds.items():
+              collected, seen = [], set()
               for source, url in specs:
                   try:
-                      for item in rss(url, source, 12):
-                          key = re.sub(r'[^a-z0-9]+', ' ', item['title'].lower()).strip()
+                      for item in rss(url, source):
+                          key = re.sub(r'[^a-z0-9]+',' ',item['title'].lower()).strip()
                           if key and key not in seen:
-                              seen.add(key); items.append(item)
-                  except Exception as e:
-                      print('Feed failed:', group, source, str(e)[:180])
-              items.sort(key=lambda x: x.get('date') or '', reverse=True)
-              groups[group] = items[:30]
-              print(group, 'items:', len(groups[group]))
+                              seen.add(key)
+                              collected.append(item)
+                  except Exception as exc:
+                      print('Feed failed:',group,source,str(exc)[:160])
+              collected.sort(key=lambda x:x.get('date') or '',reverse=True)
+              groups[group] = collected[:30]
+              if not groups[group] and old.get('groups',{}).get(group):
+                  groups[group] = old['groups'][group]
+                  print('Retained previous headlines for',group)
+              print(group,'items:',len(groups[group]))
 
           def page_text(url):
-              raw = get(url).decode('utf-8', 'ignore')
-              txt = unescape(re.sub(r'<[^>]+>', ' ', raw))
-              return re.sub(r'\s+', ' ', txt), raw
+              raw = get(url).decode('utf-8','ignore')
+              text = unescape(re.sub(r'<[^>]+>',' ',raw))
+              return re.sub(r'\s+',' ',text)
 
-          suburbs = [
-            ('Bentleigh','https://www.realestate.com.au/vic/bentleigh-3204/'),
-            ('Bentleigh East','https://www.realestate.com.au/vic/bentleigh-east-3165/'),
-            ('Malvern','https://www.realestate.com.au/vic/malvern-3144/'),
-            ('Torquay','https://www.realestate.com.au/vic/torquay-3228/'),
-            ('Sorrento','https://www.realestate.com.au/vic/sorrento-3943/')
-          ]
-          property_rows = []
-          for name, url in suburbs:
-              row = {'name':name, 'median':None, 'growth':None, 'period':None, 'source':url}
-              try:
-                  txt, _ = page_text(url)
-                  patterns = [
-                    r'Median price snapshot for houses.{0,500}?Median price\s+\$([0-9,]+).{0,300}?Past 12 month growth\s+(?:Up|Down)?\s*([+-]?[0-9.]+)%',
-                    r'Median price trend for houses.{0,500}?\$([0-9,]+).{0,300}?Past 12 month growth:?\s*([+-]?[0-9.]+)%'
-                  ]
-                  for pattern in patterns:
-                      m = re.search(pattern, txt, re.I)
-                      if m:
-                          row['median'] = '$' + m.group(1)
-                          row['growth'] = float(m.group(2))
-                          break
-                  p = re.search(r'(November|October|September|August|July|June|May|April|March|February|January)\s+20[0-9]{2}\s+-\s+(?:October|September|August|July|June|May|April|March|February|January)\s+20[0-9]{2}', txt, re.I)
-                  if p: row['period'] = p.group(0)
-              except Exception as e: print('Property failed:', name, str(e)[:150])
-              if row['median'] is None:
-                  fallback = {
-                    'Bentleigh': ('$1,647,500', -3.7, 'November 2025 - October 2026'),
-                    'Bentleigh East': ('$1,435,000', -7.3, 'November 2025 - October 2026'),
-                    'Malvern': ('$2,591,500', -8.7, 'November 2025 - October 2026'),
-                    'Torquay': ('$1,178,500', -1.0, 'November 2025 - October 2026'),
-                    'Sorrento': ('$1,850,000', 6.5, 'November 2025 - October 2026')
-                  }
-                  if name in fallback:
-                      row['median'], row['growth'], row['period'] = fallback[name]
-                      row['fallback'] = True
-                      print('Using last published market snapshot for', name)
-              property_rows.append(row)
-
-          deposits = []
           td_url = 'https://www.money.com.au/banking/term-deposit-rates'
+          deposits = []
           try:
-              txt, _ = page_text(td_url)
-              asof_match = re.search(r'correct as at\s+([0-9]{1,2}\s+[A-Za-z]+\s+20[0-9]{2})', txt, re.I)
-              as_of = asof_match.group(1) if asof_match else None
-              for months in (3, 6, 12):
-                  pattern = rf'{months}\s*months?\s+([0-9]+\.[0-9]{{2}})%\s+p\.a\.\s+from\s+([^.;]+)'
-                  m = re.search(pattern, txt, re.I)
-                  if not m:
-                      pattern = rf'{months}\s*months?.{{0,160}}?([0-9]+\.[0-9]{{2}})%\s+p\.a\.\s+from\s+([^.;]+)'
-                      m = re.search(pattern, txt, re.I)
-                  fallbacks = {
-                      3: (5.25, 'BNK / Goldfields Money / RACQ Bank'),
-                      6: (5.45, 'Australian Military Bank / Gateway Bank / Heartland Bank'),
-                      12: (5.60, 'Community First Bank / Bank Australia / Qudos Bank')
-                  }
-                  provider = re.sub(r'\s+[0-9]+
-          except Exception as e:
-              print('Term deposit source failed:', str(e)[:180])
-              deposits = [{'term':f'{m} months','rate':None,'provider':'Unavailable','source':td_url} for m in (3,6,12)]
-
+              txt = page_text(td_url)
+              asof = re.search(r'(?:correct|accurate) as at\s+([0-9]{1,2}\s+[A-Za-z]+\s+20[0-9]{2})',txt,re.I)
+              as_of = asof.group(1) if asof else None
+              for months in (3,6,12):
+                  patterns = [
+                    rf'{months}\s*months?.{{0,180}}?([0-9]+\.[0-9]{{2}})%\s*p\.a\.\s*from\s+([^.;]+)',
+                    rf'{months}\s*month[^0-9]{{0,80}}([0-9]+\.[0-9]{{2}})%'
+                  ]
+                  match = None
+                  for pattern in patterns:
+                      match = re.search(pattern,txt,re.I)
+                      if match: break
+                  prior = next((x for x in old.get('term_deposits',[]) if x.get('term')==f'{months} months'),{})
+                  if match:
+                      provider = re.sub(r'\s+[0-9]+\s*$','',match.group(2)).strip() if match.lastindex and match.lastindex>=2 else 'See comparison source'
+                      deposits.append({'term':f'{months} months','rate':float(match.group(1)),'provider':provider,'source':td_url,'fallback':False,'as_of':as_of})
+                  elif prior:
+                      prior = dict(prior); prior['fallback'] = True
+                      deposits.append(prior)
+                  else:
+                      deposits.append({'term':f'{months} months','rate':None,'provider':'Unavailable','source':td_url,'fallback':True})
+          except Exception as exc:
+              print('Term deposit source failed:',str(exc)[:180])
+              deposits = [dict(x, fallback=True) for x in old.get('term_deposits',[])]
 
           rba = {'cash_rate':None,'effective_date':None,'source':'https://www.rba.gov.au/cash-rate-target-overview.html'}
           try:
-              txt, _ = page_text(rba['source'])
-              m = re.search(r'Cash rate target\s+([0-9]+\.[0-9]+)\s*%\s+Effective date\s+([0-9]{1,2}\s+[A-Za-z]+\s+20[0-9]{2})', txt, re.I)
-              if m:
-                  rba['cash_rate'] = float(m.group(1)); rba['effective_date'] = m.group(2)
-          except Exception as e: print('RBA failed:', str(e)[:180])
+              txt = page_text(rba['source'])
+              match = re.search(r'Cash rate target\s+([0-9]+\.[0-9]+)\s*%\s+Effective date\s+([0-9]{1,2}\s+[A-Za-z]+\s+20[0-9]{2})',txt,re.I)
+              if match:
+                  rba.update({'cash_rate':float(match.group(1)),'effective_date':match.group(2)})
+          except Exception as exc:
+              print('RBA source failed:',str(exc)[:160])
+          if rba['cash_rate'] is None and old.get('rba'):
+              rba = old['rba']
 
           cpi = {'annual':None,'trimmed_mean':None,'period':None,'source':'https://www.abs.gov.au/statistics/economy/price-indexes-and-inflation/consumer-price-index-australia/latest-release'}
           try:
-              txt, _ = page_text(cpi['source'])
-              m = re.search(r'In the 12 months to\s+([A-Za-z]+\s+20[0-9]{2}):\s+The Consumer Price Index \(CPI\) rose\s+([0-9]+\.[0-9]+)%', txt, re.I)
-              if m:
-                  cpi['period'] = m.group(1); cpi['annual'] = float(m.group(2))
-              m = re.search(r'Trimmed mean inflation (?:was|rose)\s+([0-9]+\.[0-9]+)%', txt, re.I)
-              if m: cpi['trimmed_mean'] = float(m.group(1))
-              m = re.search(r'In the 12 months to\s+([A-Za-z]+\s+20[0-9]{2})', txt, re.I)
-              if m: cpi['period'] = m.group(1)
-          except Exception as e: print('ABS CPI failed:', str(e)[:180])
+              txt = page_text(cpi['source'])
+              match = re.search(r'In the 12 months to\s+([A-Za-z]+\s+20[0-9]{2}).{0,220}?CPI rose\s+([0-9]+\.[0-9]+)%',txt,re.I)
+              if match:
+                  cpi['period'] = match.group(1); cpi['annual'] = float(match.group(2))
+              trimmed = re.search(r'Trimmed mean inflation (?:was|rose)\s+([0-9]+\.[0-9]+)%',txt,re.I)
+              if trimmed: cpi['trimmed_mean'] = float(trimmed.group(1))
+          except Exception as exc:
+              print('ABS source failed:',str(exc)[:160])
+          if cpi['annual'] is None and old.get('cpi'):
+              cpi = old['cpi']
 
-          data = {'updated':now.isoformat(),'groups':groups,'property':property_rows,'term_deposits':deposits,'rba':rba,'cpi':cpi}
-          Path('content-data.json').write_text(json.dumps(data, ensure_ascii=False, separators=(',',':')), encoding='utf-8')
-          print('Wrote content-data.json')
-          PY
+          # Property figures are deliberately retained as dated fallback snapshots until a reliable
+          # accessible source can be validated; this job must not relabel them as fresh live data.
+          property_rows = old.get('property',[])
+          for row in property_rows:
+              row['fallback'] = True
 
-      - name: Publish content snapshot
-        run: |
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add content-data.json
-          git diff --cached --quiet && exit 0
-          git commit -m 'Refresh adviser news and data snapshots [skip ci]'
-          for attempt in 1 2 3; do
-            git pull --rebase origin main
-            if git push; then exit 0; fi
-            sleep 3
-          done
-          echo 'Snapshot push failed after three attempts' >&2
-          exit 1
-, '', m.group(2).strip()) if m else fallbacks[months][1]
-                  deposits.append({'term':f'{months} months','rate':float(m.group(1)) if m else fallbacks[months][0],'provider':provider,'source':td_url,'fallback':not bool(m),'as_of':as_of})
-          except Exception as e:
-              print('Term deposit source failed:', str(e)[:180])
-              deposits = [{'term':f'{m} months','rate':None,'provider':'Unavailable','source':td_url} for m in (3,6,12)]
-
-
-          rba = {'cash_rate':None,'effective_date':None,'source':'https://www.rba.gov.au/cash-rate-target-overview.html'}
-          try:
-              txt, _ = page_text(rba['source'])
-              m = re.search(r'Cash rate target\s+([0-9]+\.[0-9]+)\s*%\s+Effective date\s+([0-9]{1,2}\s+[A-Za-z]+\s+20[0-9]{2})', txt, re.I)
-              if m:
-                  rba['cash_rate'] = float(m.group(1)); rba['effective_date'] = m.group(2)
-          except Exception as e: print('RBA failed:', str(e)[:180])
-
-          cpi = {'annual':None,'trimmed_mean':None,'period':None,'source':'https://www.abs.gov.au/statistics/economy/price-indexes-and-inflation/consumer-price-index-australia/latest-release'}
-          try:
-              txt, _ = page_text(cpi['source'])
-              m = re.search(r'In the 12 months to\s+([A-Za-z]+\s+20[0-9]{2}):\s+The Consumer Price Index \(CPI\) rose\s+([0-9]+\.[0-9]+)%', txt, re.I)
-              if m:
-                  cpi['period'] = m.group(1); cpi['annual'] = float(m.group(2))
-              m = re.search(r'Trimmed mean inflation (?:was|rose)\s+([0-9]+\.[0-9]+)%', txt, re.I)
-              if m: cpi['trimmed_mean'] = float(m.group(1))
-              m = re.search(r'In the 12 months to\s+([A-Za-z]+\s+20[0-9]{2})', txt, re.I)
-              if m: cpi['period'] = m.group(1)
-          except Exception as e: print('ABS CPI failed:', str(e)[:180])
-
-          data = {'updated':now.isoformat(),'groups':groups,'property':property_rows,'term_deposits':deposits,'rba':rba,'cpi':cpi}
-          Path('content-data.json').write_text(json.dumps(data, ensure_ascii=False, separators=(',',':')), encoding='utf-8')
+          data = {'updated':now.isoformat(),'groups':groups,'property':property_rows,
+                  'term_deposits':deposits,'rba':rba,'cpi':cpi}
+          Path('content-data.json').write_text(json.dumps(data,ensure_ascii=False,separators=(',',':')),encoding='utf-8')
           print('Wrote content-data.json')
           PY
 
