@@ -77,7 +77,7 @@ jobs:
             'insurance': [('ASIC insurance',google('ASIC insurance Australia life insurance claims')),
                           ('APRA insurance',google('APRA insurance Australia life insurance')),
                           ('AFCA claims',google('AFCA insurance claims Australia'))],
-            'macro': [('RBA','https://www.rba.gov.au/rss/rss-cb.xml'),
+            'macro': [('RBA',google('Reserve Bank of Australia RBA monetary policy cash rate bond yields')),
                       ('ABS',google('ABS Australia CPI inflation employment GDP wages')),
                       ('Treasury',google('Australia Treasury economy inflation budget'))],
             'asx': [('ASX company news',google('ASX Australia company earnings results guidance profit warning dividend')),
