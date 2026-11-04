@@ -1,4 +1,5 @@
 name: Refresh market data snapshot
+# Scheduled market snapshots: indices, FX, yields, commodities and ASX sectors.
 
 on:
   push:
