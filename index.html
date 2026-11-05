@@ -313,13 +313,45 @@ async function refresh(){if(inFlight||paused)return;inFlight=true;$('refresh').d
   const why=c=>({'IPO & AI':'Could influence private-market valuations, listed technology peers and the pace of AI investment.','Rates & central banks':'Rate expectations feed into bond yields, borrowing costs, currency markets and asset valuations.','Company results':'Earnings and management guidance can reset expectations for revenue, margins and dividends.','M&A':'Transaction terms and strategic rationale can affect the companies involved and their sector peers.','Economic data':'The release may shift expectations for inflation, growth and future interest-rate decisions.','Policy & regulation':'Potential implications for affected industries, business costs and advice obligations.','Commodities':'Price changes can alter producer earnings, input costs and inflation expectations.','Markets':'A potentially market-moving development to monitor for its impact on portfolios.'})[c];
   function renderTop(groups){
     const all=[...(groups.global||[]),...(groups.macro||[]),...(groups.asx||[]),...(groups.broker||[])].filter(x=>x.title);
-    const now=Date.now(), fresh=all.filter(x=>!x.date||now-new Date(x.date).getTime()<14*86400000);
-    const classify=t=>/anthropic|openai|ipo|initial public offering|artificial intelligence|ai company/i.test(t)?'IPO & AI':/cash rate|interest rate|rate cut|rate hike|central bank|federal reserve|rba|bond yield/i.test(t)?'Rates & central banks':/results|earnings|profit warning|trading update|revenue|guidance|dividend/i.test(t)?'Company results':/acquisition|takeover|merger|buyout/i.test(t)?'M&A':/cpi|inflation|employment|gdp|wages|economic growth|unemployment/i.test(t)?'Economic data':/asic|apra|treasury|legislation|superannuation|tax|regulation/i.test(t)?'Policy & regulation':/oil|gold|copper|iron ore|commodity|energy prices/i.test(t)?'Commodities':'Markets';
-    const score=x=>{const t=x.title.toLowerCase(),age=x.date?Math.max(0,(now-new Date(x.date).getTime())/3600000):240;let s=0;if(/ipo|rate decision|rate cut|rate hike|financial results|profit warning|earnings|acquisition|takeover|merger/.test(t))s+=9;if(/guidance|trading update|inflation|cpi|federal reserve|rba|anthropic|openai|dividend/.test(t))s+=6;if(/asx|nasdaq|s&p|company|shares|market/.test(t))s+=2;return s+Math.max(0,5-age/36)};
-    const sorted=fresh.map(x=>({...x,category:classify(x.title)})).sort((a,b)=>score(b)-score(a));
-    const picked=[],seen=new Set();for(const x of sorted){if(!seen.has(x.category)){picked.push(x);seen.add(x.category)}if(picked.length===3)break;}
+    const now=Date.now(), maxAge=36*60*60*1000, seenArticles=new Set();
+    const fresh=all.filter(x=>{
+      const stamp=x.date?new Date(x.date).getTime():NaN;
+      if(!Number.isFinite(stamp)||stamp>now+60*60*1000||now-stamp>maxAge)return false;
+      const key=(x.link||x.title).toLowerCase().replace(/[?#].*$/,'').replace(/[^a-z0-9]/g,'');
+      if(seenArticles.has(key))return false;seenArticles.add(key);return true;
+    });
+    const classify=t=>{
+      if(/oil|gold|copper|iron ore|commodity|energy prices|brent crude/i.test(t))return'Commodities';
+      if(/cash rate|interest rate|rate cut|rate hike|rate rise|central bank|federal reserve|rba|bond yield|treasur/i.test(t))return'Rates & central banks';
+      if(/ipo|initial public offering|listing|float|going public|pre.?ipo|anthropic|openai|artificial intelligence|ai anxiety|data cent(re|er)|chipmaker/i.test(t))return'AI & capital markets';
+      if(/results|earnings|profit warning|trading update|revenue|guidance|dividend|sales|quarterly/i.test(t))return'Company results';
+      if(/acquisition|takeover|merger|buyout|deal/i.test(t))return'M&A activity';
+      if(/cpi|inflation|employment|gdp|wages|economic growth|unemployment/i.test(t))return'Economic data';
+      if(/asic|apra|treasury|legislation|superannuation|tax|regulation/i.test(t))return'Policy & regulation';
+      return'Markets & investor sentiment';
+    };
+    const why=c=>({
+      'Commodities':'Commodity moves affect producer earnings, input costs, inflation expectations and sector leadership.',
+      'Rates & central banks':'Rate expectations flow through to bond yields, borrowing costs, currencies and asset valuations.',
+      'AI & capital markets':'AI investment, regulation and funding conditions can shift technology valuations and capital-market appetite.',
+      'Company results':'Earnings, margins and management guidance can reset expectations for individual companies and sectors.',
+      'M&A activity':'Transaction terms and strategic rationale can affect the companies involved and their sector peers.',
+      'Economic data':'The release may shift expectations for growth, inflation and the future path of interest rates.',
+      'Policy & regulation':'Policy changes can alter industry economics, business costs and investor positioning.',
+      'Markets & investor sentiment':'Cross-market moves provide a read on risk appetite, positioning and changing investor expectations.'
+    })[c];
+    const score=x=>{
+      const age=(now-new Date(x.date).getTime())/3600000,t=x.title.toLowerCase();
+      const freshness=age<=3?30:age<=6?26:age<=12?21:age<=24?15:8;
+      const relevance=/rally|surges|plunges|sell.?off|election|oil|yield|rate|inflation|results|earnings|guidance|ai|asx|wall street|markets/.test(t)?7:0;
+      const source=/reuters|abc|afr|financial times|wall street journal|fnarena|marketindex|bloomberg/.test((x.src||'').toLowerCase())?3:0;
+      return freshness+relevance+source;
+    };
+    const ranked=fresh.map(x=>({...x,category:classify(x.title)})).sort((a,b)=>score(b)-score(a));
+    const picked=[],usedCategories=new Set();
+    for(const x of ranked){if(!usedCategories.has(x.category)){picked.push(x);usedCategories.add(x.category);}if(picked.length===3)break;}
     const el=$('marketTakeaways');if(!el)return;
-    el.innerHTML=picked.length?picked.map(x=>'<li><span class="market-takeaway-category">'+esc(x.category)+'</span><div class="market-takeaway-headline">'+link(x)+'</div><div class="market-takeaway-why">'+esc(why(x.category))+'</div><div class="market-takeaway-source">'+esc(x.src||'Market news')+' · '+ago(x.date)+'</div></li>').join(''):'<li>No significant recent headlines returned. Check the news panels below.</li>';
+    el.innerHTML=picked.length?picked.map(x=>'<li><span class="market-takeaway-category">'+esc(x.category)+'</span><div class="market-takeaway-headline">'+link(x)+'</div><div class="market-takeaway-why">'+esc(why(x.category))+'</div><div class="market-takeaway-source">'+esc(x.src||'Market news')+' · '+ago(x.date)+'</div></li>').join(''):'<li>No verified headlines from the last 36 hours. Check the latest news panels below.</li>';
   }
   async function load(){
     try{
