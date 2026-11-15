@@ -361,7 +361,9 @@ async function refresh(){if(inFlight||paused)return;inFlight=true;$('refresh').d
       const marketAge=marketStamp?Math.max(0,Date.now()-new Date(marketStamp).getTime()):null,contentAge=Math.max(0,Date.now()-new Date(d.updated).getTime());
       const ageLabel=ms=>{if(ms===null)return 'not available';const mins=Math.floor(ms/60000);return mins<60?mins+'m ago':Math.floor(mins/60)+'h '+(mins%60)+'m ago'};
       const timeLabel=stamp=>stamp?new Date(stamp).toLocaleTimeString('en-AU',{hour:'2-digit',minute:'2-digit'}):'—';
-      const stale=(marketAge!==null&&marketAge>90*60000)||contentAge>120*60000;
+      const feedHealth=d.feed_health||{};
+      const staleFeeds=Object.entries(feedHealth).filter(([name,x])=>x.status==='stale'||x.status==='unavailable').map(([name,x])=>name+(x.age_hours!==null&&x.age_hours!==undefined?' ('+x.age_hours+'h)':' (no dated headlines)'));
+      const stale=(marketAge!==null&&marketAge>90*60000)||contentAge>120*60000||staleFeeds.length>0;
       const update=$('updated');if(update)update.textContent='Snapshot generated · Markets '+timeLabel(marketStamp)+' ('+ageLabel(marketAge)+') · News & data '+timeLabel(d.updated)+' ('+ageLabel(contentAge)+')';
       list('adviser',g.adviser);list('super',g.super);list('insurance',g.insurance);list('macro',g.macro);
       const asx=$('asxNews');if(asx){const items=recent(g.asx);asx.innerHTML=items.length?items.slice(0,10).map(x=>{const m=x.title.match(/\b(?:CBA|NAB|ANZ|WBC|BHP|RIO|CSL|XRO|FMG|WES|WOW|MQG|REA|TLS|ASX)\b/i);return '<tr><td><b>'+esc(m?m[0].toUpperCase():'ASX')+'</b></td><td>'+link(x)+'</td><td><span class="badge '+impact(x.title)+'">'+label(x.title)+'</span></td><td>'+ago(x.date)+'</td></tr>'}).join(''):'<tr><td colspan="4" class="small">No recent ASX headlines returned.</td></tr>'}
@@ -382,7 +384,7 @@ async function refresh(){if(inFlight||paused)return;inFlight=true;$('refresh').d
         '<div class="brief-point"><b>Adviser lens:</b> Reassess cash-flow assumptions, deposit alternatives and interest-rate sensitivity across duration-heavy assets; avoid treating one session as a portfolio signal.</div>'+
         '<div class="small">Snapshot-based context, not a recommendation. Check source dates before client communication.</div>';
       }
-      const dot=$('healthDot'),health=$('health');if(dot&&health){dot.className='dot '+(stale?'bad':'ok');health.textContent=stale?'Feeds: snapshot data is delayed — check timestamps':'Feeds: market and content snapshots loaded'}
+      const dot=$('healthDot'),health=$('health');if(dot&&health){dot.className='dot '+(stale?'bad':'ok');health.textContent=stale?'Feeds: attention required — '+(staleFeeds.length?'stale sections: '+staleFeeds.join(', '):'snapshot data is delayed'):'Feeds: market and content snapshots loaded; all news sections fresh'}
     }catch(e){console.warn('Content snapshot unavailable:',e);const h=$('health');if(h)h.textContent='Feeds: market snapshot loaded · content snapshot pending'}
   }
   window.__refreshSnapshots=load;
