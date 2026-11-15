@@ -21,6 +21,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Validate dashboard JavaScript syntax
+        run: |
+          python3 - <<'PY'
+          import re
+          from pathlib import Path
+          html = Path('index.html').read_text(encoding='utf-8')
+          scripts = re.findall(r'<script\b[^>]*>(.*?)</script\s*>', html, re.I | re.S)
+          if not scripts:
+              raise SystemExit('No inline JavaScript blocks found')
+          Path('/tmp/dashboard-inline.js').write_text('\n;\n'.join(scripts), encoding='utf-8')
+          print('Extracted', len(scripts), 'inline JavaScript blocks')
+          PY
+          node --check /tmp/dashboard-inline.js
+
       - name: Build news and economic data snapshot
         run: |
           python3 - <<'PY'
