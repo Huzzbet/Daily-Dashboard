@@ -367,7 +367,23 @@ async function refresh(){if(inFlight||paused)return;inFlight=true;$('refresh').d
       const update=$('updated');if(update)update.textContent='Snapshot generated · Markets '+timeLabel(marketStamp)+' ('+ageLabel(marketAge)+') · News & data '+timeLabel(d.updated)+' ('+ageLabel(contentAge)+')';
       list('adviser',g.adviser);list('super',g.super);list('insurance',g.insurance);list('macro',g.macro);
       const asx=$('asxNews');if(asx){const items=recent(g.asx);asx.innerHTML=items.length?items.slice(0,10).map(x=>{const m=x.title.match(/\b(?:CBA|NAB|ANZ|WBC|BHP|RIO|CSL|XRO|FMG|WES|WOW|MQG|REA|TLS|ASX)\b/i);return '<tr><td><b>'+esc(m?m[0].toUpperCase():'ASX')+'</b></td><td>'+link(x)+'</td><td><span class="badge '+impact(x.title)+'">'+label(x.title)+'</span></td><td>'+ago(x.date)+'</td></tr>'}).join(''):'<tr><td colspan="4" class="small">No recent ASX headlines returned.</td></tr>'}
-      const broker=$('broker');if(broker){const signals=d.broker_signals||[];const items=recent(g.broker);broker.innerHTML=signals.length?signals.slice(0,20).map(x=>{const target=x.target_to!==null&&x.target_to!==undefined?'
+      const broker=$('broker');
+      if(broker){
+        const signals=d.broker_signals||[];
+        const items=recent(g.broker);
+        broker.innerHTML=signals.length?signals.slice(0,20).map(x=>{
+          const target=x.target_to!==null&&x.target_to!==undefined
+            ?'$'+Number(x.target_to).toFixed(2)+(x.target_from!==null&&x.target_from!==undefined?' (from $'+Number(x.target_from).toFixed(2)+')':'')
+            :'Not stated';
+          const upside=Number.isFinite(x.implied_upside_pct)
+            ?'<span class="'+(x.implied_upside_pct>=0?'pos':'neg')+'">'+(x.implied_upside_pct>0?'+':'')+x.implied_upside_pct.toFixed(1)+'%</span>'
+            :(x.current_price===null?'Price unavailable':'Target unavailable');
+          const action=(x.action||'Rating change')+' · '+esc(x.rating_from||'—')+' → '+esc(x.rating_to||'—');
+          const quote=x.current_price!==null?'$'+Number(x.current_price).toFixed(2)+' · ':'';
+          const quoteSource=x.quote_source?'<div class="small">'+esc(x.quote_source)+' quote</div>':'';
+          return '<tr><td><b>'+esc(x.company)+'</b><div class="small">'+esc(x.ticker)+'</div></td><td>'+esc(x.broker)+'<div class="small">'+action+'</div></td><td>'+target+'</td><td>'+quote+upside+quoteSource+'</td><td><a href="'+esc(safeUrl(x.source))+'" target="_blank" rel="noopener">FNArena report ↗</a><div class="small">'+ago(x.date)+'</div></td></tr>';
+        }).join(''):items.length?items.slice(0,8).map(x=>'<tr><td>Broker research</td><td colspan="3">'+link(x)+'</td><td>'+ago(x.date)+'</td></tr>').join(''):'<tr><td colspan="5" class="small">No structured broker signals available. Check FNArena directly before advice.</td></tr>';
+      }
       if(typeof latestMarketHeadlines!=='undefined')latestMarketHeadlines=[...recent(g.global),...recent(g.macro),...recent(g.asx),...recent(g.broker)];
       renderTop(g);
       const prop=$('property');if(prop){const rows=d.property||[];prop.innerHTML=rows.map(x=>'<tr><td>'+esc(x.name)+'</td><td>'+(x.median?esc(x.median):'—')+(x.period?'<div class="small">'+esc(x.period)+'</div>':'')+(x.fallback?'<div class="small">Last published snapshot</div>':'')+'</td><td class="'+(Number(x.growth)>=0?'pos':'neg')+'">'+(Number.isFinite(x.growth)?(x.growth>=0?'+':'')+x.growth.toFixed(1)+'%':'—')+'</td></tr>').join('')||'<tr><td colspan="3">No property data returned.</td></tr>'}
