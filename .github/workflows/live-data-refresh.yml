@@ -235,7 +235,10 @@ jobs:
                           signal['implied_upside_pct']=round((signal['target_to']/price-1)*100,1)
                   else:
                       print('No latest quote for',signal['ticker'])
-                  print('FNArena structured broker signals:',len(broker_signals),'from',article_url)
+                  print('BROKER_SIGNAL',signal['ticker'],'price=',signal['current_price'],
+                        'target=',signal['target_to'],'upside_pct=',signal['implied_upside_pct'],
+                        'quote_source=',signal.get('quote_source'))
+              print('FNArena structured broker signals:',len(broker_signals),'from',article_url)
               else:
                   print('No FNArena weekly ratings report found in RSS; structured signals unavailable')
           except Exception as exc:
