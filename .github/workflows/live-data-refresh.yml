@@ -21,6 +21,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Validate dashboard JavaScript syntax
+        run: |
+          python3 - <<'PY'
+          import re
+          from pathlib import Path
+          html = Path('index.html').read_text(encoding='utf-8')
+          scripts = re.findall(r'<script\b[^>]*>(.*?)</script\s*>', html, re.I | re.S)
+          if not scripts:
+              raise SystemExit('No inline JavaScript blocks found')
+          Path('/tmp/dashboard-inline.js').write_text('\n;\n'.join(scripts), encoding='utf-8')
+          print('Extracted', len(scripts), 'inline JavaScript blocks')
+          PY
+          node --check /tmp/dashboard-inline.js
+
       - name: Build news and economic data snapshot
         run: |
           python3 - <<'PY'
@@ -80,10 +94,14 @@ jobs:
             'macro': [('RBA',google('Reserve Bank of Australia RBA monetary policy cash rate bond yields')),
                       ('ABS',google('ABS Australia CPI inflation employment GDP wages')),
                       ('Treasury',google('Australia Treasury economy inflation budget'))],
-            'asx': [('ASX company news',google('ASX Australia company earnings results guidance profit warning dividend')),
-                    ('Banks',google('CBA NAB ANZ Westpac Macquarie results Australia shares')),
-                    ('Large caps',google('BHP Rio Tinto CSL Xero Wesfarmers Woolworths Goodman Group results ASX'))],
-            'broker': [('FNArena','https://www.fnarena.com/index.php/feed/')]
+            # Third-party reporting about ASX-listed issuers. The official ASX announcement
+            # portal is linked in the dashboard; its public page terms prohibit commercial reuse.
+            'asx': [('ASX issuer updates',google('(ASX company announcement OR ASX-listed company) (quarterly activities OR production report OR trading update OR earnings OR guidance)')),
+                    ('Corporate actions',google('(ASX announcement OR ASX-listed) (capital raising OR takeover OR acquisition OR scheme OR dividend)')),
+                    ('Market-sensitive coverage',google('Australia ASX company (profit warning OR earnings downgrade OR contract win OR operational update)'))],
+            'broker': [('FNArena', 'https://www.fnarena.com/index.php/feed/'),
+                       ('FNArena ratings and targets',google('site:fnarena.com (broker upgrade OR broker downgrade OR target price OR ratings OR forecast changes)')),
+                       ('Broker calls',google('Australia ASX broker calls (upgrade OR downgrade OR target price OR earnings forecast)'))]
           }
 
           groups = {}
@@ -92,6 +110,13 @@ jobs:
               for source, url in specs:
                   try:
                       for item in rss(url, source):
+                          # Keep the broker panel focused on actual research signals and
+                          # broker/company analysis, not unrelated sponsored or lifestyle posts.
+                          if group == 'broker' and not re.search(
+                              r'broker|rating|upgrade|downgrade|target price|forecast|analyst|recommendation|consensus|corporate results monitor|call report|outperform|underperform|market in numbers|winners and losers',
+                              item['title'], re.I
+                          ):
+                              continue
                           key = re.sub(r'[^a-z0-9]+',' ',item['title'].lower()).strip()
                           if key and key not in seen:
                               seen.add(key)
@@ -104,6 +129,134 @@ jobs:
                   groups[group] = old['groups'][group]
                   print('Retained previous headlines for',group)
               print(group,'items:',len(groups[group]))
+
+          # Parse FNArena's public weekly ratings/targets report into structured
+          # broker actions. We only extract fields explicitly present in the report.
+          from html.parser import HTMLParser
+
+          class ArticleBlocks(HTMLParser):
+              def __init__(self):
+                  super().__init__(); self.blocks=[]; self.buf=[]; self.tag=None; self.depth=0
+              def handle_starttag(self, tag, attrs):
+                  if tag in ('p','h2','h3','h4','li'):
+                      if self.tag is None:
+                          self.tag=tag; self.buf=[]; self.depth=1
+                      elif self.tag is not None:
+                          self.depth += 1
+              def handle_data(self, data):
+                  if self.tag is not None: self.buf.append(data)
+              def handle_endtag(self, tag):
+                  if self.tag is not None and tag in ('p','h2','h3','h4','li'):
+                      self.depth -= 1
+                      if self.depth <= 0:
+                          value=re.sub(r'\s+',' ',' '.join(self.buf)).strip()
+                          if value: self.blocks.append(value)
+                          self.tag=None; self.buf=[]; self.depth=0
+
+          broker_signals=[]
+          try:
+              # Use FNArena's own Weekly Reports archive to obtain the publisher URL.
+              # Its general RSS feed does not consistently include the ratings report.
+              weekly = None
+              archive_url='https://fnarena.com/financial-news/weekly-reports/'
+              archive=get(archive_url).decode('utf-8','ignore')
+              for href, label in re.findall(r'<a\b[^>]*href=["\']([^"\']+)["\'][^>]*>(.*?)</a>',archive,re.I|re.S):
+                  title=re.sub(r'\s+',' ',re.sub(r'<[^>]+>',' ',unescape(label))).strip()
+                  if re.search(r'weekly ratings.*targets.*forecast changes',title,re.I):
+                      weekly={'title':title,'link':urllib.parse.urljoin(archive_url,href),'date':None}
+                      break
+              if weekly is None:
+                  candidates = rss('https://www.fnarena.com/index.php/feed/','FNArena',60)
+                  weekly = next((x for x in candidates if re.search(
+                      r'weekly ratings.*targets.*forecast changes',x['title'],re.I)),None)
+              if weekly is None:
+                  search_items = rss(google('site:fnarena.com "Weekly Ratings, Targets, Forecast Changes"'),
+                                     'FNArena Weekly Ratings search',20)
+                  weekly = next((x for x in search_items if re.search(
+                      r'weekly ratings.*targets.*forecast changes',x['title'],re.I)),None)
+              if weekly:
+                  article_url=weekly['link']
+                  raw=get(article_url).decode('utf-8','ignore')
+                  parser=ArticleBlocks(); parser.feed(raw)
+                  blocks=parser.blocks
+                  for i, block in enumerate(blocks):
+                      head=re.search(
+                          r'^(?P<company>.+?)\s+\(\((?P<ticker>[A-Z0-9]{2,6})\)\)\s+(?P<action>Upgrade|Downgrade)\s+to\s+(?P<new>.+?)\s+from\s+(?P<old>.+?)\s+by\s+(?P<broker>.+?)\s+\.B/H/S:',
+                          block,re.I)
+                      if not head: continue
+                      ticker=head.group('ticker').upper()
+                      new_rating=head.group('new').strip()
+                      old_rating=head.group('old').strip()
+                      broker=head.group('broker').strip()
+                      detail=' '.join(blocks[i+1:i+5])
+                      target_new=target_old=None
+                      patterns=[
+                          r'(?:target|price target)[^$]{0,100}\$([0-9,]+(?:\.[0-9]+)?)\s+from\s+\$([0-9,]+(?:\.[0-9]+)?)',
+                          r'target\s+is\s+\$([0-9,]+(?:\.[0-9]+)?),?\s*(?:up|down)\s+from\s+\$([0-9,]+(?:\.[0-9]+)?)'
+                      ]
+                      for pattern in patterns:
+                          tm=re.search(pattern,detail,re.I)
+                          if tm:
+                              target_new=float(tm.group(1).replace(',',''))
+                              target_old=float(tm.group(2).replace(',',''))
+                              break
+                      broker_signals.append({
+                          'company':head.group('company').strip().title(),
+                          'ticker':ticker,
+                          'broker':broker,
+                          'action':head.group('action').title(),
+                          'rating_from':old_rating,
+                          'rating_to':new_rating,
+                          'target_from':target_old,
+                          'target_to':target_new,
+                          'current_price':None,
+                          'implied_upside_pct':None,
+                          'date':weekly.get('date'),
+                          'source':article_url,
+                          'summary':detail[:420]
+                      })
+                  # Retrieve the latest available quote. Yahoo is tried first; Google Finance
+              # is a secondary public quote page when Yahoo rate-limits the runner.
+                  for signal in broker_signals[:20]:
+                      price=None
+                      try:
+                          quote_url='https://query1.finance.yahoo.com/v8/finance/chart/'+urllib.parse.quote(signal['ticker']+'.AX')+'?range=5d&interval=1d'
+                          quote=json.loads(get(quote_url,8).decode('utf-8','ignore'))
+                          result=quote.get('chart',{}).get('result') or []
+                          if result:
+                              candidate=result[0].get('meta',{}).get('regularMarketPrice')
+                              if isinstance(candidate,(int,float)) and candidate>0:
+                                  price=float(candidate); signal['quote_source']='Yahoo Finance'
+                      except Exception as exc:
+                          print('Yahoo quote unavailable:',signal['ticker'],str(exc)[:80])
+                      if price is None:
+                          try:
+                              finance_url='https://www.google.com/finance/quote/'+urllib.parse.quote(signal['ticker'])+':ASX?hl=en'
+                              page=get(finance_url,10).decode('utf-8','ignore')
+                              match=re.search(r'YMlKec fxKbKc[^>]*>\s*(?:A\$|AU\$|\$)([0-9,]+(?:\.[0-9]+)?)',page)
+                              if not match:
+                                  match=re.search(r'itemprop=["\']price["\'][^>]*content=["\']([0-9]+(?:\.[0-9]+)?)',page,re.I)
+                              if not match:
+                                  match=re.search(r'A\$([0-9,]+\.[0-9]{2})',page)
+                              if match:
+                                  price=float(match.group(1).replace(',',''))
+                                  signal['quote_source']='Google Finance'
+                          except Exception as exc:
+                              print('Google Finance quote unavailable:',signal['ticker'],str(exc)[:80])
+                      if price is not None:
+                          signal['current_price']=round(price,3)
+                          if signal['target_to'] is not None:
+                              signal['implied_upside_pct']=round((signal['target_to']/price-1)*100,1)
+                      else:
+                          print('No latest quote for',signal['ticker'])
+                      print('BROKER_SIGNAL',signal['ticker'],'price=',signal['current_price'],
+                            'target=',signal['target_to'],'upside_pct=',signal['implied_upside_pct'],
+                            'quote_source=',signal.get('quote_source'))
+                  print('FNArena structured broker signals:',len(broker_signals),'from',article_url)
+              else:
+                  print('No FNArena weekly ratings report found in RSS; structured signals unavailable')
+          except Exception as exc:
+              print('FNArena structured report parse failed:',str(exc)[:200])
 
           # Report headline freshness separately from the snapshot generation time.
           # Thresholds allow slower-moving adviser/super/insurance coverage while
@@ -206,8 +359,14 @@ jobs:
           for row in property_rows:
               row['fallback'] = True
 
-          data = {'updated':now.isoformat(),'groups':groups,'feed_health':feed_health,'property':property_rows,
-                  'term_deposits':deposits,'rba':rba,'cpi':cpi}
+          data = {'updated':now.isoformat(),'groups':groups,'feed_health':feed_health,
+                  'broker_signals':broker_signals,
+                  'source_links': {
+                    'asx_announcements': 'https://www.asx.com.au/asx/v2/statistics/todayAnns.do',
+                    'asx_historical': 'https://www.asx.com.au/markets/trade-our-cash-market/historical-announcements',
+                    'fnarena': 'https://www.fnarena.com/'
+                  },
+                  'property':property_rows,'term_deposits':deposits,'rba':rba,'cpi':cpi}
           Path('content-data.json').write_text(json.dumps(data,ensure_ascii=False,separators=(',',':')),encoding='utf-8')
           print('Wrote content-data.json')
           PY
