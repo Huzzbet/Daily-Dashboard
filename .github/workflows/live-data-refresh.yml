@@ -141,12 +141,21 @@ jobs:
 
           broker_signals=[]
           try:
-              candidates = rss('https://www.fnarena.com/index.php/feed/','FNArena',60)
-              weekly = next((x for x in candidates if re.search(
-                  r'weekly ratings.*targets.*forecast changes',x['title'],re.I)),None)
+              # Use FNArena's own Weekly Reports archive to obtain the publisher URL.
+              # Its general RSS feed does not consistently include the ratings report.
+              weekly = None
+              archive_url='https://fnarena.com/financial-news/weekly-reports/'
+              archive=get(archive_url).decode('utf-8','ignore')
+              for href, label in re.findall(r'<a\b[^>]*href=["\']([^"\']+)["\'][^>]*>(.*?)</a>',archive,re.I|re.S):
+                  title=re.sub(r'\s+',' ',re.sub(r'<[^>]+>',' ',unescape(label))).strip()
+                  if re.search(r'weekly ratings.*targets.*forecast changes',title,re.I):
+                      weekly={'title':title,'link':urllib.parse.urljoin(archive_url,href),'date':None}
+                      break
               if weekly is None:
-                  # FNArena's main RSS feed does not always include its weekly
-                  # ratings report; use a narrowly scoped Google News RSS fallback.
+                  candidates = rss('https://www.fnarena.com/index.php/feed/','FNArena',60)
+                  weekly = next((x for x in candidates if re.search(
+                      r'weekly ratings.*targets.*forecast changes',x['title'],re.I)),None)
+              if weekly is None:
                   search_items = rss(google('site:fnarena.com "Weekly Ratings, Targets, Forecast Changes"'),
                                      'FNArena Weekly Ratings search',20)
                   weekly = next((x for x in search_items if re.search(
