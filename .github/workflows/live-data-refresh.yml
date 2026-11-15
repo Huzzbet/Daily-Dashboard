@@ -105,6 +105,38 @@ jobs:
                   print('Retained previous headlines for',group)
               print(group,'items:',len(groups[group]))
 
+          # Report headline freshness separately from the snapshot generation time.
+          # Thresholds allow slower-moving adviser/super/insurance coverage while
+          # flagging stale market-sensitive ASX and macro headlines.
+          freshness_hours = {
+              'global': 36, 'macro': 48, 'asx': 48,
+              'adviser': 72, 'super': 72, 'insurance': 72, 'broker': 72
+          }
+          feed_health = {}
+          for group, items in groups.items():
+              dates = []
+              for item in items:
+                  try:
+                      stamp = datetime.fromisoformat(item['date'].replace('Z', '+00:00'))
+                      if stamp.tzinfo is None:
+                          stamp = stamp.replace(tzinfo=timezone.utc)
+                      dates.append(stamp.astimezone(timezone.utc))
+                  except Exception:
+                      continue
+              latest = max(dates) if dates else None
+              age_hours = round((now - latest).total_seconds() / 3600, 1) if latest else None
+              limit = freshness_hours.get(group, 72)
+              status = 'unavailable' if latest is None else ('stale' if age_hours > limit else 'fresh')
+              feed_health[group] = {
+                  'status': status,
+                  'latest': latest.isoformat() if latest else None,
+                  'age_hours': age_hours,
+                  'max_age_hours': limit,
+                  'items': len(items)
+              }
+              print('FRESHNESS', group, status, 'age_hours=', age_hours, 'limit=', limit)
+
+
           def page_text(url):
               raw = get(url).decode('utf-8','ignore')
               text = unescape(re.sub(r'<[^>]+>',' ',raw))
@@ -174,7 +206,7 @@ jobs:
           for row in property_rows:
               row['fallback'] = True
 
-          data = {'updated':now.isoformat(),'groups':groups,'property':property_rows,
+          data = {'updated':now.isoformat(),'groups':groups,'feed_health':feed_health,'property':property_rows,
                   'term_deposits':deposits,'rba':rba,'cpi':cpi}
           Path('content-data.json').write_text(json.dumps(data,ensure_ascii=False,separators=(',',':')),encoding='utf-8')
           print('Wrote content-data.json')
