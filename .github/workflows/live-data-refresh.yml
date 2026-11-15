@@ -80,10 +80,14 @@ jobs:
             'macro': [('RBA',google('Reserve Bank of Australia RBA monetary policy cash rate bond yields')),
                       ('ABS',google('ABS Australia CPI inflation employment GDP wages')),
                       ('Treasury',google('Australia Treasury economy inflation budget'))],
-            'asx': [('ASX company news',google('ASX Australia company earnings results guidance profit warning dividend')),
-                    ('Banks',google('CBA NAB ANZ Westpac Macquarie results Australia shares')),
-                    ('Large caps',google('BHP Rio Tinto CSL Xero Wesfarmers Woolworths Goodman Group results ASX'))],
-            'broker': [('FNArena','https://www.fnarena.com/index.php/feed/')]
+            # Third-party reporting about ASX-listed issuers. The official ASX announcement
+            # portal is linked in the dashboard; its public page terms prohibit commercial reuse.
+            'asx': [('ASX issuer updates',google('(ASX company announcement OR ASX-listed company) (quarterly activities OR production report OR trading update OR earnings OR guidance)')),
+                    ('Corporate actions',google('(ASX announcement OR ASX-listed) (capital raising OR takeover OR acquisition OR scheme OR dividend)')),
+                    ('Market-sensitive coverage',google('Australia ASX company (profit warning OR earnings downgrade OR contract win OR operational update)'))],
+            'broker': [('FNArena', 'https://www.fnarena.com/index.php/feed/'),
+                       ('FNArena ratings and targets',google('site:fnarena.com (broker upgrade OR broker downgrade OR target price OR ratings OR forecast changes)')),
+                       ('Broker calls',google('Australia ASX broker calls (upgrade OR downgrade OR target price OR earnings forecast)'))]
           }
 
           groups = {}
@@ -92,6 +96,13 @@ jobs:
               for source, url in specs:
                   try:
                       for item in rss(url, source):
+                          # Keep the broker panel focused on actual research signals and
+                          # broker/company analysis, not unrelated sponsored or lifestyle posts.
+                          if group == 'broker' and not re.search(
+                              r'broker|rating|upgrade|downgrade|target price|forecast|analyst|recommendation|consensus|corporate results monitor|call report|outperform|underperform|market in numbers|winners and losers',
+                              item['title'], re.I
+                          ):
+                              continue
                           key = re.sub(r'[^a-z0-9]+',' ',item['title'].lower()).strip()
                           if key and key not in seen:
                               seen.add(key)
@@ -206,8 +217,13 @@ jobs:
           for row in property_rows:
               row['fallback'] = True
 
-          data = {'updated':now.isoformat(),'groups':groups,'feed_health':feed_health,'property':property_rows,
-                  'term_deposits':deposits,'rba':rba,'cpi':cpi}
+          data = {'updated':now.isoformat(),'groups':groups,'feed_health':feed_health,
+                  'source_links': {
+                    'asx_announcements': 'https://www.asx.com.au/asx/v2/statistics/todayAnns.do',
+                    'asx_historical': 'https://www.asx.com.au/markets/trade-our-cash-market/historical-announcements',
+                    'fnarena': 'https://www.fnarena.com/'
+                  },
+                  'property':property_rows,'term_deposits':deposits,'rba':rba,'cpi':cpi}
           Path('content-data.json').write_text(json.dumps(data,ensure_ascii=False,separators=(',',':')),encoding='utf-8')
           print('Wrote content-data.json')
           PY
