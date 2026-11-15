@@ -144,6 +144,13 @@ jobs:
               candidates = rss('https://www.fnarena.com/index.php/feed/','FNArena',60)
               weekly = next((x for x in candidates if re.search(
                   r'weekly ratings.*targets.*forecast changes',x['title'],re.I)),None)
+              if weekly is None:
+                  # FNArena's main RSS feed does not always include its weekly
+                  # ratings report; use a narrowly scoped Google News RSS fallback.
+                  search_items = rss(google('site:fnarena.com "Weekly Ratings, Targets, Forecast Changes"'),
+                                     'FNArena Weekly Ratings search',20)
+                  weekly = next((x for x in search_items if re.search(
+                      r'weekly ratings.*targets.*forecast changes',x['title'],re.I)),None)
               if weekly:
                   article_url=weekly['link']
                   raw=get(article_url).decode('utf-8','ignore')
