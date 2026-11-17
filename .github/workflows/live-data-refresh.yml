@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - '.github/workflows/live-data-refresh.yml'
+      - 'index.html'
   schedule:
     - cron: '17,47 * * * *'
   workflow_dispatch:
