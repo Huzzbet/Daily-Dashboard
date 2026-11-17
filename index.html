@@ -202,6 +202,21 @@ body{min-width:320px;overflow-x:hidden}
 }
 
 .container>.topbar{display:flex!important;flex-wrap:wrap}
+
+/* Adviser analysis cards: event, significance and portfolio lens */
+.market-takeaways{align-items:stretch}
+.market-takeaways li{display:flex;flex-direction:column;gap:10px;padding:14px 14px 12px 17px}
+.market-takeaways li:before{display:none}
+.market-takeaway-category{margin:0;padding-bottom:8px;border-bottom:1px solid #1b2531}
+.market-takeaway-part{display:block}
+.market-takeaway-label{display:block;margin-bottom:4px;color:#ffb000;font-size:9px;font-weight:850;letter-spacing:.12em}
+.market-takeaway-headline{font-size:13px;line-height:1.45}
+.market-takeaway-why,.market-takeaway-implication{font-size:11px;line-height:1.55;color:#aab5c2}
+.market-takeaway-lens{padding:9px 10px;background:#101923;border-left:2px solid #ffb000}
+.market-takeaway-lens .market-takeaway-implication{color:#d8e0e8}
+.market-takeaway-source{margin-top:auto;padding-top:7px;border-top:1px solid #1b2531}
+@media(max-width:700px){.market-takeaways li{gap:8px;padding:12px}.market-takeaway-headline{font-size:12px}}
+
 </style></head><body><div class="container">
 <header class="topbar"><div><div style="font-size:10px;font-weight:850;letter-spacing:.16em;text-transform:uppercase;color:#175cd3;margin-bottom:7px">PRIVATE WEALTH · MARKET INTELLIGENCE</div><h1>Adviser Daily Brief</h1><div class="sub">Australia · Melbourne · Internal Use Only</div><div class="small mono" id="updated">Last updated: —</div><div class="pills"><span class="pill">🧾 Clients · Super · Compliance</span><span class="pill">🏠 Melbourne · Housing · Deposits</span><span class="pill">⚠️ Signal-only · Verify before advice</span></div></div><div><div class="toolbar"><button class="btn" id="copy">📋 Copy briefing</button><button class="btn" id="download">⬇️ Download</button><button class="btn primary" id="refresh">🔄 Refresh</button></div><div class="settings" style="margin-top:9px"><label><input id="auto" type="checkbox" checked> Auto-refresh</label><label>Every <select id="mins"><option>5</option><option selected>10</option><option>15</option><option>30</option><option>60</option></select>m</label><button class="btn" id="pause">⏸ Pause live</button></div><div class="health" style="margin-top:9px"><span class="dot" id="healthDot"></span><span id="health">Feeds: checking…</span></div></div></header>
 <section class="ticker-strip" aria-label="Live market ticker">
@@ -314,29 +329,58 @@ async function refresh(){if(inFlight||paused)return;inFlight=true;$('refresh').d
     const el=$('marketTakeaways');if(!el)return;
     const now=Date.now(),maxAge=36*60*60*1000;
     const metrics=window.__marketSnapshotMetrics||{};
+    const marketStamp=window.__marketDataUpdated?new Date(window.__marketDataUpdated).getTime():NaN;
+    const marketFresh=Number.isFinite(marketStamp)&&marketStamp<=now+60*60*1000&&now-marketStamp<=maxAge;
     const all=[...(groups.global||[]),...(groups.macro||[]),...(groups.asx||[]),...(groups.broker||[])].filter(x=>x&&x.title);
     const classify=t=>{
-      if(/oil|gold|copper|iron ore|commodity|brent|opec|energy supply/i.test(t))return'Commodities';
       if(/cash rate|interest rate|rate cut|rate hike|rate rise|central bank|federal reserve|rba|bond yield|treasur|10.?year yield/i.test(t))return'Rates & central banks';
-      if(/tariff|trade war|sanction|geopolit|conflict|war |election|china.?us/i.test(t))return'Geopolitics & trade';
-      if(/artificial intelligence|\bai\b|anthropic|openai|chipmaker|semiconductor|technology capex/i.test(t))return'AI & technology';
-      if(/results|earnings|profit warning|trading update|revenue|guidance|dividend|sales|quarterly/i.test(t))return'Company results';
+      if(/tariff|trade war|sanction|geopolit|conflict|war |election|china.?us|shipping risk/i.test(t))return'Geopolitics & trade';
+      if(/oil|gold|copper|iron ore|commodity|brent|opec|energy supply/i.test(t))return'Commodities';
+      if(/artificial intelligence|\bai\b|anthropic|openai|nvidia|chipmaker|semiconductor|technology capex/i.test(t))return'AI & technology';
       if(/acquisition|takeover|merger|buyout|deal|scheme of arrangement/i.test(t))return'M&A activity';
+      if(/results|earnings|profit warning|trading update|revenue|guidance|dividend|sales|quarterly/i.test(t))return'Company results';
       if(/cpi|inflation|employment|gdp|wages|economic growth|unemployment/i.test(t))return'Economic data';
       if(/asic|apra|treasury|legislation|superannuation|tax|regulation/i.test(t))return'Policy & regulation';
       return'Markets & investor sentiment';
     };
-    const why=c=>({
-      'Commodities':'Commodity prices feed directly into producer earnings, input costs, inflation expectations and sector leadership.',
-      'Rates & central banks':'Rate expectations flow through to bond yields, borrowing costs, currencies and equity valuations.',
-      'Geopolitics & trade':'Trade restrictions and geopolitical risk can change supply chains, energy prices, inflation and risk premiums.',
-      'AI & technology':'AI investment and funding expectations are influencing technology valuations, capital spending and IPO appetite.',
-      'Company results':'Earnings, margins and management guidance can reset company and sector valuation expectations.',
-      'M&A activity':'Deal terms and strategic rationale can reprice the companies involved and their sector peers.',
-      'Economic data':'The release can shift expectations for growth, inflation and the future path of interest rates.',
-      'Policy & regulation':'Policy changes can alter industry economics, business costs and investor positioning.',
-      'Markets & investor sentiment':'Cross-market moves provide a read on risk appetite, positioning and investor expectations.'
-    })[c];
+    const analysis={
+      'Rates & central banks':{
+        why:'Interest-rate expectations influence government and corporate bond yields, bank funding costs, mortgage rates, currency pricing and the discount rates applied to equities and property.',
+        lens:'Review duration exposure and the sensitivity of bond, bank, property and growth-equity holdings to a change in the yield outlook. Distinguish a move in market pricing from a confirmed central-bank policy change.'
+      },
+      'Geopolitics & trade':{
+        why:'Trade restrictions, conflict and shipping disruption can alter supply chains, freight and energy costs, inflation expectations and the risk premium investors demand.',
+        lens:'Check indirect exposure through energy, resources, industrials, transport and global supply chains. Consider whether currency and regional concentration risks have changed; avoid treating a headline as a forecast.'
+      },
+      'Commodities':{
+        why:'Commodity prices can shift producer revenue and margins, input costs, the terms of trade and headline inflation. The effect differs between producers and businesses that consume the commodity.',
+        lens:'Compare resource and energy exposure with companies facing higher fuel, freight or materials costs. For diversified portfolios, test whether the move changes sector concentration or inflation sensitivity.'
+      },
+      'AI & technology':{
+        why:'AI-related investment, chip demand and funding expectations can influence technology earnings forecasts, capital expenditure, valuations and broader market concentration.',
+        lens:'Assess exposure to a narrow group of technology leaders as well as the companies funding or supplying AI infrastructure. Focus on valuation, earnings delivery and concentration rather than the theme alone.'
+      },
+      'M&A activity':{
+        why:'A transaction can change expected cash flows, leverage, competitive dynamics and valuation for the companies involved, with possible read-throughs to sector peers.',
+        lens:'Identify direct holdings and sector peers that may be affected. Check deal conditions, funding, regulatory approval and execution risk before assuming the announced value will be realised.'
+      },
+      'Company results':{
+        why:'Results and management guidance provide evidence on revenue growth, margins, cash flow and balance-sheet strength; the market response depends on how they compare with expectations.',
+        lens:'For any directly or indirectly exposed holding, compare the update with the investment thesis, valuation and consensus expectations. Watch earnings revisions and balance-sheet quality, not just the headline profit number.'
+      },
+      'Economic data':{
+        why:'Inflation, employment and growth data can change expectations for household demand, company earnings and the future path of interest rates.',
+        lens:'Consider the combined effect on fixed income duration, cash rates, consumer-facing businesses and cyclical equities. One data point is not a trend; look for confirmation across subsequent releases.'
+      },
+      'Policy & regulation':{
+        why:'Regulatory or fiscal changes can alter industry economics, compliance costs, tax settings and the incentives facing households, companies and investors.',
+        lens:'Map the proposal to affected client structures, sectors and assets, then distinguish an announcement from enacted policy. Avoid changing portfolio settings until scope, timing and transition rules are clear.'
+      },
+      'Markets & investor sentiment':{
+        why:'Broad market moves reflect changing expectations, positioning and risk appetite; they can be driven by rates, earnings, liquidity or investor sentiment.',
+        lens:'Check whether the move is broad-based or concentrated, and compare it with portfolio benchmarks, asset allocation and rebalancing bands. Avoid reacting to a single session without confirming the underlying driver.'
+      }
+    };
     const sourceWeight=x=>{
       const s=(x.src||'').toLowerCase();
       if(/reuters|bloomberg|financial times|wall street journal|abc|afr|cnbc|associated press/.test(s))return 8;
@@ -345,7 +389,8 @@ async function refresh(){if(inFlight||paused)return;inFlight=true;$('refresh').d
     };
     const candidates=all.map(x=>{
       const stamp=x.date?new Date(x.date).getTime():NaN;
-      return {...x,_stamp:stamp,_category:classify(x.title)};
+      const category=classify(x.title);
+      return {...x,_stamp:stamp,_category:category,_analysis:analysis[category]};
     }).filter(x=>Number.isFinite(x._stamp)&&x._stamp<=now+60*60*1000&&now-x._stamp<=maxAge);
     const seen=new Set();
     const fresh=candidates.filter(x=>{
@@ -368,49 +413,68 @@ async function refresh(){if(inFlight||paused)return;inFlight=true;$('refresh').d
     for(const x of ranked){if(!used.has(x._category)){picked.push(x);used.add(x._category);}if(picked.length===3)break;}
     const pct=x=>Number.isFinite(x)?(x>=0?'+':'')+x.toFixed(2)+'%':'—';
     const dataCandidates=[];
-    const au=metrics['^AXJO']?.ch,us=metrics['^GSPC']?.ch,nd=metrics['^NDX']?.ch,vix=metrics['^VIX']?.cur,vixCh=metrics['^VIX']?.ch;
-    const oil=metrics['BZ=F']?.cur,oilCh=metrics['BZ=F']?.ch,gold=metrics['GC=F']?.cur,goldCh=metrics['GC=F']?.ch;
-    const us10=metrics['^TNX']?.cur,au10=metrics['^AXJCGB10Y']?.cur,aud=metrics['AUDUSD=X']?.ch;
-    if([au,us,nd,vixCh].some(x=>Number.isFinite(x)&&Math.abs(x)>=0.7)){
-      dataCandidates.push({_category:'Risk appetite',_score:Math.max(Math.abs(au||0),Math.abs(us||0),Math.abs(nd||0),Math.abs(vixCh||0))*2+8,
-        title:'Equities: ASX 200 '+pct(au)+' · S&P 500 '+pct(us)+' · NASDAQ 100 '+pct(nd),
-        why:'Cross-market risk appetite is shifting. '+(Number.isFinite(vix)?'VIX is '+vix.toFixed(1)+(Number.isFinite(vixCh)?' ('+pct(vixCh)+')':'')+', a useful check on the level of market stress.':'Compare index direction with volatility and market breadth.'),
-        src:'Live market data',date:window.__marketDataUpdated});
-    }
-    if([oilCh,goldCh].some(x=>Number.isFinite(x)&&Math.abs(x)>=0.7)){
-      dataCandidates.push({_category:'Commodities',_score:Math.max(Math.abs(oilCh||0),Math.abs(goldCh||0))*2+7,
-        title:'Commodities: Brent US$'+(Number.isFinite(oil)?oil.toFixed(2):'—')+' ('+pct(oilCh)+') · Gold US$'+(Number.isFinite(gold)?gold.toFixed(0):'—')+' ('+pct(goldCh)+')',
-        why:'Commodity moves affect inflation expectations, producer earnings and input costs.',
-        src:'Live market data',date:window.__marketDataUpdated});
-    }
-    if([metrics['^TNX']?.ch,metrics['^AXJCGB10Y']?.ch].some(x=>Number.isFinite(x)&&Math.abs(x)>=0.4)){
-      dataCandidates.push({_category:'Bond yields',_score:Math.max(Math.abs(metrics['^TNX']?.ch||0),Math.abs(metrics['^AXJCGB10Y']?.ch||0))*2+7,
-        title:'Bond yields: US 10-year '+(Number.isFinite(us10)?us10.toFixed(2)+'%':'—')+' · Australia 10-year '+(Number.isFinite(au10)?au10.toFixed(2)+'%':'—'),
-        why:'Changes in longer-term yields influence discount rates, mortgage pricing, bank funding and property valuations.',
-        src:'Live market data',date:window.__marketDataUpdated});
-    }
-    if(Number.isFinite(aud)&&Math.abs(aud)>=0.5){
-      dataCandidates.push({_category:'Australian dollar',_score:Math.abs(aud)*2+5,
-        title:'Australian dollar: daily move '+pct(aud),
-        why:'Currency movements affect imported inflation, offshore earnings translation and international portfolio returns.',
-        src:'Live market data',date:window.__marketDataUpdated});
+    const addData=(category,title,whyText,lens,scoreValue)=>{
+      dataCandidates.push({_category:category,title,whyText,lens,src:'Live market data',date:window.__marketDataUpdated,_score:scoreValue});
+    };
+    if(marketFresh){
+      const au=metrics['^AXJO']?.ch,us=metrics['^GSPC']?.ch,nd=metrics['^NDX']?.ch;
+      const vix=metrics['^VIX']?.cur,vixCh=metrics['^VIX']?.ch;
+      const oil=metrics['BZ=F']?.cur,oilCh=metrics['BZ=F']?.ch,gold=metrics['GC=F']?.cur,goldCh=metrics['GC=F']?.ch;
+      const us10=metrics['^TNX']?.cur,us10Ch=metrics['^TNX']?.ch,au10=metrics['^AXJCGB10Y']?.cur,aud=metrics['AUDUSD=X']?.ch;
+      if([au,us,nd].some(x=>Number.isFinite(x)&&Math.abs(x)>=0.7)){
+        addData('Risk appetite','Equities: ASX 200 '+pct(au)+' · S&P 500 '+pct(us)+' · NASDAQ 100 '+pct(nd),
+          'The major equity indices are showing a meaningful daily move. '+(Number.isFinite(vix)?'The VIX is '+vix.toFixed(1)+(Number.isFinite(vixCh)?' ('+pct(vixCh)+')':'')+', providing a cross-check on market stress.':'Compare index direction with volatility and market breadth.'),
+          'Check whether client portfolios are exposed to the same regions, sectors and growth factors driving the move. Review concentration and rebalancing bands rather than extrapolating a one-day return.',
+          Math.max(Math.abs(au||0),Math.abs(us||0),Math.abs(nd||0))*2+8);
+      }
+      if([oilCh,goldCh].some(x=>Number.isFinite(x)&&Math.abs(x)>=0.7)){
+        addData('Commodity prices','Commodities: Brent US$'+(Number.isFinite(oil)?oil.toFixed(2):'—')+' ('+pct(oilCh)+') · Gold US$'+(Number.isFinite(gold)?gold.toFixed(0):'—')+' ('+pct(goldCh)+')',
+          'The move is relevant to inflation expectations, producer earnings and the cost base of commodity-consuming businesses.',
+          'Compare resource and energy exposures with fuel- and materials-sensitive holdings. Check whether the move changes portfolio inflation sensitivity or creates unintended sector concentration.',
+          Math.max(Math.abs(oilCh||0),Math.abs(goldCh||0))*2+7);
+      }
+      if(Number.isFinite(us10Ch)&&Math.abs(us10Ch)>=0.4){
+        addData('Bond yields','US 10-year Treasury yield: '+(Number.isFinite(us10)?us10.toFixed(2)+'%':'—')+' · daily change '+pct(us10Ch),
+          'Long-term government yields are a key input into global discount rates, borrowing costs and relative asset valuations.',
+          'Review duration and interest-rate sensitivity across fixed income, listed property and longer-duration equities. Check whether the yield move is US-specific or part of a broader global repricing.',
+          Math.abs(us10Ch)*2+7);
+      }
+      if(Number.isFinite(aud)&&Math.abs(aud)>=0.5){
+        addData('Currency','Australian dollar: daily move '+pct(aud),
+          'Currency movements affect imported inflation, offshore earnings translation and the Australian-dollar value of unhedged international assets.',
+          'Compare each client’s hedged and unhedged international exposure with their intended currency settings. A weaker AUD can lift translated offshore returns but also raise imported-cost pressure.',
+          Math.abs(aud)*2+5);
+      }
+      if(Number.isFinite(vixCh)&&(Math.abs(vixCh)>=5||(Number.isFinite(vix)&&vix>=25))){
+        addData('Volatility','VIX: '+(Number.isFinite(vix)?vix.toFixed(1):'—')+' · daily move '+pct(vixCh),
+          'A sharp rise in implied equity volatility signals a higher near-term market risk premium, though it is not a directional forecast.',
+          'Check liquidity needs, portfolio drawdown tolerance and the balance between defensive assets and growth exposures. Avoid using volatility alone as a market-timing signal.',
+          Math.abs(vixCh)*1.5+8);
+      }
     }
     dataCandidates.sort((a,b)=>b._score-a._score);
     for(const x of dataCandidates){if(picked.length===3)break;if(!used.has(x._category)){picked.push(x);used.add(x._category);}}
     if(!picked.length){
-      picked.push({_category:'Market data',title:'Market news is awaiting a verified update.',
-        why:'The dashboard will not recycle older headlines. Check the market performance and macro panels below.',
+      picked.push({_category:'Market data',title:'No sufficiently recent, verified market-moving development is available.',
+        whyText:'The dashboard is deliberately not recycling older headlines or presenting stale market data as current.',
+        lens:'Use the market performance, economic calendar and portfolio exposure panels below, and verify the underlying source before discussing a market event with a client.',
         src:'Daily report',date:reportUpdated});
     }
     const stamp=reportUpdated?new Date(reportUpdated):null;
-    const marketStamp=window.__marketDataUpdated?new Date(window.__marketDataUpdated):null;
+    const marketDate=window.__marketDataUpdated?new Date(window.__marketDataUpdated):null;
     const fmt=d=>d&&!Number.isNaN(d.getTime())?d.toLocaleString('en-AU',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}):'not available';
     const note=document.querySelector('.market-takeaway-note');
-    if(note)note.textContent='Daily report · News '+fmt(stamp)+' · Market data '+fmt(marketStamp)+' · 36-hour verified window';
+    if(note)note.textContent='Daily report · News '+fmt(stamp)+' · Market data '+fmt(marketDate)+' · 36-hour verified window. Portfolio lens is contextual, not a recommendation.';
     el.innerHTML=picked.map(x=>{
       const title=esc(x.title),url=x.link?safe(x.link):'',headline=url?'<a href="'+url+'" target="_blank" rel="noopener">'+title+'</a>':title;
       const age=x._stamp?ago(x.date):(x.date?'Market snapshot':'');
-      return '<li><span class="market-takeaway-category">'+esc(x._category)+'</span><div class="market-takeaway-headline">'+headline+'</div><div class="market-takeaway-why">'+esc(x.why||why(x._category)||'Monitor the development for its potential effect on portfolio risk and return.')+'</div><div class="market-takeaway-source">'+esc(x.src||'Market news')+(age?' · '+age:'')+'</div></li>';
+      const whyText=x.whyText||(x._analysis&&x._analysis.why)||'The development may affect investor expectations, asset valuations or risk pricing.';
+      const lens=x.lens||(x._analysis&&x._analysis.lens)||'Check direct and indirect portfolio exposure, valuation and concentration before drawing an investment conclusion.';
+      return '<li><span class="market-takeaway-category">'+esc(x._category)+'</span>'+
+        '<div class="market-takeaway-part"><span class="market-takeaway-label">WHAT HAPPENED</span><div class="market-takeaway-headline">'+headline+'</div></div>'+
+        '<div class="market-takeaway-part"><span class="market-takeaway-label">WHY IT MATTERS</span><div class="market-takeaway-why">'+esc(whyText)+'</div></div>'+
+        '<div class="market-takeaway-part market-takeaway-lens"><span class="market-takeaway-label">POTENTIAL PORTFOLIO LENS</span><div class="market-takeaway-implication">'+esc(lens)+'</div></div>'+
+        '<div class="market-takeaway-source">'+esc(x.src||'Market news')+(age?' · '+age:'')+'</div></li>';
     }).join('');
   }
   async function load(){
