@@ -80,8 +80,10 @@ jobs:
               return 'https://news.google.com/rss/search?q=' + q + '&hl=en-AU&gl=AU&ceid=AU:en'
 
           feeds = {
-            'global': [('Global markets',google('(global markets OR Wall Street OR bond yields OR commodities)')),
-                       ('IPO and AI',google('(Anthropic OR OpenAI OR AI company) (IPO OR listing OR funding OR valuation)')),
+            'global': [('Global equity markets',google('(Wall Street OR S&P 500 OR Nasdaq OR Asian stocks OR European stocks OR global equities) (markets OR shares OR futures OR investors)')),
+                       ('Bonds FX and volatility',google('(US Treasury yields OR bond yields OR currency markets OR US dollar OR VIX OR volatility) (rise OR fall OR markets OR investors)')),
+                       ('Commodities and geopolitics',google('(Brent crude OR oil prices OR gold OR copper OR iron ore OR OPEC OR tariffs OR trade tensions) (supply OR markets OR prices OR production)')),
+                       ('AI and capital markets',google('(Anthropic OR OpenAI OR AI company) (IPO OR listing OR funding OR valuation)')),
                        ('Central banks',google('(Federal Reserve OR RBA OR ECB OR Bank of Japan) (interest rate OR inflation OR policy)'))],
             'adviser': [('Australian advice',google('Australia financial advice FAAA adviser regulation')),
                         ('ASIC advice',google('ASIC financial advice Australia adviser')),
